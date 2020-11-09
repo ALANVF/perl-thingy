@@ -121,7 +121,6 @@ my $SHOPFEET;
 my $URL_SERVER;
 my $file_fix;
 my $temp1 = new Math::BigFloat;
-my $temp_loop = new Math::BigFloat;
 my $purebuild = 180;
 
 
@@ -143,24 +142,17 @@ if($server == 1) {
 	$file_fix = "sotse";
 }
 
-$temp_loop = $loop_wait * 10;
-
 #---------------------
 
 sub get_steal_wait {
 	my $steal_wait = 3600;
 	my $steal_time = time;
-	my $steal_count = 0;
 	
-	$steal_time = $steal_time + $steal_wait; # if stealer can't be found, click for 1k seconds
-	#print time . "|" . $steal_time . "\n";
-	#print "steal_time: " . $steal_time . "\n";
+	$steal_time += $steal_wait; # if stealer can't be found, click for 1k seconds
+	
 	my $parsed = 0;
-	
-	while($parsed == 0) {
-		sleep(1);
-		
-		#print $steal_count . "\n";
+	until($parsed) {
+		sleep 1;
 		
 		$mech->get("http://thenewlosthope.net${URL_SERVER}steal.php");
 		$a = $mech->content();
@@ -169,13 +161,8 @@ sub get_steal_wait {
 			$parsed = 1;
 			$steal_wait = 0;
 		} else {
-			sleep(10);
-			exit();
-		}
-		
-		$steal_count++;
-		
-		if($steal_count == 5) { # (USELESS)
+			sleep 10;
+			exit;
 		}
 
 		if($a =~ m/recover/) {
@@ -185,7 +172,6 @@ sub get_steal_wait {
 			$b =~ s/<.*?>//sg;
 			$b =~ m/(Take.*seconds)/s;
 			$b = $1;
-			#print $b . "\n";
 			$b =~ m/(for.*seconds)/s;
 			$b = $1;
 			$b =~ s/for//sg;
@@ -199,15 +185,6 @@ sub get_steal_wait {
 			$steal_time = time;
 			$steal_time += $steal_wait;
 		}
-	}
-
-	# (USELESS)
-	$temp1 = $steal_wait;
-	$temp1 =~ s/\s//g;
-	my $steal_antal = $temp1;
-	#
-	if($steal_antal == 0){
-		$steal_antal = 1800;
 	}
 	
 	return $steal_wait;
