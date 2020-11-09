@@ -138,7 +138,7 @@ if($char_type ~~ [7..12]) {
 	$shop_yes_no = 2;
 }
 
-if($merger_name eq "MergerName"){
+if($merger_name eq "MergerName") {
 	$merger_name = "Undefined";
 }
 
@@ -631,8 +631,8 @@ sub low_fight($level) {
 		if($content =~ m/(Congra.*exp)/) {
 			given($char_type) {
 				level_up_agi_mage()       when 1;
-				level_up_fighter()       when 2;
-				level_up_mage()          when 3;
+				level_up_fighter()        when 2;
+				level_up_mage()           when 3;
 				level_up_pure_fighter()   when 4;
 				level_up_pure_mage()      when 5;
 				level_up_contra_fighter() when 6;
@@ -642,14 +642,17 @@ sub low_fight($level) {
 }
 
 sub auto_level_up {
-	$parsed = 0; while ($parsed == 0) {sleep(0.5);
-	$mech->get("http://thenewlosthope.net".$URL_SERVER."stats.php");
-	$a = $mech->content();
-	if ($a =~ m/Parsed/){
-		$parsed = 1;
-	}else{
+	$parsed = 0;
+	while($parsed == 0) {
+		sleep(0.5);
+		$mech->get("http://thenewlosthope.net".$URL_SERVER."stats.php");
+		$a = $mech->content();
+		
+		if($a =~ m/Parsed/) {
+			$parsed = 1;
+		} else {
 			sleep(10);
-			exit();
+			exit;
 		}
 	}
 	$a = $mech->content();
@@ -662,115 +665,127 @@ sub auto_level_up {
 	$b =~ s/Level : //si;
 	$ActualLevel = $b;
 	
-	if($char_type == 6){
+	if($char_type == 6) {
 		$alternate = 75;
 	}
-	while ($a =~ m/(Congra.*exp)/){
-		if ($char_type == 1) {if ($agilmagecount == 6){
-								$autolevel = "Agility";
-								$agilmagecount = $agilmagecount - 1;
-							}elsif($agilmagecount >= 4){
-								$autolevel = "Intelligence";
-								$agilmagecount = $agilmagecount - 1;
-							}elsif($agilmagecount >= 0){
-								$autolevel = "Concentration";
-								$agilmagecount = $agilmagecount - 1;
-							}
+
+	while($a =~ m/(Congra.*exp)/) {
+		if($char_type == 1) {
+			if($agilmagecount == 6) {
+				$autolevel = "Agility";
+				$agilmagecount = $agilmagecount - 1;
+			} elsif($agilmagecount >= 4) {
+				$autolevel = "Intelligence";
+				$agilmagecount = $agilmagecount - 1;
+			} elsif($agilmagecount >= 0) {
+				$autolevel = "Concentration";
+				$agilmagecount = $agilmagecount - 1;
+			}
 		}
-		if ($char_type == 2) {if ($fightercount == 3){
-								$autolevel = "Dexterity";
-								$fightercount = $fightercount - 1;
-							}elsif($fightercount >= 2){
-								$autolevel = "Concentration";
-								$fightercount = $fightercount - 1;
-							}elsif($fightercount >= 0){
-								$autolevel = "Strength";
-								$fightercount = $fightercount - 1;
-							}
+		if($char_type == 2) {
+			if($fightercount == 3) {
+				$autolevel = "Dexterity";
+				$fightercount = $fightercount - 1;
+			} elsif($fightercount >= 2) {
+				$autolevel = "Concentration";
+				$fightercount = $fightercount - 1;
+			} elsif($fightercount >= 0) {
+				$autolevel = "Strength";
+				$fightercount = $fightercount - 1;
+			}
 		}
-		if ($char_type == 3) {if ($magecount == 3){
-								$autolevel = "Concentration";
-								$magecount = $magecount - 1;
-							}elsif($magecount >= 2){
-								$autolevel = "Dexterity";
-								$magecount = $magecount - 1;
-							}elsif($magecount >= 0){
-								$autolevel = "Intelligence";
-								$magecount = $magecount - 1;
-							}
+		if($char_type == 3) {
+			if($magecount == 3) {
+				$autolevel = "Concentration";
+				$magecount = $magecount - 1;
+			} elsif($magecount >= 2) {
+				$autolevel = "Dexterity";
+				$magecount = $magecount - 1;
+			} elsif($magecount >= 0) {
+				$autolevel = "Intelligence";
+				$magecount = $magecount - 1;
+			}
 		}
-		if ($char_type == 4) {if ($purefightercount == 3){
-								$autolevel = "Strength";
-								$purefightercount = $purefightercount - 1;
-							}elsif($purefightercount >= 0){
-								$autolevel = "Dexterity";
-								$purefightercount = $purefightercount - 1;
-							}
+		if($char_type == 4) {
+			if($purefightercount == 3) {
+				$autolevel = "Strength";
+				$purefightercount = $purefightercount - 1;
+			} elsif($purefightercount >= 0) {
+				$autolevel = "Dexterity";
+				$purefightercount = $purefightercount - 1;
+			}
 		}		
-		if ($char_type == 5) {if ($puremagecount >= 3){
-								$autolevel = "Intelligence";
-								$puremagecount = $puremagecount - 1;
-							}elsif($puremagecount >= 0){
-								$autolevel = "Concentration";
-								$puremagecount = $puremagecount - 1;
-							}
+		if($char_type == 5) {
+			if($puremagecount >= 3) {
+				$autolevel = "Intelligence";
+				$puremagecount = $puremagecount - 1;
+			} elsif($puremagecount >= 0) {
+				$autolevel = "Concentration";
+				$puremagecount = $puremagecount - 1;
+			}
 		}
-		if ($char_type == 6) {if (($cfcount == 17) || ($cfcount == 14) || ($cfcount == 11)){
-								$autolevel = "Strength";
-								$cfcount = $cfcount - 1;
-							}elsif(($cfcount == 16) || ($cfcount == 13) || ($cfcount == 10) || ($cfcount == 8)){
-								$autolevel = "Dexterity";
-								$cfcount = $cfcount - 1;
-							}elsif(($cfcount == 15) || ($cfcount == 12) || ($cfcount == 9) || ($cfcount == 7) || ($cfcount == 6) || ($cfcount == 5) || ($cfcount == 4) || ($cfcount == 3) || ($cfcount == 2) || ($cfcount == 1)){
-								$autolevel = "Contravention";
-								$cfcount = $cfcount - 1;
-							}
+		if($char_type == 6) {
+			if(($cfcount == 17) || ($cfcount == 14) || ($cfcount == 11)) {
+				$autolevel = "Strength";
+				$cfcount = $cfcount - 1;
+			} elsif(($cfcount == 16) || ($cfcount == 13) || ($cfcount == 10) || ($cfcount == 8)) {
+				$autolevel = "Dexterity";
+				$cfcount = $cfcount - 1;
+			} elsif(($cfcount == 15) || ($cfcount == 12) || ($cfcount == 9) || ($cfcount == 7) || ($cfcount == 6) || ($cfcount == 5) || ($cfcount == 4) || ($cfcount == 3) || ($cfcount == 2) || ($cfcount == 1)) {
+				$autolevel = "Contravention";
+				$cfcount = $cfcount - 1;
+			}
 		}
-		if ($char_type == 7) {if ($purebuild >= 0){
-								$autolevel = "Strength";
-								$purebuild = $purebuild - 1;
-							}
+		if($char_type == 7) {
+			if($purebuild >= 0) {
+				$autolevel = "Strength";
+				$purebuild = $purebuild - 1;
+			}
 		}
-		if ($char_type == 8) {if ($purebuild >= 0){
-								$autolevel = "Dexterity";
-								$purebuild = $purebuild - 1;
-							}
+		if($char_type == 8) {
+			if($purebuild >= 0) {
+				$autolevel = "Dexterity";
+				$purebuild = $purebuild - 1;
+			}
 		}
-		if ($char_type == 9) {if ($purebuild >= 0){
-								$autolevel = "Agility";
-								$purebuild = $purebuild - 1;
-							}
+		if($char_type == 9) {
+			if($purebuild >= 0) {
+				$autolevel = "Agility";
+				$purebuild = $purebuild - 1;
+			}
 		}
-		if ($char_type == 10) {if ($purebuild >= 0){
-								$autolevel = "Intelligence";
-								$purebuild = $purebuild - 1;
-							}
+		if($char_type == 10) {
+			if($purebuild >= 0) {
+				$autolevel = "Intelligence";
+				$purebuild = $purebuild - 1;
+			}
 		}
-		if ($char_type == 11) {if ($purebuild >= 0){
-								$autolevel = "Concentration";
-								$purebuild = $purebuild - 1;
-							}
+		if($char_type == 11) {
+			if($purebuild >= 0) {
+				$autolevel = "Concentration";
+				$purebuild = $purebuild - 1;
+			}
 		}
-		if ($char_type == 12) {if ($purebuild >= 0){
-								$autolevel = "Contravention";
-								$purebuild = $purebuild - 1;
-							}
+		if($char_type == 12) {
+			if($purebuild >= 0) {
+				$autolevel = "Contravention";
+				$purebuild = $purebuild - 1;
+			}
 		}
 
-	$mech->form_number(1);
-	if ($a =~ m/Freeplay/i){	
-		$mech->field("Stats", $autolevel);
-		$mech->click_button('name' => 'Stats', 'value' => $autolevel);
-	}else{
-		if($MyLev <= $masslevel){
+		$mech->form_number(1);
+		if($a =~ m/Freeplay/i) {
+			$mech->field("Stats", $autolevel);
+			$mech->click_button('name' => 'Stats', 'value' => $autolevel);
+		} else {
+			if($MyLev <= $masslevel) {
 				$mech->field("cStats", $autolevel);
 				$mech->click_button('name' => 'cStats', 'value' => $autolevel);
+			} elsif($MyLev >= $masslevel) {
+				$mech->field("Stats", $autolevel);
+				$mech->click_button('name' => 'Stats', 'value' => $autolevel);			
+			}
 		}
-		elsif($MyLev >= $masslevel){
-			$mech->field("Stats", $autolevel);
-			$mech->click_button('name' => 'Stats', 'value' => $autolevel);			
-		}
-	}
 		$a = $mech->content();
 		$b = $mech->content();
 		$c = $mech->content();
@@ -779,13 +794,13 @@ sub auto_level_up {
 		$b =~ s/<\/td> .*//si;
 		$b =~ s/Level : //si;
 		$b =~ s/,//si;
-		if ($b =~ m/m1/is){
+		if($b =~ m/m1/is) {
 			$b =~ s/m1/000000/si;
 		}
-		if ($b =~ m/m2/is){
+		if($b =~ m/m2/is) {
 			$b =~ s/m2/000000000000/si;
 		}
-		if ($b =~ m/m3/is){
+		if($b =~ m/m3/is) {
 			$b =~ s/m3/000000000000000000/si;
 		}
 		$c =~ m/(You leveled up .* levels!)/;
@@ -794,42 +809,42 @@ sub auto_level_up {
 		$c =~ s/\D//gsi;
 		$ActualLevel = $b + $c;
 		my $FormatedLev = $ActualLevel;
-		while($FormatedLev =~ m/([0-9]{4})/){
-		my $temp1 = reverse $FormatedLev;
-		$temp1 =~ s/(?<=(\d\d\d))(?=(\d))/,/;
-		$FormatedLev = reverse $temp1;
-	}
-	
-	print "[Level : $FormatedLev][$alternate] You Auto-Leveled " . $autolevel . "\n";
-			$alternate = $alternate - 1;
-		if($alternate == 0){
-			test_shop();
-			exit();
+		while($FormatedLev =~ m/([0-9]{4})/) {
+			my $temp1 = reverse $FormatedLev;
+			$temp1 =~ s/(?<=(\d\d\d))(?=(\d))/,/;
+			$FormatedLev = reverse $temp1;
 		}
-		if($agilmagecount == 0){
+	
+		print "[Level : $FormatedLev][$alternate] You Auto-Leveled " . $autolevel . "\n";
+		$alternate = $alternate - 1;
+		if($alternate == 0) {
+			test_shop();
+			exit;
+		}
+		if($agilmagecount == 0) {
 			$agilmagecount = 6;
 		}
-		if($fightercount == 0){
+		if($fightercount == 0) {
 			$fightercount = 3;
 		}
-		if($magecount == 0){
+		if($magecount == 0) {
 			$magecount = 3;
 		}
-		if($purefightercount == 0){
+		if($purefightercount == 0) {
 			$purefightercount = 3;
 		}
-		if($puremagecount == 0){
+		if($puremagecount == 0) {
 			$puremagecount = 3;
 		}
-		if($cfcount == 0){
+		if($cfcount == 0) {
 			$cfcount = 17;
 		}
-		if($purebuild == 0){
+		if($purebuild == 0) {
 			$purebuild = 180;
 		}
-		if($ActualLevel >= $max_level){
+		if($ActualLevel >= $max_level) {
 			print "Max level reached, exiting.\n";
-			exit();
+			exit;
 		}
 		sleep(0.5);
 	}
@@ -837,26 +852,26 @@ sub auto_level_up {
 
 sub cpm_level {
 	$parsed = 0; 
-	while ($parsed == 0){
+	while($parsed == 0) {
 		sleep(0.5);
 #		$mech->get("http://thenewlosthope.net".$URL_SERVER."fight_control.php");
 		$mech->get("http://thenewlosthope.net".$URL_SERVER."world_control.php");
 		$a = $mech->content();
-		if ($a =~ m/Thief/){
-		$parsed = 1;
-		}else{
+		if($a =~ m/Thief/) {
+			$parsed = 1;
+		} else {
 			sleep(10);
-			exit();
+			exit;
 		}
 	}
 	$mech->form_number(1);
 	$mech->click();
 	my $all = $mech->content();
 	#test for free upgrade
-	if ($all =~ m/Click here to upgrade/) {
+	if($all =~ m/Click here to upgrade/) {
 		sleep(0.5); $mech->form_number(0);$mech->click();
 		print "Free upgrade detected and cleared. Restarting\n";
-		exit();
+		exit;
 	}
 	$all =~ m/(Min<br>.*monster)/s;
 	my $stat = $1;
@@ -897,73 +912,73 @@ sub cpm_level {
 
 	$aslevel->bmul('2.5'); # multiplier for correct AS
 	$wdlevel->bmul('2.5'); #multiplier for correct wd
-if($char_type ==4){
-	$wdlevel->bdiv('2.5');
-}
-if($char_type ==5){
-	$aslevel->bdiv('2.5');
-}
-if($char_type == 1) {
-	printf "ASlevel: %.3e", $aslevel->bstr();
-	printf ", DEFlevel: %.3e", $deflevel->bstr();
-	printf ", MRlevel: %.3e", $mrlevel->bstr();
+	if($char_type ==4) {
+		$wdlevel->bdiv('2.5');
 	}
-if($char_type == 2) {
-	printf "WDlevel: %.3e", $wdlevel->bstr();
-	printf ", ARlevel: %.3e", $arlevel->bstr();
-	printf ", MRlevel: %.3e", $mrlevel->bstr();
+	if($char_type ==5) {
+		$aslevel->bdiv('2.5');
 	}
-if($char_type == 3) {
-	printf "ASlevel: %.3e", $aslevel->bstr();
-	printf ", ARlevel: %.3e", $arlevel->bstr();
-	printf ", MRlevel: %.3e", $mrlevel->bstr();
+	if($char_type == 1) {
+		printf "ASlevel: %.3e", $aslevel->bstr();
+		printf ", DEFlevel: %.3e", $deflevel->bstr();
+		printf ", MRlevel: %.3e", $mrlevel->bstr();
 	}
-if($char_type == 4) {
-	printf "WDlevel: %.3e", $wdlevel->bstr();
-	printf ", ARlevel: %.3e", $arlevel->bstr();
+	if($char_type == 2) {
+		printf "WDlevel: %.3e", $wdlevel->bstr();
+		printf ", ARlevel: %.3e", $arlevel->bstr();
+		printf ", MRlevel: %.3e", $mrlevel->bstr();
 	}
-if($char_type == 5) {
-	printf "ASlevel: %.3e", $aslevel->bstr();
-	printf ", MRlevel: %.3e", $mrlevel->bstr();
+	if($char_type == 3) {
+		printf "ASlevel: %.3e", $aslevel->bstr();
+		printf ", ARlevel: %.3e", $arlevel->bstr();
+		printf ", MRlevel: %.3e", $mrlevel->bstr();
 	}
-if($char_type == 6) {
-	printf "WDlevel: %.3e", $wdlevel->bstr();
-	printf ", MSlevel: %.3e", $mslevel->bstr();
-	printf ", ARlevel: %.3e", $arlevel->bstr();
+	if($char_type == 4) {
+		printf "WDlevel: %.3e", $wdlevel->bstr();
+		printf ", ARlevel: %.3e", $arlevel->bstr();
+	}
+	if($char_type == 5) {
+		printf "ASlevel: %.3e", $aslevel->bstr();
+		printf ", MRlevel: %.3e", $mrlevel->bstr();
+	}
+	if($char_type == 6) {
+		printf "WDlevel: %.3e", $wdlevel->bstr();
+		printf ", MSlevel: %.3e", $mslevel->bstr();
+		printf ", ARlevel: %.3e", $arlevel->bstr();
 	}
 	
 	# for agi mage:
-	if ($char_type == 1) {
-	$level = $aslevel->copy();
-	if ($level >= $deflevel) {$level = $deflevel->copy();}
-	if ($level >= $mrlevel) {$level = $mrlevel->copy();}
+	if($char_type == 1) {
+		$level = $aslevel->copy();
+		if($level >= $deflevel) {$level = $deflevel->copy();}
+		if($level >= $mrlevel) {$level = $mrlevel->copy();}
 	}
 	# for fighter
-	if ($char_type == 2) {
-	$level = $wdlevel->copy();
-	if ($level >= $arlevel) {$level = $arlevel->copy();}
-	if ($level >= $mrlevel) {$level = $mrlevel->copy();}
+	if($char_type == 2) {
+		$level = $wdlevel->copy();
+		if($level >= $arlevel) {$level = $arlevel->copy();}
+		if($level >= $mrlevel) {$level = $mrlevel->copy();}
 	}
 	# for mage
-	if ($char_type == 3) {
-	$level = $aslevel->copy();
-	if ($level >= $arlevel) {$level = $arlevel->copy();}
-	if ($level >= $mrlevel) {$level = $mrlevel->copy();}
+	if($char_type == 3) {
+		$level = $aslevel->copy();
+		if($level >= $arlevel) {$level = $arlevel->copy();}
+		if($level >= $mrlevel) {$level = $mrlevel->copy();}
 	}
 	# for pure fighter
-	if ($char_type == 4) {
-	$level = $wdlevel->copy();
-	if ($level >= $arlevel) {$level = $arlevel->copy();}
+	if($char_type == 4) {
+		$level = $wdlevel->copy();
+		if($level >= $arlevel) {$level = $arlevel->copy();}
 	}
 	# for pure mage
-	if ($char_type == 5) {
-	$level = $aslevel->copy();
-	if ($level >= $mrlevel) {$level = $mrlevel->copy();}
+	if($char_type == 5) {
+		$level = $aslevel->copy();
+		if($level >= $mrlevel) {$level = $mrlevel->copy();}
 	}
-	if ($char_type == 6) {
-	$level = $wdlevel->copy();
-	if ($level >= $mslevel) {$level = $mslevel->copy();}
-	if ($level >= $arlevel) {$level = $arlevel->copy();}
+	if($char_type == 6) {
+		$level = $wdlevel->copy();
+		if($level >= $mslevel) {$level = $mslevel->copy();}
+		if($level >= $arlevel) {$level = $arlevel->copy();}
 	}
 
 	printf " --> CPM level: %.3e\n", $level->bstr();
@@ -973,15 +988,15 @@ sub fight($level) {
 # setup fight
 	my($cpm);
 	$parsed = 0;
-	while ($parsed == 0){
+	while($parsed == 0) {
 		sleep(0.5);
 		$mech->get("http://thenewlosthope.net".$URL_SERVER."fight_control.php");
 		$a = $mech->content();
-		if ($a =~ m/Skeleton/){
+		if($a =~ m/Skeleton/) {
 			$parsed = 1;
-		}else{
+		} else {
 			sleep(10);
-			exit();
+			exit;
 		}
 	}
 	$mech->form_number(2);
@@ -1015,16 +1030,16 @@ sub fight($level) {
 		sleep($loop_wait); #default = 0.3
 		$antal = $antal -1;
 		$mech->reload();
-		if($a =~ m/(The battle tied.)/){
+		if($a =~ m/(The battle tied.)/) {
 			#don't change $waitdiv or $averagescountdown
-		}else{
+		} else {
 			$averagecountdown = $averagecountdown - 1;
 			$waitdiv = $waitdiv + $loop_wait;
 		}
 		$a = $mech->content();
 		$b = $a;
 		$c = $a;
-		if ($averagecountdown >= 1){
+		if($averagecountdown >= 1) {
 			my $exper = $a;
 			$exper =~ m/(You win.*exp )/;
 			my $exper1 = $1;
@@ -1034,7 +1049,7 @@ sub fight($level) {
 			$exper1 =~ s/exp//s;
 			$exper1 =~ s/\s//sg;
 			my $exper2 = new Math::BigFloat $exper1;
-			if($a =~ m/(The battle tied.)/){
+			if($a =~ m/(The battle tied.)/) {
 				$exper2 = 0;
 			}
 			$exper3 = $exper2 + $exper3;
@@ -1048,16 +1063,16 @@ sub fight($level) {
 			$gold1 =~ s/\.//s;
 			$gold1 =~ s/\s//sg;
 			my $gold2 = new Math::BigFloat $gold1;
-			if($a =~ m/(The battle tied.)/){
+			if($a =~ m/(The battle tied.)/) {
 				$gold2 = 0;
 			}
 			$gold3 = $gold2 + $gold3;
-			if($a =~ m/(The battle tied.)/){
+			if($a =~ m/(The battle tied.)/) {
 				#don't change $reloadcount
-			}else{
+			} else {
 				$reloadcount = $reloadcount + 1;
 			}
-			if($waitdiv >= 300.0){
+			if($waitdiv >= 300.0) {
 				$reloadcount = ($reloadcount / $waitdiv * 300);
 				$experaverage = ($exper3 / $reloadcount);
 				$experaverage =~ s/\..*//s; #remove after
@@ -1100,309 +1115,309 @@ sub fight($level) {
 				$datestring = strftime "%x %H:%M:%S", localtime($epoc);
 				
 				#expersecond
-				if(($experlength2 >= 7) && ($experlength2 <= 12)){
+				if(($experlength2 >= 7) && ($experlength2 <= 12)) {
 					$expersecond =~ s/([0-9]{6})$/ M1/g;
 				}
-				if(($experlength2 >= 13) && ($experlength2 <= 18)){
+				if(($experlength2 >= 13) && ($experlength2 <= 18)) {
 					$expersecond =~ s/([0-9]{12})$/ M2/g;
 				}
-				if(($experlength2 >= 19) && ($experlength2 <= 24)){
+				if(($experlength2 >= 19) && ($experlength2 <= 24)) {
 					$expersecond =~ s/([0-9]{18})$/ M3/g;
 				}
-				if(($experlength2 >= 25) && ($experlength2 <= 30)){
+				if(($experlength2 >= 25) && ($experlength2 <= 30)) {
 					$expersecond =~ s/([0-9]{24})$/ M4/g;
 				}
-				if(($experlength2 >= 31) && ($experlength2 <= 36)){
+				if(($experlength2 >= 31) && ($experlength2 <= 36)) {
 					$expersecond =~ s/([0-9]{30})$/ M5/g;
 				}
-				if(($experlength2 >= 37) && ($experlength2 <= 42)){
+				if(($experlength2 >= 37) && ($experlength2 <= 42)) {
 					$expersecond =~ s/([0-9]{36})$/ M6/g;
 				}
-				if(($experlength2 >= 43) && ($experlength2 <= 48)){
+				if(($experlength2 >= 43) && ($experlength2 <= 48)) {
 					$expersecond =~ s/([0-9]{42})$/ M7/g;
 				}
-				if(($experlength2 >= 49) && ($experlength2 <= 54)){
+				if(($experlength2 >= 49) && ($experlength2 <= 54)) {
 					$expersecond =~ s/([0-9]{48})$/ M8/g;
 				}
-				if(($experlength2 >= 55) && ($experlength2 <= 60)){
+				if(($experlength2 >= 55) && ($experlength2 <= 60)) {
 					$expersecond =~ s/([0-9]{54})$/ M9/g;
 				}	
 				#experminute
-				if(($experlength3 >= 7) && ($experlength3 <= 12)){
+				if(($experlength3 >= 7) && ($experlength3 <= 12)) {
 					$experminute =~ s/([0-9]{6})$/ M1/g;
 				}
-				if(($experlength3 >= 13) && ($experlength3 <= 18)){
+				if(($experlength3 >= 13) && ($experlength3 <= 18)) {
 					$experminute =~ s/([0-9]{12})$/ M2/g;
 				}
-				if(($experlength3 >= 19) && ($experlength3 <= 24)){
+				if(($experlength3 >= 19) && ($experlength3 <= 24)) {
 					$experminute =~ s/([0-9]{18})$/ M3/g;
 				}
-				if(($experlength3 >= 25) && ($experlength3 <= 30)){
+				if(($experlength3 >= 25) && ($experlength3 <= 30)) {
 					$experminute =~ s/([0-9]{24})$/ M4/g;
 				}
-				if(($experlength3 >= 31) && ($experlength3 <= 36)){
+				if(($experlength3 >= 31) && ($experlength3 <= 36)) {
 					$experminute =~ s/([0-9]{30})$/ M5/g;
 				}
-				if(($experlength3 >= 37) && ($experlength3 <= 42)){
+				if(($experlength3 >= 37) && ($experlength3 <= 42)) {
 					$experminute =~ s/([0-9]{36})$/ M6/g;
 				}
-				if(($experlength3 >= 43) && ($experlength3 <= 48)){
+				if(($experlength3 >= 43) && ($experlength3 <= 48)) {
 					$experminute =~ s/([0-9]{42})$/ M7/g;
 				}
-				if(($experlength3 >= 49) && ($experlength3 <= 54)){
+				if(($experlength3 >= 49) && ($experlength3 <= 54)) {
 					$experminute =~ s/([0-9]{48})$/ M8/g;
 				}
-				if(($experlength3 >= 55) && ($experlength3 <= 60)){
+				if(($experlength3 >= 55) && ($experlength3 <= 60)) {
 					$experminute =~ s/([0-9]{54})$/ M9/g;
 				}	
 				#experhour
-				if(($experlength4 >= 7) && ($experlength4 <= 12)){
+				if(($experlength4 >= 7) && ($experlength4 <= 12)) {
 					$experhour =~ s/([0-9]{6})$/ M1/g;
 				}
-				if(($experlength4 >= 13) && ($experlength4 <= 18)){
+				if(($experlength4 >= 13) && ($experlength4 <= 18)) {
 					$experhour =~ s/([0-9]{12})$/ M2/g;
 				}
-				if(($experlength4 >= 19) && ($experlength4 <= 24)){
+				if(($experlength4 >= 19) && ($experlength4 <= 24)) {
 					$experhour =~ s/([0-9]{18})$/ M3/g;
 				}
-				if(($experlength4 >= 25) && ($experlength4 <= 30)){
+				if(($experlength4 >= 25) && ($experlength4 <= 30)) {
 					$experhour =~ s/([0-9]{24})$/ M4/g;
 				}
-				if(($experlength4 >= 31) && ($experlength4 <= 36)){
+				if(($experlength4 >= 31) && ($experlength4 <= 36)) {
 					$experhour =~ s/([0-9]{30})$/ M5/g;
 				}
-				if(($experlength4 >= 37) && ($experlength4 <= 42)){
+				if(($experlength4 >= 37) && ($experlength4 <= 42)) {
 					$experhour =~ s/([0-9]{36})$/ M6/g;
 				}
-				if(($experlength4 >= 43) && ($experlength4 <= 48)){
+				if(($experlength4 >= 43) && ($experlength4 <= 48)) {
 					$experhour =~ s/([0-9]{42})$/ M7/g;
 				}
-				if(($experlength4 >= 49) && ($experlength4 <= 54)){
+				if(($experlength4 >= 49) && ($experlength4 <= 54)) {
 					$experhour =~ s/([0-9]{48})$/ M8/g;
 				}
-				if(($experlength4 >= 55) && ($experlength4 <= 60)){
+				if(($experlength4 >= 55) && ($experlength4 <= 60)) {
 					$experhour =~ s/([0-9]{54})$/ M9/g;
 				}	
 				#experday
-				if(($experlength5 >= 7) && ($experlength5 <= 12)){
+				if(($experlength5 >= 7) && ($experlength5 <= 12)) {
 					$experday =~ s/([0-9]{6})$/ M1/g;
 				}
-				if(($experlength5 >= 13) && ($experlength5 <= 18)){
+				if(($experlength5 >= 13) && ($experlength5 <= 18)) {
 					$experday =~ s/([0-9]{12})$/ M2/g;
 				}
-				if(($experlength5 >= 19) && ($experlength5 <= 24)){
+				if(($experlength5 >= 19) && ($experlength5 <= 24)) {
 					$experday =~ s/([0-9]{18})$/ M3/g;
 				}
-				if(($experlength5 >= 25) && ($experlength5 <= 30)){
+				if(($experlength5 >= 25) && ($experlength5 <= 30)) {
 					$experday =~ s/([0-9]{24})$/ M4/g;
 				}
-				if(($experlength5 >= 31) && ($experlength5 <= 36)){
+				if(($experlength5 >= 31) && ($experlength5 <= 36)) {
 					$experday =~ s/([0-9]{30})$/ M5/g;
 				}
-				if(($experlength5 >= 37) && ($experlength5 <= 42)){
+				if(($experlength5 >= 37) && ($experlength5 <= 42)) {
 					$experday =~ s/([0-9]{36})$/ M6/g;
 				}
-				if(($experlength5 >= 43) && ($experlength5 <= 48)){
+				if(($experlength5 >= 43) && ($experlength5 <= 48)) {
 					$experday =~ s/([0-9]{42})$/ M7/g;
 				}
-				if(($experlength5 >= 49) && ($experlength5 <= 54)){
+				if(($experlength5 >= 49) && ($experlength5 <= 54)) {
 					$experday =~ s/([0-9]{48})$/ M8/g;
 				}
-				if(($experlength5 >= 55) && ($experlength5 <= 60)){
+				if(($experlength5 >= 55) && ($experlength5 <= 60)) {
 					$experday =~ s/([0-9]{54})$/ M9/g;
 				}	
 				#goldsecond
-				if(($goldlength2 >= 7) && ($goldlength2 <= 12)){
+				if(($goldlength2 >= 7) && ($goldlength2 <= 12)) {
 					$goldsecond =~ s/([0-9]{6})$/ M1/g;
 				}
-				if(($goldlength2 >= 13) && ($goldlength2 <= 18)){
+				if(($goldlength2 >= 13) && ($goldlength2 <= 18)) {
 					$goldsecond =~ s/([0-9]{12})$/ M2/g;
 				}
-				if(($goldlength2 >= 19) && ($goldlength2 <= 24)){
+				if(($goldlength2 >= 19) && ($goldlength2 <= 24)) {
 					$goldsecond =~ s/([0-9]{18})$/ M3/g;
 				}
-				if(($goldlength2 >= 25) && ($goldlength2 <= 30)){
+				if(($goldlength2 >= 25) && ($goldlength2 <= 30)) {
 					$goldsecond =~ s/([0-9]{24})$/ M4/g;
 				}
-				if(($goldlength2 >= 31) && ($goldlength2 <= 36)){
+				if(($goldlength2 >= 31) && ($goldlength2 <= 36)) {
 					$goldsecond =~ s/([0-9]{30})$/ M5/g;
 				}
-				if(($goldlength2 >= 37) && ($goldlength2 <= 42)){
+				if(($goldlength2 >= 37) && ($goldlength2 <= 42)) {
 					$goldsecond =~ s/([0-9]{36})$/ M6/g;
 				}
-				if(($goldlength2 >= 43) && ($goldlength2 <= 48)){
+				if(($goldlength2 >= 43) && ($goldlength2 <= 48)) {
 					$goldsecond =~ s/([0-9]{42})$/ M7/g;
 				}
-				if(($goldlength2 >= 49) && ($goldlength2 <= 54)){
+				if(($goldlength2 >= 49) && ($goldlength2 <= 54)) {
 					$goldsecond =~ s/([0-9]{48})$/ M8/g;
 				}
-				if(($goldlength2 >= 55) && ($goldlength2 <= 60)){
+				if(($goldlength2 >= 55) && ($goldlength2 <= 60)) {
 					$goldsecond =~ s/([0-9]{54})$/ M9/g;
 				}		
 				#goldminute
-				if(($goldlength3 >= 7) && ($goldlength3 <= 12)){
+				if(($goldlength3 >= 7) && ($goldlength3 <= 12)) {
 					$goldminute =~ s/([0-9]{6})$/ M1/g;
 				}
-				if(($goldlength3 >= 13) && ($goldlength3 <= 18)){
+				if(($goldlength3 >= 13) && ($goldlength3 <= 18)) {
 					$goldminute =~ s/([0-9]{12})$/ M2/g;
 				}
-				if(($goldlength3 >= 19) && ($goldlength3 <= 24)){
+				if(($goldlength3 >= 19) && ($goldlength3 <= 24)) {
 					$goldminute =~ s/([0-9]{18})$/ M3/g;
 				}
-				if(($goldlength3 >= 25) && ($goldlength3 <= 30)){
+				if(($goldlength3 >= 25) && ($goldlength3 <= 30)) {
 					$goldminute =~ s/([0-9]{24})$/ M4/g;
 				}
-				if(($goldlength3 >= 31) && ($goldlength3 <= 36)){
+				if(($goldlength3 >= 31) && ($goldlength3 <= 36)) {
 					$goldminute =~ s/([0-9]{30})$/ M5/g;
 				}
-				if(($goldlength3 >= 37) && ($goldlength3 <= 42)){
+				if(($goldlength3 >= 37) && ($goldlength3 <= 42)) {
 					$goldminute =~ s/([0-9]{36})$/ M6/g;
 				}
-				if(($goldlength3 >= 43) && ($goldlength3 <= 48)){
+				if(($goldlength3 >= 43) && ($goldlength3 <= 48)) {
 					$goldminute =~ s/([0-9]{42})$/ M7/g;
 				}
-				if(($goldlength3 >= 49) && ($goldlength3 <= 54)){
+				if(($goldlength3 >= 49) && ($goldlength3 <= 54)) {
 					$goldminute =~ s/([0-9]{48})$/ M8/g;
 				}
-				if(($goldlength3 >= 55) && ($goldlength3 <= 60)){
+				if(($goldlength3 >= 55) && ($goldlength3 <= 60)) {
 					$goldminute =~ s/([0-9]{54})$/ M9/g;
 				}			
 				#goldhour
-				if(($goldlength4 >= 7) && ($goldlength4 <= 12)){
+				if(($goldlength4 >= 7) && ($goldlength4 <= 12)) {
 					$goldhour =~ s/([0-9]{6})$/ M1/g;
 				}
-				if(($goldlength4 >= 13) && ($goldlength4 <= 18)){
+				if(($goldlength4 >= 13) && ($goldlength4 <= 18)) {
 					$goldhour =~ s/([0-9]{12})$/ M2/g;
 				}
-				if(($goldlength4 >= 19) && ($goldlength4 <= 24)){
+				if(($goldlength4 >= 19) && ($goldlength4 <= 24)) {
 					$goldhour =~ s/([0-9]{18})$/ M3/g;
 				}
-				if(($goldlength4 >= 25) && ($goldlength4 <= 30)){
+				if(($goldlength4 >= 25) && ($goldlength4 <= 30)) {
 					$goldhour =~ s/([0-9]{24})$/ M4/g;
 				}
-				if(($goldlength4 >= 31) && ($goldlength4 <= 36)){
+				if(($goldlength4 >= 31) && ($goldlength4 <= 36)) {
 					$goldhour =~ s/([0-9]{30})$/ M5/g;
 				}
-				if(($goldlength4 >= 37) && ($goldlength4 <= 42)){
+				if(($goldlength4 >= 37) && ($goldlength4 <= 42)) {
 					$goldhour =~ s/([0-9]{36})$/ M6/g;
 				}
-				if(($goldlength4 >= 43) && ($goldlength4 <= 48)){
+				if(($goldlength4 >= 43) && ($goldlength4 <= 48)) {
 					$goldhour =~ s/([0-9]{42})$/ M7/g;
 				}
-				if(($goldlength4 >= 49) && ($goldlength4 <= 54)){
+				if(($goldlength4 >= 49) && ($goldlength4 <= 54)) {
 					$goldhour =~ s/([0-9]{48})$/ M8/g;
 				}
-				if(($goldlength4 >= 55) && ($goldlength4 <= 60)){
+				if(($goldlength4 >= 55) && ($goldlength4 <= 60)) {
 					$goldhour =~ s/([0-9]{54})$/ M9/g;
 				}		
 				#goldday
-				if(($goldlength5 >= 7) && ($goldlength5 <= 12)){
+				if(($goldlength5 >= 7) && ($goldlength5 <= 12)) {
 					$goldday =~ s/([0-9]{6})$/ M1/g;
 				}
-				if(($goldlength5 >= 13) && ($goldlength5 <= 18)){
+				if(($goldlength5 >= 13) && ($goldlength5 <= 18)) {
 					$goldday =~ s/([0-9]{12})$/ M2/g;
 				}
-				if(($goldlength5 >= 19) && ($goldlength5 <= 24)){
+				if(($goldlength5 >= 19) && ($goldlength5 <= 24)) {
 					$goldday =~ s/([0-9]{18})$/ M3/g;
 				}
-				if(($goldlength5 >= 25) && ($goldlength5 <= 30)){
+				if(($goldlength5 >= 25) && ($goldlength5 <= 30)) {
 					$goldday =~ s/([0-9]{24})$/ M4/g;
 				}
-				if(($goldlength5 >= 31) && ($goldlength5 <= 36)){
+				if(($goldlength5 >= 31) && ($goldlength5 <= 36)) {
 					$goldday =~ s/([0-9]{30})$/ M5/g;
 				}
-				if(($goldlength5 >= 37) && ($goldlength5 <= 42)){
+				if(($goldlength5 >= 37) && ($goldlength5 <= 42)) {
 					$goldday =~ s/([0-9]{36})$/ M6/g;
 				}
-				if(($goldlength5 >= 43) && ($goldlength5 <= 48)){
+				if(($goldlength5 >= 43) && ($goldlength5 <= 48)) {
 					$goldday =~ s/([0-9]{42})$/ M7/g;
 				}
-				if(($goldlength5 >= 49) && ($goldlength5 <= 54)){
+				if(($goldlength5 >= 49) && ($goldlength5 <= 54)) {
 					$goldday =~ s/([0-9]{48})$/ M8/g;
 				}
-				if(($goldlength5 >= 55) && ($goldlength5 <= 60)){
+				if(($goldlength5 >= 55) && ($goldlength5 <= 60)) {
 					$goldday =~ s/([0-9]{54})$/ M9/g;
 				}
 				#Nextlevel				
-				if(($Nextlength >= 7) && ($Nextlength <= 12)){
+				if(($Nextlength >= 7) && ($Nextlength <= 12)) {
 					$Nextlevel =~ s/([0-9]{6})$/ M1/g;
 				}
-				if(($Nextlength >= 13) && ($Nextlength <= 18)){
+				if(($Nextlength >= 13) && ($Nextlength <= 18)) {
 					$Nextlevel =~ s/([0-9]{12})$/ M2/g;
 				}
-				if(($Nextlength >= 19) && ($Nextlength <= 24)){
+				if(($Nextlength >= 19) && ($Nextlength <= 24)) {
 					$Nextlevel=~ s/([0-9]{18})$/ M3/g;
 				}
-				if(($Nextlength >= 25) && ($Nextlength <= 30)){
+				if(($Nextlength >= 25) && ($Nextlength <= 30)) {
 					$Nextlevel=~ s/([0-9]{24})$/ M4/g;
 				}
-				if(($Nextlength >= 31) && ($Nextlength <= 36)){
+				if(($Nextlength >= 31) && ($Nextlength <= 36)) {
 					$Nextlevel =~ s/([0-9]{30})$/ M5/g;
 				}
-				if(($Nextlength >= 37) && ($Nextlength <= 42)){
+				if(($Nextlength >= 37) && ($Nextlength <= 42)) {
 					$Nextlevel =~ s/([0-9]{36})$/ M6/g;
 				}
-				if(($Nextlength >= 43) && ($Nextlength <= 48)){
+				if(($Nextlength >= 43) && ($Nextlength <= 48)) {
 					$Nextlevel =~ s/([0-9]{42})$/ M7/g;
 				}
-				if(($Nextlength >= 49) && ($Nextlength <= 54)){
+				if(($Nextlength >= 49) && ($Nextlength <= 54)) {
 					$Nextlevel =~ s/([0-9]{48})$/ M8/g;
 				}
-				if(($Nextlength >= 55) && ($Nextlength <= 60)){
+				if(($Nextlength >= 55) && ($Nextlength <= 60)) {
 					$Nextlevel =~ s/([0-9]{54})$/ M9/g;
 				}	
 				
-				while($experaverage =~ m/([0-9]{4})/){
+				while($experaverage =~ m/([0-9]{4})/) {
 					my $temp = reverse $experaverage;
 					$temp =~ s/(?<=(\d\d\d))(?=(\d))/,/;
 					$experaverage = reverse $temp;
 				}
-				while($expersecond =~ m/([0-9]{4})/){
+				while($expersecond =~ m/([0-9]{4})/) {
 					my $temp = reverse $expersecond;
 					$temp =~ s/(?<=(\d\d\d))(?=(\d))/,/;
 					$expersecond = reverse $temp;
 				}
-				while($experminute =~ m/([0-9]{4})/){
+				while($experminute =~ m/([0-9]{4})/) {
 					my $temp = reverse $experminute;
 					$temp =~ s/(?<=(\d\d\d))(?=(\d))/,/;
 					$experminute = reverse $temp;
 				}
-				while($experhour =~ m/([0-9]{4})/){
+				while($experhour =~ m/([0-9]{4})/) {
 					my $temp = reverse $experhour;
 					$temp =~ s/(?<=(\d\d\d))(?=(\d))/,/;
 					$experhour = reverse $temp;
 				}
-				while($experday =~ m/([0-9]{4})/){
+				while($experday =~ m/([0-9]{4})/) {
 					my $temp = reverse $experday;
 					$temp =~ s/(?<=(\d\d\d))(?=(\d))/,/;
 					$experday = reverse $temp;
 				}
-				while($goldaverage =~ m/([0-9]{4})/){
+				while($goldaverage =~ m/([0-9]{4})/) {
 					my $temp = reverse $goldaverage;
 					$temp =~ s/(?<=(\d\d\d))(?=(\d))/,/;
 					$goldaverage = reverse $temp;
 				}
-				while($goldsecond =~ m/([0-9]{4})/){
+				while($goldsecond =~ m/([0-9]{4})/) {
 					my $temp = reverse $goldsecond;
 					$temp =~ s/(?<=(\d\d\d))(?=(\d))/,/;
 					$goldsecond = reverse $temp;
 				}
-				while($goldminute =~ m/([0-9]{4})/){
+				while($goldminute =~ m/([0-9]{4})/) {
 					my $temp = reverse $goldminute;
 					$temp =~ s/(?<=(\d\d\d))(?=(\d))/,/;
 					$goldminute = reverse $temp;
 				}		
-				while($goldhour =~ m/([0-9]{4})/){
+				while($goldhour =~ m/([0-9]{4})/) {
 					my $temp = reverse $goldhour;
 					$temp =~ s/(?<=(\d\d\d))(?=(\d))/,/;
 					$goldhour = reverse $temp;
 				}
-				while($goldday =~ m/([0-9]{4})/){
+				while($goldday =~ m/([0-9]{4})/) {
 					my $temp = reverse $goldday;
 					$temp =~ s/(?<=(\d\d\d))(?=(\d))/,/;
 					$goldday = reverse $temp;
 				}
-				while($Nextlevel =~ m/([0-9]{4})/){
+				while($Nextlevel =~ m/([0-9]{4})/) {
 					my $temp = reverse $Nextlevel;
 					$temp =~ s/(?<=(\d\d\d))(?=(\d))/,/;
 					$Nextlevel = reverse $temp;
@@ -1417,151 +1432,152 @@ sub fight($level) {
 				$golddays = $goldday;
 			}
 		}
-	if ($averagecountdown == 0){
-		($second, $minute, $hour, $day, $month, $year, $week_day, $day_of_year, $is_dst) = localtime(time);
-		$year = $year + 1900;
-		$month = $month + 1;
-		my $MonthName;
-		if($month == 1){
-			$MonthName = "January";
-		}
-		if($month == 2){
-			$MonthName = "February";
-		}
-		if($month == 3){
-			$MonthName = "March";
-		}
-		if($month == 4){
-			$MonthName = "April";
-		}
-		if($month == 5){
-			$MonthName = "May";
-		}
-		if($month == 6){
-			$MonthName = "June";
-		}
-		if($month == 7){
-			$MonthName = "July";
-		}
-		if($month == 8){
-			$MonthName = "August";
-		}
-		if($month == 9){
-			$MonthName = "September";
-		}
-		if($month == 10){
-			$MonthName = "October";
-		}
-		if($month == 11){
-			$MonthName = "November";
-		}		
-		if($month == 12){
-			$MonthName = "December";
-		}
+		if($averagecountdown == 0) {
+			($second, $minute, $hour, $day, $month, $year, $week_day, $day_of_year, $is_dst) = localtime(time);
+			$year = $year + 1900;
+			$month = $month + 1;
+			my $MonthName;
+			if($month == 1) {
+				$MonthName = "January";
+			}
+			if($month == 2) {
+				$MonthName = "February";
+			}
+			if($month == 3) {
+				$MonthName = "March";
+			}
+			if($month == 4) {
+				$MonthName = "April";
+			}
+			if($month == 5) {
+				$MonthName = "May";
+			}
+			if($month == 6) {
+				$MonthName = "June";
+			}
+			if($month == 7) {
+				$MonthName = "July";
+			}
+			if($month == 8) {
+				$MonthName = "August";
+			}
+			if($month == 9) {
+				$MonthName = "September";
+			}
+			if($month == 10) {
+				$MonthName = "October";
+			}
+			if($month == 11) {
+				$MonthName = "November";
+			}		
+			if($month == 12) {
+				$MonthName = "December";
+			}
+			
+			open(FILE, ">>$name $file_fix ~ $MonthName $year\.txt")
+			or die "failed to open file!!!!";
+			
+			print FILE "MAIN STATUS FOR $name at $hour:$minute:$second~$day/$month/$year\n\n";
+			print FILE "$name\'s current level is $Forlev\n";
+			print FILE "You need $Nextlevel EXP to level\n";
+			print FILE "You can expect to level on $datestring\n";
+			printf FILE "Your current CPM level is : %.3e\n", $level->bstr();
+			
+			if($char_type == 1) {
+				printf FILE "ASlevel: %.3e", $aslevel->bstr();
+				printf FILE ", DEFlevel: %.3e", $deflevel->bstr();
+				printf FILE ", MRlevel: %.3e\n\n", $mrlevel->bstr();
+			}
+			if($char_type == 2) {
+				printf FILE "WDlevel: %.3e", $wdlevel->bstr();
+				printf FILE ", ARlevel: %.3e", $arlevel->bstr();
+				printf FILE ", MRlevel: %.3e\n\n", $mrlevel->bstr();
+			}
+			if($char_type == 3) {
+				printf FILE "ASlevel: %.3e", $aslevel->bstr();
+				printf FILE ", ARlevel: %.3e", $arlevel->bstr();
+				printf FILE ", MRlevel: %.3e\n\n", $mrlevel->bstr();
+			}
+			if($char_type == 4) {
+				printf FILE "WDlevel: %.3e", $wdlevel->bstr();
+				printf FILE ", ARlevel: %.3e\n\n", $arlevel->bstr();
+			}
+			if($char_type == 5) {
+				printf FILE "ASlevel: %.3e", $aslevel->bstr();
+				printf FILE ", MRlevel: %.3e\n\n", $mrlevel->bstr();
+			}
+			if($char_type == 6) {
+				printf FILE "WDlevel: %.3e", $wdlevel->bstr();
+				printf FILE ", MSlevel: %.3e", $mslevel->bstr();
+				printf FILE ", ARlevel: %.3e\n\n", $arlevel->bstr();
+			}
+			
+			print FILE "SHOP STATUS FOR $name at $hour:$minute:$second~$day/$month/$year\n\n";
+			print FILE "Current Max:		$SHOPMAX\n";
+			print FILE "WEAPON:			$SHOPWEAP\n";
+			print FILE "ATTACKSPELL:		$SHOPAS\n";
+			print FILE "HEALSPELL:		$SHOPHS\n";
+			print FILE "HELMET:			$SHOPHELM\n";
+			print FILE "SHIELD:			$SHOPSHIELD\n";
+			print FILE "AMULET:			$SHOPAMULET\n";
+			print FILE "RING:			$SHOPRING\n";
+			print FILE "ARMOR:			$SHOPARMOR\n";
+			print FILE "BELT:			$SHOPBELT\n";
+			print FILE "PANTS:			$SHOPPANTS\n";
+			print FILE "HAND:			$SHOPHAND\n";
+			print FILE "FEET:			$SHOPFEET\n\n";
 		
-		open(FILE, ">>$name $file_fix ~ $MonthName $year\.txt")
-		or die "failed to open file!!!!";
-		
-		print FILE "MAIN STATUS FOR $name at $hour:$minute:$second~$day/$month/$year\n\n";
-		print FILE "$name\'s current level is $Forlev\n";
-		print FILE "You need $Nextlevel EXP to level\n";
-		print FILE "You can expect to level on $datestring\n";
-		printf FILE "Your current CPM level is : %.3e\n", $level->bstr();
-		
-		if($char_type == 1) {
-			printf FILE "ASlevel: %.3e", $aslevel->bstr();
-			printf FILE ", DEFlevel: %.3e", $deflevel->bstr();
-			printf FILE ", MRlevel: %.3e\n\n", $mrlevel->bstr();
+			print FILE "AVERAGE'S FOR $name at $hour:$minute:$second~$day/$month/$year\n\n";
+			print FILE "You can expect: $experseconds EXP/Sec.\n";
+			print FILE "You can expect: $goldseconds GOLD/Sec.\n";
+			print FILE "You can expect: $experminutes EXP/Min.\n";
+			print FILE "You can expect: $goldminutes GOLD/Min.\n";
+			print FILE "You can expect: $experhours EXP/Hour.\n";
+			print FILE "You can expect: $goldhours GOLD/Hour.\n";
+			print FILE "You can expect: $experdays EXP/Day.\n";
+			print FILE "You can expect: $golddays GOLD/Day.\n\n";
+			close(FILE);
+			
+			print "\nMAIN STATUS FOR $name at $hour:$minute:$second~$day/$month/$year\n\n";
+			print "$name\'s current level is $Forlev\n";
+			print "You need $Nextlevel EXP to level\n";
+			print "You can expect to level on $datestring\n";
+			printf "Your current CPM level is : %.3e\n\n", $level->bstr();
+			print "AVERAGE'S FOR $name at $hour:$minute:$second~$day/$month/$year\n\n";
+			print "You can expect: $experseconds EXP/Sec.\n";
+			print "you can expect: $goldseconds GOLD/Sec.\n";
+			print "You can expect: $experminutes EXP/Min.\n";
+			print "You can expect: $goldminutes GOLD/Min.\n";
+			print "You can expect: $experhours EXP/Hour.\n";
+			print "You can expect: $goldhours GOLD/Hour.\n";
+			print "You can expect: $experdays EXP/Day.\n";
+			print "You can expect: $golddays GOLD/Day.\n\n";
 		}
-		if($char_type == 2) {
-			printf FILE "WDlevel: %.3e", $wdlevel->bstr();
-			printf FILE ", ARlevel: %.3e", $arlevel->bstr();
-			printf FILE ", MRlevel: %.3e\n\n", $mrlevel->bstr();
-		}
-		if($char_type == 3) {
-			printf FILE "ASlevel: %.3e", $aslevel->bstr();
-			printf FILE ", ARlevel: %.3e", $arlevel->bstr();
-			printf FILE ", MRlevel: %.3e\n\n", $mrlevel->bstr();
-		}
-		if($char_type == 4) {
-			printf FILE "WDlevel: %.3e", $wdlevel->bstr();
-			printf FILE ", ARlevel: %.3e\n\n", $arlevel->bstr();
-		}
-		if($char_type == 5) {
-			printf FILE "ASlevel: %.3e", $aslevel->bstr();
-			printf FILE ", MRlevel: %.3e\n\n", $mrlevel->bstr();
-		}
-		if($char_type == 6) {
-			printf FILE "WDlevel: %.3e", $wdlevel->bstr();
-			printf FILE ", MSlevel: %.3e", $mslevel->bstr();
-			printf FILE ", ARlevel: %.3e\n\n", $arlevel->bstr();
-		}
-		
-		print FILE "SHOP STATUS FOR $name at $hour:$minute:$second~$day/$month/$year\n\n";
-		print FILE "Current Max:		$SHOPMAX\n";
-		print FILE "WEAPON:			$SHOPWEAP\n";
-		print FILE "ATTACKSPELL:		$SHOPAS\n";
-		print FILE "HEALSPELL:		$SHOPHS\n";
-		print FILE "HELMET:			$SHOPHELM\n";
-		print FILE "SHIELD:			$SHOPSHIELD\n";
-		print FILE "AMULET:			$SHOPAMULET\n";
-		print FILE "RING:			$SHOPRING\n";
-		print FILE "ARMOR:			$SHOPARMOR\n";
-		print FILE "BELT:			$SHOPBELT\n";
-		print FILE "PANTS:			$SHOPPANTS\n";
-		print FILE "HAND:			$SHOPHAND\n";
-		print FILE "FEET:			$SHOPFEET\n\n";
-	
-		print FILE "AVERAGE'S FOR $name at $hour:$minute:$second~$day/$month/$year\n\n";
-		print FILE "You can expect: $experseconds EXP/Sec.\n";
-		print FILE "You can expect: $goldseconds GOLD/Sec.\n";
-		print FILE "You can expect: $experminutes EXP/Min.\n";
-		print FILE "You can expect: $goldminutes GOLD/Min.\n";
-		print FILE "You can expect: $experhours EXP/Hour.\n";
-		print FILE "You can expect: $goldhours GOLD/Hour.\n";
-		print FILE "You can expect: $experdays EXP/Day.\n";
-		print FILE "You can expect: $golddays GOLD/Day.\n\n";
-		close(FILE);
-		
-		print "\nMAIN STATUS FOR $name at $hour:$minute:$second~$day/$month/$year\n\n";
-		print "$name\'s current level is $Forlev\n";
-		print "You need $Nextlevel EXP to level\n";
-		print "You can expect to level on $datestring\n";
-		printf "Your current CPM level is : %.3e\n\n", $level->bstr();
-		print "AVERAGE'S FOR $name at $hour:$minute:$second~$day/$month/$year\n\n";
-		print "You can expect: $experseconds EXP/Sec.\n";
-		print "you can expect: $goldseconds GOLD/Sec.\n";
-		print "You can expect: $experminutes EXP/Min.\n";
-		print "You can expect: $goldminutes GOLD/Min.\n";
-		print "You can expect: $experhours EXP/Hour.\n";
-		print "You can expect: $goldhours GOLD/Hour.\n";
-		print "You can expect: $experdays EXP/Day.\n";
-		print "You can expect: $golddays GOLD/Day.\n\n";
-	}
 # KILLED
 		if($a =~ m/(been.*slain)/) {
-			print "ERROR - TOO HIGH MONSTER LEVEL! - you were slain!\n";exit(0);
+			print "ERROR - TOO HIGH MONSTER LEVEL! - you were slain!\n";
+			exit 0;
 		}
 # JAILED
-		if ($b =~ m/jail time.*<br>/) {
+		if($b =~ m/jail time.*<br>/) {
 			print"You have been Jailed - Sleep 5 seconds.\n";
 			sleep(5);
 		}
 
 # LOGGED OUT
 
-		if ($c =~ m/logged/) {
+		if($c =~ m/logged/) {
 			print "LOGGED OUT! sleeping for 5 seconds before restart!\n";
 			sleep(60);
-			exit();
+			exit;
 		}
 
 
 # STEAL TIME? then exit to steal
-		if ($antal <= 0) {
+		if($antal <= 0) {
 			sleep(5);
 			print "Waiting last few seconds before steal\n";
-			exit();
+			exit;
 		}
 		
 		$a = $b;
@@ -1574,282 +1590,266 @@ sub fight($level) {
 
 
 # level up if necessary
-		if ($b =~ m/(Congra.*exp)/) {
-			if ($char_type == 1) {level_up_agi_mage(); return();}
-			if ($char_type == 2) {level_up_fighter(); return();}
-			if ($char_type == 3) {level_up_mage(); return();}
-			if ($char_type == 4) {level_up_pure_fighter(); return();}
-			if ($char_type == 5) {level_up_pure_mage(); return();}
-			if ($char_type == 6) {level_up_contra_fighter(); return();}
+		if($b =~ m/(Congra.*exp)/) {
+			if($char_type == 1) {level_up_agi_mage(); return;}
+			if($char_type == 2) {level_up_fighter(); return;}
+			if($char_type == 3) {level_up_mage(); return;}
+			if($char_type == 4) {level_up_pure_fighter(); return;}
+			if($char_type == 5) {level_up_pure_mage(); return;}
+			if($char_type == 6) {level_up_contra_fighter(); return;}
 		}
 	}
 }
 
 sub level_up_agi_mage {
-		$mech->get("http://thenewlosthope.net".$URL_SERVER."stats.php");
-		sleep(0.5);
-		if(($aslevel <= $deflevel) && ($aslevel <= $mrlevel)) {
+	$mech->get("http://thenewlosthope.net".$URL_SERVER."stats.php");
+	sleep(0.5);
+	if(($aslevel <= $deflevel) && ($aslevel <= $mrlevel)) {
 		$mech->form_number(1);
-			if($MyLev <= $masslevel){
-				$mech->field("cStats", "Intelligence");
-				$mech->click_button('name' => 'cStats', 'value' => 'Intelligence');
-			}
-			elsif($MyLev >= $masslevel){
-				$mech->field("Stats", "Intelligence");
-				$mech->click_button('name' => 'Stats', 'value' => 'Intelligence');			
-			}
-			print "You Leveled up Intelligence\n";
-			sleep(1);
-			test_shop();;
-			return();
+		if($MyLev <= $masslevel) {
+			$mech->field("cStats", "Intelligence");
+			$mech->click_button('name' => 'cStats', 'value' => 'Intelligence');
+		} elsif($MyLev >= $masslevel) {
+			$mech->field("Stats", "Intelligence");
+			$mech->click_button('name' => 'Stats', 'value' => 'Intelligence');			
 		}
-		if(($deflevel <= $aslevel) && ($deflevel <= $mrlevel)) {
+		print "You Leveled up Intelligence\n";
+		sleep(1);
+		test_shop();
+		return;
+	}
+	if(($deflevel <= $aslevel) && ($deflevel <= $mrlevel)) {
 		$mech->form_number(1);
-			if($MyLev <= $masslevel){
-				$mech->field("cStats", "Agility");
-				$mech->click_button('name' => 'cStats', 'value' => 'Agility');
-			}
-			elsif($MyLev >= $masslevel){
-				$mech->field("Stats", "Agility");
-				$mech->click_button('name' => 'Stats', 'value' => 'Agility');			
-			}
-			print "You Leveled up Agility\n";
-			sleep(1);
-			return();
+		if($MyLev <= $masslevel) {
+			$mech->field("cStats", "Agility");
+			$mech->click_button('name' => 'cStats', 'value' => 'Agility');
+		} elsif($MyLev >= $masslevel) {
+			$mech->field("Stats", "Agility");
+			$mech->click_button('name' => 'Stats', 'value' => 'Agility');			
 		}
+		print "You Leveled up Agility\n";
+		sleep(1);
+		return;
+	}
 
-		if(($mrlevel <= $deflevel) && ($mrlevel <= $aslevel)) {
+	if(($mrlevel <= $deflevel) && ($mrlevel <= $aslevel)) {
 		$mech->form_number(1);
-			if($MyLev <= $masslevel){
-				$mech->field("cStats", "Concentration");
-				$mech->click_button('name' => 'cStats', 'value' => 'Concentration');
-			}
-			elsif($MyLev >= $masslevel){
-				$mech->field("Stats", "Concentration");
-				$mech->click_button('name' => 'Stats', 'value' => 'Concentration');			
-			}
-			print "You Leveled up Concentration\n";
-			sleep(1);
-			return();
+		if($MyLev <= $masslevel) {
+			$mech->field("cStats", "Concentration");
+			$mech->click_button('name' => 'cStats', 'value' => 'Concentration');
+		} elsif($MyLev >= $masslevel) {
+			$mech->field("Stats", "Concentration");
+			$mech->click_button('name' => 'Stats', 'value' => 'Concentration');			
 		}
+		print "You Leveled up Concentration\n";
+		sleep(1);
+		return;
+	}
 }
 
 
 sub level_up_fighter {
-		$mech->get("http://thenewlosthope.net".$URL_SERVER."stats.php");
-		sleep(0.5);
-		if(($wdlevel <= $mrlevel) && ($wdlevel <= $arlevel)) {
+	$mech->get("http://thenewlosthope.net".$URL_SERVER."stats.php");
+	sleep(0.5);
+	if(($wdlevel <= $mrlevel) && ($wdlevel <= $arlevel)) {
 		$mech->form_number(1);
-			if($MyLev <= $masslevel){
-				$mech->field("cStats", "Strength");
-				$mech->click_button('name' => 'cStats', 'value' => 'Strength');
-			}
-			elsif($MyLev >= $masslevel){
-				$mech->field("Stats", "Strength");
-				$mech->click_button('name' => 'Stats', 'value' => 'Strength');			
-			}
-			print "You Leveled up Strength\n";
-			test_shop();;
-			return();
+		if($MyLev <= $masslevel) {
+			$mech->field("cStats", "Strength");
+			$mech->click_button('name' => 'cStats', 'value' => 'Strength');
+		} elsif($MyLev >= $masslevel) {
+			$mech->field("Stats", "Strength");
+			$mech->click_button('name' => 'Stats', 'value' => 'Strength');			
 		}
-		if(($arlevel <= $wdlevel) && ($arlevel <= $mrlevel)) {
+		print "You Leveled up Strength\n";
+		test_shop();
+		return;
+	}
+	if(($arlevel <= $wdlevel) && ($arlevel <= $mrlevel)) {
 		$mech->form_number(1);
-			if($MyLev <= $masslevel){
-				$mech->field("cStats", "Dexterity");
-				$mech->click_button('name' => 'cStats', 'value' => 'Dexterity');
-			}
-			elsif($MyLev >= $masslevel){
-				$mech->field("Stats", "Dexterity");
-				$mech->click_button('name' => 'Stats', 'value' => 'Dexterity');			
-			}
-			print "You Leveled up Dexterity\n";
-			return();
+		if($MyLev <= $masslevel) {
+			$mech->field("cStats", "Dexterity");
+			$mech->click_button('name' => 'cStats', 'value' => 'Dexterity');
+		} elsif($MyLev >= $masslevel) {
+			$mech->field("Stats", "Dexterity");
+			$mech->click_button('name' => 'Stats', 'value' => 'Dexterity');			
 		}
-
-		if(($mrlevel <= $wdlevel) && ($mrlevel <= $arlevel)) {
-		$mech->form_number(1);
-			if($MyLev <= $masslevel){
-				$mech->field("cStats", "Concentration");
-				$mech->click_button('name' => 'cStats', 'value' => 'Concentration');
-			}
-			elsif($MyLev >= $masslevel){
-				$mech->field("Stats", "Concentration");
-				$mech->click_button('name' => 'Stats', 'value' => 'Concentration');			
-			}
-			print "You Leveled up Concentration\n";
-			return();
-		}
+		print "You Leveled up Dexterity\n";
+		return;
 	}
 
-sub level_up_mage {
-		$mech->get("http://thenewlosthope.net".$URL_SERVER."stats.php");
-		sleep(0.5);
-		if(($aslevel <= $arlevel) && ($aslevel <= $mrlevel)) {
+	if(($mrlevel <= $wdlevel) && ($mrlevel <= $arlevel)) {
 		$mech->form_number(1);
-			if($MyLev <= $masslevel){
-				$mech->field("cStats", "Intelligence");
-				$mech->click_button('name' => 'cStats', 'value' => 'Intelligence');
-			}
-			elsif($MyLev >= $masslevel){
-				$mech->field("Stats", "Intelligence");
-				$mech->click_button('name' => 'Stats', 'value' => 'Intelligence');			
-			}
-			print "You Leveled up Intelligence\n";
-			test_shop();;
-			return();
+		if($MyLev <= $masslevel) {
+			$mech->field("cStats", "Concentration");
+			$mech->click_button('name' => 'cStats', 'value' => 'Concentration');
+		} elsif($MyLev >= $masslevel) {
+			$mech->field("Stats", "Concentration");
+			$mech->click_button('name' => 'Stats', 'value' => 'Concentration');			
 		}
-		if(($arlevel <= $aslevel) && ($arlevel <= $mrlevel)) {
-		$mech->form_number(1);
-			if($MyLev <= $masslevel){
-				$mech->field("cStats", "Dexterity");
-				$mech->click_button('name' => 'cStats', 'value' => 'Dexterity');
-			}
-			elsif($MyLev >= $masslevel){
-				$mech->field("Stats", "Dexterity");
-				$mech->click_button('name' => 'Stats', 'value' => 'Dexterity');			
-			}
-			print "You Leveled up Dexterity\n";
-			return();
-		}
+		print "You Leveled up Concentration\n";
+		return;
+	}
+}
 
-		if(($mrlevel <= $arlevel) && ($mrlevel <= $aslevel)) {
+sub level_up_mage {
+	$mech->get("http://thenewlosthope.net".$URL_SERVER."stats.php");
+	sleep(0.5);
+	if(($aslevel <= $arlevel) && ($aslevel <= $mrlevel)) {
 		$mech->form_number(1);
-			if($MyLev <= $masslevel){
-				$mech->field("cStats", "Concentration");
-				$mech->click_button('name' => 'cStats', 'value' => 'Concentration');
-			}
-			elsif($MyLev >= $masslevel){
-				$mech->field("Stats", "Concentration");
-				$mech->click_button('name' => 'Stats', 'value' => 'Concentration');			
-			}
-			print "You Leveled up Concentration\n";
-			return();
+		if($MyLev <= $masslevel) {
+			$mech->field("cStats", "Intelligence");
+			$mech->click_button('name' => 'cStats', 'value' => 'Intelligence');
+		} elsif($MyLev >= $masslevel) {
+			$mech->field("Stats", "Intelligence");
+			$mech->click_button('name' => 'Stats', 'value' => 'Intelligence');			
 		}
+		print "You Leveled up Intelligence\n";
+		test_shop();
+		return;
+	}
+	if(($arlevel <= $aslevel) && ($arlevel <= $mrlevel)) {
+		$mech->form_number(1);
+		if($MyLev <= $masslevel) {
+			$mech->field("cStats", "Dexterity");
+			$mech->click_button('name' => 'cStats', 'value' => 'Dexterity');
+		} elsif($MyLev >= $masslevel) {
+			$mech->field("Stats", "Dexterity");
+			$mech->click_button('name' => 'Stats', 'value' => 'Dexterity');			
+		}
+		print "You Leveled up Dexterity\n";
+		return;
+	}
+
+	if(($mrlevel <= $arlevel) && ($mrlevel <= $aslevel)) {
+		$mech->form_number(1);
+		if($MyLev <= $masslevel) {
+			$mech->field("cStats", "Concentration");
+			$mech->click_button('name' => 'cStats', 'value' => 'Concentration');
+		} elsif($MyLev >= $masslevel) {
+			$mech->field("Stats", "Concentration");
+			$mech->click_button('name' => 'Stats', 'value' => 'Concentration');			
+		}
+		print "You Leveled up Concentration\n";
+		return;
+	}
 }
 
 sub level_up_pure_fighter {
-		$mech->get("http://thenewlosthope.net".$URL_SERVER."stats.php");
-		sleep(0.5);
-		if($wdlevel <= $arlevel) {
+	$mech->get("http://thenewlosthope.net".$URL_SERVER."stats.php");
+	sleep(0.5);
+	if($wdlevel <= $arlevel) {
 		$mech->form_number(1);
-			if($MyLev <= $masslevel){
-				$mech->field("cStats", "Strength");
-				$mech->click_button('name' => 'cStats', 'value' => 'Strength');
-			}
-			elsif($MyLev >= $masslevel){
-				$mech->field("Stats", "Strength");
-				$mech->click_button('name' => 'Stats', 'value' => 'Strength');			
-			}
-			print "Leveled up Strength\n";
-			test_shop();;
-			return();
-		}		
-		if($arlevel <= $wdlevel) {
-		$mech->form_number(1);
-			if($MyLev <= $masslevel){
-				$mech->field("cStats", "Dexterity");
-				$mech->click_button('name' => 'cStats', 'value' => 'Dexterity');
-			}
-			elsif($MyLev >= $masslevel){
-				$mech->field("Stats", "Dexterity");
-				$mech->click_button('name' => 'Stats', 'value' => 'Dexterity');			
-			}
-			print "You Leveled up Dexterity\n";
-			return();
+		if($MyLev <= $masslevel) {
+			$mech->field("cStats", "Strength");
+			$mech->click_button('name' => 'cStats', 'value' => 'Strength');
+		} elsif($MyLev >= $masslevel) {
+			$mech->field("Stats", "Strength");
+			$mech->click_button('name' => 'Stats', 'value' => 'Strength');			
 		}
+		print "Leveled up Strength\n";
+		test_shop();
+		return;
+	}		
+	if($arlevel <= $wdlevel) {
+		$mech->form_number(1);
+		if($MyLev <= $masslevel) {
+			$mech->field("cStats", "Dexterity");
+			$mech->click_button('name' => 'cStats', 'value' => 'Dexterity');
+		} elsif($MyLev >= $masslevel) {
+			$mech->field("Stats", "Dexterity");
+			$mech->click_button('name' => 'Stats', 'value' => 'Dexterity');			
+		}
+		print "You Leveled up Dexterity\n";
+		return;
+	}
 }
 	
 sub level_up_pure_mage {
-		$mech->get("http://thenewlosthope.net".$URL_SERVER."stats.php");
+	$mech->get("http://thenewlosthope.net".$URL_SERVER."stats.php");
+	sleep(0.5);
+	if($mrlevel >= $aslevel) {
+		$mech->form_number(1);
+		if($MyLev <= $masslevel) {
+			$mech->field("cStats", "Intelligence");
+			$mech->click_button('name' => 'cStats', 'value' => 'Intelligence');
+		} elsif($MyLev >= $masslevel) {
+			$mech->field("Stats", "Intelligence");
+			$mech->click_button('name' => 'Stats', 'value' => 'Intelligence');			
+		}
+		print "Leveled up Intelligence\n";
 		sleep(0.5);
-		if($mrlevel >= $aslevel) {
-		$mech->form_number(1);
-			if($MyLev <= $masslevel){
-				$mech->field("cStats", "Intelligence");
-				$mech->click_button('name' => 'cStats', 'value' => 'Intelligence');
-			}
-			elsif($MyLev >= $masslevel){
-				$mech->field("Stats", "Intelligence");
-				$mech->click_button('name' => 'Stats', 'value' => 'Intelligence');			
-			}
-			print "Leveled up Intelligence\n";
-			sleep(0.5);
-			test_shop();
-			return();
-		}
+		test_shop();
+		return;
+	}
 
-		if($aslevel >= $mrlevel) {
+	if($aslevel >= $mrlevel) {
 		$mech->form_number(1);
-			if($MyLev <= $masslevel){
-				$mech->field("cStats", "Concentration");
-				$mech->click_button('name' => 'cStats', 'value' => 'Concentration');
-			}
-			elsif($MyLev >= $masslevel){
-				$mech->field("Stats", "Concentration");
-				$mech->click_button('name' => 'Stats', 'value' => 'Concentration');			
-			}
-			print "You Leveled up Concentration\n";
-			sleep(0.5);
-			return();
+		if($MyLev <= $masslevel) {
+			$mech->field("cStats", "Concentration");
+			$mech->click_button('name' => 'cStats', 'value' => 'Concentration');
+		} elsif($MyLev >= $masslevel) {
+			$mech->field("Stats", "Concentration");
+			$mech->click_button('name' => 'Stats', 'value' => 'Concentration');			
 		}
+		print "You Leveled up Concentration\n";
+		sleep(0.5);
+		return;
+	}
 }
 
 sub level_up_contra_fighter {
-		$mech->get("http://thenewlosthope.net".$URL_SERVER."stats.php");
-		sleep(0.5);
-		if(($wdlevel <= $mslevel) && ($wdlevel <= $arlevel)) {
+	$mech->get("http://thenewlosthope.net".$URL_SERVER."stats.php");
+	sleep(0.5);
+	if(($wdlevel <= $mslevel) && ($wdlevel <= $arlevel)) {
 		$mech->form_number(1);
-			if($MyLev <= $masslevel){
-				$mech->field("cStats", "Strength");
-				$mech->click_button('name' => 'cStats', 'value' => 'Strength');
-			}
-			elsif($MyLev >= $masslevel){
-				$mech->field("Stats", "Strength");
-				$mech->click_button('name' => 'Stats', 'value' => 'Strength');			
-			}
-			print "You Leveled up Strength\n";
-			sleep(1);
-			test_shop();;
-			return();
+		if($MyLev <= $masslevel) {
+			$mech->field("cStats", "Strength");
+			$mech->click_button('name' => 'cStats', 'value' => 'Strength');
+		} elsif($MyLev >= $masslevel) {
+			$mech->field("Stats", "Strength");
+			$mech->click_button('name' => 'Stats', 'value' => 'Strength');			
 		}
-		if(($mslevel <= $wdlevel) && ($mslevel <= $arlevel)) {
+		print "You Leveled up Strength\n";
+		sleep(1);
+		test_shop();
+		return;
+	}
+	if(($mslevel <= $wdlevel) && ($mslevel <= $arlevel)) {
 		$mech->form_number(1);
-			if($MyLev <= $masslevel){
-				$mech->field("cStats", "Contravention");
-				$mech->click_button('name' => 'cStats', 'value' => 'Contravention');
-			}
-			elsif($MyLev >= $masslevel){
-				$mech->field("Stats", "Contravention");
-				$mech->click_button('name' => 'Stats', 'value' => 'Contravention');			
-			}
-			print "You Leveled up Contravention\n";
-			sleep(1);
-			return();
+		if($MyLev <= $masslevel) {
+			$mech->field("cStats", "Contravention");
+			$mech->click_button('name' => 'cStats', 'value' => 'Contravention');
+		} elsif($MyLev >= $masslevel) {
+			$mech->field("Stats", "Contravention");
+			$mech->click_button('name' => 'Stats', 'value' => 'Contravention');			
 		}
+		print "You Leveled up Contravention\n";
+		sleep(1);
+		return;
+	}
 
-		if(($arlevel <= $mslevel) && ($arlevel <= $wdlevel)) {
+	if(($arlevel <= $mslevel) && ($arlevel <= $wdlevel)) {
 		$mech->form_number(1);
-			if($MyLev <= $masslevel){
-				$mech->field("cStats", "Dexterity");
-				$mech->click_button('name' => 'cStats', 'value' => 'Dexterity');
-			}
-			elsif($MyLev >= $masslevel){
-				$mech->field("Stats", "Dexterity");
-				$mech->click_button('name' => 'Stats', 'value' => 'Dexterity');			
-			}
-			print "You Leveled up Dexterity\n";
-			sleep(1);
-			return();
+		if($MyLev <= $masslevel) {
+			$mech->field("cStats", "Dexterity");
+			$mech->click_button('name' => 'cStats', 'value' => 'Dexterity');
+		} elsif($MyLev >= $masslevel) {
+			$mech->field("Stats", "Dexterity");
+			$mech->click_button('name' => 'Stats', 'value' => 'Dexterity');			
 		}
+		print "You Leveled up Dexterity\n";
+		sleep(1);
+		return;
+	}
 }
 
 sub check_shop {
-		$parsed = 0; 
-	while (!$parsed){
+	$parsed = 0; 
+	while(!$parsed) {
 		sleep(1);
 		$mech->get("http://thenewlosthope.net".$URL_SERVER."shop.php");
 		$a = $mech->content();
-		if($a =~ m/Parsed/){
+		if($a =~ m/Parsed/) {
 			$parsed = 1;
 		}
 	}
@@ -1923,10 +1923,10 @@ sub check_shop {
 		$aweap =~ s/\$.*//si; #remove after
 		$SHOPWEAP = $aweap;
 		$aweap =~ s/,//sg;
-		if($aweap >= $max){
+		if($aweap >= $max) {
 			$shop1 = 1;
 			$aweap = "Maxed";
-		}else{
+		} else {
 			$shop1 = 0;
 		}
 	#AttackSpell
@@ -1936,10 +1936,10 @@ sub check_shop {
 		$aas =~ s/\$.*//si; #remove after
 		$SHOPAS = $aas;
 		$aas =~ s/,//sg;
-		if($aas >= $max){
+		if($aas >= $max) {
 			$shop2 = 1;
 			$aas = "Maxed";
-		}else{
+		} else {
 			$shop2 = 0;
 		}
 	#HealSpell
@@ -1949,10 +1949,10 @@ sub check_shop {
 		$ahs =~ s/\$.*//si; #remove after
 		$SHOPHS = $ahs;
 		$ahs =~ s/,//sg;
-		if($ahs >= $max){
+		if($ahs >= $max) {
 			$shop3 = 1;
 			$ahs = "Maxed";
-		}else{
+		} else {
 			$shop3 = 0;
 		}
 	#Helmet
@@ -1962,10 +1962,10 @@ sub check_shop {
 		$ahelm =~ s/\$.*//si; #remove after
 		$SHOPHELM = $ahelm;
 		$ahelm =~ s/,//sg;
-		if($ahelm >= $max){
+		if($ahelm >= $max) {
 			$shop4 = 1;
 			$ahelm = "Maxed";
-		}else{
+		} else {
 			$shop4 = 0;
 		}
 	#Shield
@@ -1975,10 +1975,10 @@ sub check_shop {
 		$ashield =~ s/\$.*//si; #remove after
 		$SHOPSHIELD = $ashield;
 		$ashield =~ s/,//sg;
-		if($ashield >= $max){
+		if($ashield >= $max) {
 			$shop5 = 1;
 			$ashield = "Maxed";
-		}else{
+		} else {
 			$shop5 = 0;
 		}
 	#Amulet
@@ -1988,10 +1988,10 @@ sub check_shop {
 		$aamulet =~ s/\$.*//si; #remove after
 		$SHOPAMULET = $aamulet;
 		$aamulet =~ s/,//sg;
-		if($aamulet >= $max){
+		if($aamulet >= $max) {
 			$shop6 = 1;
 			$aamulet = "Maxed";
-		}else{
+		} else {
 			$shop6 = 0;
 		}
 	#Ring
@@ -2001,10 +2001,10 @@ sub check_shop {
 		$aring =~ s/\$.*//si; #remove after
 		$SHOPRING = $aring;
 		$aring =~ s/,//sg;
-		if($aring >= $max){
+		if($aring >= $max) {
 			$shop7 = 1;
 			$aring = "Maxed";
-		}else{
+		} else {
 			$shop7 = 0;
 		}
 	#Armor
@@ -2014,10 +2014,10 @@ sub check_shop {
 		$aarm =~ s/\$.*//si; #remove after
 		$SHOPARMOR = $aarm;
 		$aarm =~ s/,//sg;
-		if($aarm >= $max){
+		if($aarm >= $max) {
 			$shop8 = 1;
 			$aarm = "Maxed";
-		}else{
+		} else {
 			$shop8 = 0;
 		}
 	#Belt
@@ -2027,10 +2027,10 @@ sub check_shop {
 		$abelt =~ s/\$.*//si; #remove after
 		$SHOPBELT = $abelt;
 		$abelt =~ s/,//sg;
-		if($abelt >= $max){
+		if($abelt >= $max) {
 			$shop9 = 1;
 			$abelt = "Maxed";
-		}else{
+		} else {
 			$shop9 = 0;
 		}
 	#Pants
@@ -2040,10 +2040,10 @@ sub check_shop {
 		$apants =~ s/\$.*//si; #remove after
 		$SHOPPANTS = $apants;
 		$apants =~ s/,//sg;
-		if($apants >= $max){
+		if($apants >= $max) {
 			$shop10 = 1;
 			$apants = "Maxed";
-		}else{
+		} else {
 			$shop10 = 0;
 		}
 	#Hand
@@ -2053,10 +2053,10 @@ sub check_shop {
 		$ahand =~ s/\$.*//si; #remove after
 		$SHOPHAND = $ahand;
 		$ahand =~ s/,//sg;
-		if($ahand >= $max){
+		if($ahand >= $max) {
 			$shop11 = 1;
 			$ahand = "Maxed";
-		}else{
+		} else {
 			$shop11 = 0;
 		}
 	#Feet
@@ -2066,10 +2066,10 @@ sub check_shop {
 		$afeet =~ s/\$.*//si; #remove after
 		$SHOPFEET = $afeet;
 		$afeet =~ s/,//sg;
-		if($afeet >= $max){
+		if($afeet >= $max) {
 			$shop12 = 1;
 			$afeet = "Maxed";
-		}else{
+		} else {
 			$shop12 = 0;
 		}
 
@@ -2090,11 +2090,11 @@ sub check_shop {
 
 sub test_shop{
 		$parsed = 0; 
-	while (!$parsed){
+	while(!$parsed) {
 		sleep(1);
 		$mech->get("http://thenewlosthope.net".$URL_SERVER."shop.php");
 		$a = $mech->content();
-		if($a =~ m/Parsed/){
+		if($a =~ m/Parsed/) {
 			$parsed = 1;
 		}
 	}
@@ -2166,10 +2166,10 @@ sub test_shop{
 		$aweap =~ s/(.*)(weapon)//si; #remove before
 		$aweap =~ s/\$.*//si; #remove after
 		$aweap =~ s/,//sg;
-		if($aweap >= $max){
+		if($aweap >= $max) {
 			$shop1 = 1;
 			$aweap = "Maxed";
-		}else{
+		} else {
 			$shop1 = 0;
 		}
 	#AttackSpell
@@ -2178,10 +2178,10 @@ sub test_shop{
 		$aas =~ s/(.*)(attackspell)//si; #remove before
 		$aas =~ s/\$.*//si; #remove after
 		$aas =~ s/,//sg;
-		if($aas >= $max){
+		if($aas >= $max) {
 			$shop2 = 1;
 			$aas = "Maxed";
-		}else{
+		} else {
 			$shop2 = 0;
 		}
 	#HealSpell
@@ -2190,10 +2190,10 @@ sub test_shop{
 		$ahs =~ s/(.*)(healspell)//si; #remove before
 		$ahs =~ s/\$.*//si; #remove after
 		$ahs =~ s/,//sg;
-		if($ahs >= $max){
+		if($ahs >= $max) {
 			$shop3 = 1;
 			$ahs = "Maxed";
-		}else{
+		} else {
 			$shop3 = 0;
 		}
 	#Helmet
@@ -2202,10 +2202,10 @@ sub test_shop{
 		$ahelm =~ s/(.*)(helmet)//si; #remove before
 		$ahelm =~ s/\$.*//si; #remove after
 		$ahelm =~ s/,//sg;
-		if($ahelm >= $max){
+		if($ahelm >= $max) {
 			$shop4 = 1;
 			$ahelm = "Maxed";
-		}else{
+		} else {
 			$shop4 = 0;
 		}
 	#Shield
@@ -2214,10 +2214,10 @@ sub test_shop{
 		$ashield =~ s/(.*)(shield)//si; #remove before
 		$ashield =~ s/\$.*//si; #remove after
 		$ashield =~ s/,//sg;
-		if($ashield >= $max){
+		if($ashield >= $max) {
 			$shop5 = 1;
 			$ashield = "Maxed";
-		}else{
+		} else {
 			$shop5 = 0;
 		}
 	#Amulet
@@ -2226,10 +2226,10 @@ sub test_shop{
 		$aamulet =~ s/(.*)(amulet)//si; #remove before
 		$aamulet =~ s/\$.*//si; #remove after
 		$aamulet =~ s/,//sg;
-		if($aamulet >= $max){
+		if($aamulet >= $max) {
 			$shop6 = 1;
 			$aamulet = "Maxed";
-		}else{
+		} else {
 			$shop6 = 0;
 		}
 	#Ring
@@ -2238,10 +2238,10 @@ sub test_shop{
 		$aring =~ s/(.*)(ring)//si; #remove before
 		$aring =~ s/\$.*//si; #remove after
 		$aring =~ s/,//sg;
-		if($aring >= $max){
+		if($aring >= $max) {
 			$shop7 = 1;
 			$aring = "Maxed";
-		}else{
+		} else {
 			$shop7 = 0;
 		}
 	#Armor
@@ -2250,10 +2250,10 @@ sub test_shop{
 		$aarm =~ s/(.*)(armor)//si; #remove before
 		$aarm =~ s/\$.*//si; #remove after
 		$aarm =~ s/,//sg;
-		if($aarm >= $max){
+		if($aarm >= $max) {
 			$shop8 = 1;
 			$aarm = "Maxed";
-		}else{
+		} else {
 			$shop8 = 0;
 		}
 	#Belt
@@ -2262,10 +2262,10 @@ sub test_shop{
 		$abelt =~ s/(.*)(belt)//si; #remove before
 		$abelt =~ s/\$.*//si; #remove after
 		$abelt =~ s/,//sg;
-		if($abelt >= $max){
+		if($abelt >= $max) {
 			$shop9 = 1;
 			$abelt = "Maxed";
-		}else{
+		} else {
 			$shop9 = 0;
 		}
 	#Pants
@@ -2274,10 +2274,10 @@ sub test_shop{
 		$apants =~ s/(.*)(pants)//si; #remove before
 		$apants =~ s/\$.*//si; #remove after
 		$apants =~ s/,//sg;
-		if($apants >= $max){
+		if($apants >= $max) {
 			$shop10 = 1;
 			$apants = "Maxed";
-		}else{
+		} else {
 			$shop10 = 0;
 		}
 	#Hand
@@ -2286,10 +2286,10 @@ sub test_shop{
 		$ahand =~ s/(.*)(hand)//si; #remove before
 		$ahand =~ s/\$.*//si; #remove after
 		$ahand =~ s/,//sg;
-		if($ahand >= $max){
+		if($ahand >= $max) {
 			$shop11 = 1;
 			$ahand = "Maxed";
-		}else{
+		} else {
 			$shop11 = 0;
 		}
 	#Feet
@@ -2298,10 +2298,10 @@ sub test_shop{
 		$afeet =~ s/(.*)(feet)//si; #remove before
 		$afeet =~ s/\$.*//si; #remove after
 		$afeet =~ s/,//sg;
-		if($afeet >= $max){
+		if($afeet >= $max) {
 			$shop12 = 1;
 			$afeet = "Maxed";
-		}else{
+		} else {
 			$shop12 = 0;
 		}
 
@@ -2319,21 +2319,21 @@ sub test_shop{
 	#print "your current Hand shops is       :$ahand\n";	
 	#print "your current Feet shops is       :$afeet\n";
 
-	if($shop_yes_no == 1){
+	if($shop_yes_no == 1) {
 		buy_upgrades();
-	}else{
+	} else {
 		print "Shops were not bought this time\n";
-		exit();
+		exit;
 	}
 }
 	
 sub buy_upgrades {
 	$parsed = 0; 
-	while (!$parsed){
+	while(!$parsed) {
 		sleep(1);
 		$mech->get("http://thenewlosthope.net".$URL_SERVER."shop.php");
 		$a = $mech->content();
-		if($a =~ m/Parsed/){
+		if($a =~ m/Parsed/) {
 			$parsed = 1;
 		}
 	}
@@ -2342,178 +2342,178 @@ sub buy_upgrades {
 
 	my $maxshop = "9e99";
 	
-	if($char_type == 1){
-		if($shop2 == 0){
+	if($char_type == 1) {
+		if($shop2 == 0) {
 			$mech->field("Attackspell", $maxshop);
 		}
-		if($shop4 == 0){
+		if($shop4 == 0) {
 			$mech->field("Helmet", $maxshop);
 		}
-		if($shop5 == 0){
+		if($shop5 == 0) {
 			$mech->field("Shield", $maxshop);
 		}
-		if($shop6 == 0){
+		if($shop6 == 0) {
 			$mech->field("Amulet", $maxshop);
 		}
-		if($shop7 == 0){
+		if($shop7 == 0) {
 			$mech->field("Ring", $maxshop);	
 		}
-		if($shop8 == 0){
+		if($shop8 == 0) {
 			$mech->field("Armor", $maxshop);
 		}
-		if($shop9 == 0){
+		if($shop9 == 0) {
 			$mech->field("Belt", $maxshop);
 		}
-		if($shop10 == 0){
+		if($shop10 == 0) {
 			$mech->field("Pants", $maxshop);
 		}
-		if($shop11 == 0){
+		if($shop11 == 0) {
 			$mech->field("Hand", $maxshop);
 		}
-		if($shop12 == 0){
+		if($shop12 == 0) {
 			$mech->field("Feet", $maxshop);
 		}
 			$mech->click_button('name' => 'action', 'value' => 'Buy upgrades!');
 			$a = $mech->content();
-		if ($a =~ m/Total/){
+		if($a =~ m/Total/) {
 			$a =~ m/(Buy.*gold\.)/s;
 			$a = $1;
 			$a =~ s/<br>/\n/sg;
 			print "you maxed some shops: \n". $a ."\n";
 		}
-		if ($a =~ m/Not enough gold!/){
+		if($a =~ m/Not enough gold!/) {
 			print "You did not have enough Gold in your hand to max all your shops.\n";
 		}
-	}elsif($char_type == 2){
-		if($shop1 == 0){
+	} elsif($char_type == 2) {
+		if($shop1 == 0) {
 			$mech->field("Weapon", $maxshop);
 		}
-		if($shop9 == 0){
+		if($shop9 == 0) {
 			$mech->field("Belt", $maxshop);
 		}
-		if($shop11 == 0){
+		if($shop11 == 0) {
 			$mech->field("Hand", $maxshop);
 		}
-		if($shop12 == 0){
+		if($shop12 == 0) {
 			$mech->field("Feet", $maxshop);
 		}
 			$mech->click_button('name' => 'action', 'value' => 'Buy upgrades!');
 			$a = $mech->content();
-		if ($a =~ m/Total/){
+		if($a =~ m/Total/) {
 			$a =~ m/(Buy.*gold\.)/s;
 			$a = $1;
 			$a =~ s/<br>/\n/sg;
 			print "you maxed some shops: \n". $a ."\n";
 		}
-		if ($a =~ m/Not enough gold!/){
+		if($a =~ m/Not enough gold!/) {
 			print "You did not have enough Gold in your hand to max all your shops.\n";
 		}
-	}elsif($char_type == 3){
-		if($shop2 == 0){
+	} elsif($char_type == 3) {
+		if($shop2 == 0) {
 			$mech->field("Attackspell", $maxshop);
 		}
-		if($shop7 == 0){
+		if($shop7 == 0) {
 			$mech->field("Ring", $maxshop);	
 		}
-		if($shop9 == 0){
+		if($shop9 == 0) {
 			$mech->field("Belt", $maxshop);
 		}
-		if($shop12 == 0){
+		if($shop12 == 0) {
 			$mech->field("Feet", $maxshop);
 		}
 			$mech->click_button('name' => 'action', 'value' => 'Buy upgrades!');
 			$a = $mech->content();
-		if ($a =~ m/Total/){
+		if($a =~ m/Total/) {
 			$a =~ m/(Buy.*gold\.)/s;
 			$a = $1;
 			$a =~ s/<br>/\n/sg;
 			print "you maxed some shops: \n". $a ."\n";
 		}
-		if ($a =~ m/Not enough gold!/){
+		if($a =~ m/Not enough gold!/) {
 			print "You did not have enough Gold in your hand to max all your shops.\n";
 		}
-	}elsif($char_type == 4){
-		if($shop1 == 0){
+	} elsif($char_type == 4) {
+		if($shop1 == 0) {
 			$mech->field("Weapon", $maxshop);
 		}
-		if($shop11 == 0){
+		if($shop11 == 0) {
 			$mech->field("Hand", $maxshop);
 		}
-		if($shop12 == 0){
+		if($shop12 == 0) {
 			$mech->field("Feet", $maxshop);
 		}
 			$mech->click_button('name' => 'action', 'value' => 'Buy upgrades!');
 			$a = $mech->content();
-		if ($a =~ m/Total/){
+		if($a =~ m/Total/) {
 			$a =~ m/(Buy.*gold\.)/s;
 			$a = $1;
 			$a =~ s/<br>/\n/sg;
 			print "you maxed some shops: \n". $a ."\n";
 		}
-		if ($a =~ m/Not enough gold!/){
+		if($a =~ m/Not enough gold!/) {
 			print "You did not have enough Gold in your hand to max all your shops.\n";
 		}
-	}elsif($char_type == 5){
-		if($shop2 == 0){
+	} elsif($char_type == 5) {
+		if($shop2 == 0) {
 			$mech->field("Attackspell", $maxshop);
 		}
-		if($shop7 == 0){
+		if($shop7 == 0) {
 			$mech->field("Ring", $maxshop);	
 		}
-		if($shop9 == 0){
+		if($shop9 == 0) {
 			$mech->field("Belt", $maxshop);
 		}
 			$mech->click_button('name' => 'action', 'value' => 'Buy upgrades!');
 			$a = $mech->content();
-		if ($a =~ m/Total/){
+		if($a =~ m/Total/) {
 			$a =~ m/(Buy.*gold\.)/s;
 			$a = $1;
 			$a =~ s/<br>/\n/sg;
 			print "you maxed some shops: \n". $a ."\n";
 		}
-		if ($a =~ m/Not enough gold!/){
+		if($a =~ m/Not enough gold!/) {
 			print "You did not have enough Gold in your hand to max all your shops.\n";
 		}
-	}elsif($char_type == 6){
-		if($shop1 == 0){
+	} elsif($char_type == 6) {
+		if($shop1 == 0) {
 			$mech->field("Weapon", $maxshop);
 		}
-		if($shop6 == 0){
+		if($shop6 == 0) {
 			$mech->field("Amulet", $maxshop);
 		}
-		if($shop7 == 0){
+		if($shop7 == 0) {
 			$mech->field("Ring", $maxshop);	
 		}
-		if($shop11 == 0){
+		if($shop11 == 0) {
 			$mech->field("Hand", $maxshop);
 		}
-		if($shop12 == 0){
+		if($shop12 == 0) {
 			$mech->field("Feet", $maxshop);
 		}
 			$mech->click_button('name' => 'action', 'value' => 'Buy upgrades!');
 			$a = $mech->content();
-		if ($a =~ m/Total/){
+		if($a =~ m/Total/) {
 			$a =~ m/(Buy.*gold\.)/s;
 			$a = $1;
 			$a =~ s/<br>/\n/sg;
 			print "you maxed some shops: \n". $a ."\n";
 		}
-		if ($a =~ m/Not enough gold!/){
+		if($a =~ m/Not enough gold!/) {
 			print "You did not have enough Gold in your hand to max all your shops.\n";
 		}
 	}
 	
 	sleep(0.5);
-	return();
+	return;
 }
 
 sub get_my_level{
 	$parsed = 0; 
-	while (!$parsed){
+	while(!$parsed) {
 		sleep(0.5);
 		$mech->get("http://thenewlosthope.net".$URL_SERVER."main.php");
 		$a = $mech->content();
-		if($a =~ m/Parsed/){
+		if($a =~ m/Parsed/) {
 			$parsed = 1;
 		}
 	}
@@ -2529,27 +2529,27 @@ sub get_my_level{
 	$a =~ s/,//g;
 	$MyLev = new Math::BigFloat $a;
 	$Forlev = $a;
-	while($Forlev =~ m/([0-9]{4})/){
+	while($Forlev =~ m/([0-9]{4})/) {
 		my $temp1 = reverse $Forlev;
 		$temp1 =~ s/(?<=(\d\d\d))(?=(\d))/,/;
 		$Forlev = reverse $temp1;
 	}
 	print "Your Level is : $Forlev\n";
 	
-	if($max_level <= $MyLev){
+	if($max_level <= $MyLev) {
 		print "You have reached the desired level : EXITING!!\n";
 		sleep(30);
-		exit();
+		exit;
 	}
 }	
 
 sub get_char_name{
 	$parsed = 0; 
-	while (!$parsed){
+	while(!$parsed) {
 		sleep(0.5);
 		$mech->get("http://thenewlosthope.net".$URL_SERVER."stats.php");
 		$a = $mech->content();
-		if($a =~ m/Parsed/){
+		if($a =~ m/Parsed/) {
 			$parsed = 1;
 		}
 	}
@@ -2603,223 +2603,223 @@ print "
 \n";
 
 #Login
-if($server == 1){
+if($server == 1) {
 	open(LOGINS, "m3logins.txt")
 		or die "failed to open Logins file!!!!";
 		@logins = <LOGINS>;
 	close(LOGINS);
-}elsif($server = 2){
+} elsif($server = 2) {
 	open(LOGINS, "sotselogins.txt")
 		or die "failed to open Logins file!!!!";
 		@logins = <LOGINS>;
 	close(LOGINS);
 }
 
-until ($username ne 1){
+until($username ne 1) {
 	@users = split(/ /, $logins[0]);
 	$username = $users[0];
 	$password = $users[1];
 	chomp ($username, $password);
 }
-until ($username ne 2){
+until($username ne 2) {
 	@users = split(/ /, $logins[1]);
 	$username = $users[0];
 	$password = $users[1];
 	chomp ($username, $password);
 }
-until ($username ne 3){
+until($username ne 3) {
 	@users = split(/ /, $logins[2]);
 	$username = $users[0];
 	$password = $users[1];
 	chomp ($username, $password);
 }
-until ($username ne 4){	
+until($username ne 4) {
 	@users = split(/ /, $logins[3]);
 	$username = $users[0];
 	$password = $users[1];
 	chomp ($username, $password);
 }
-until ($username ne 5){
+until($username ne 5) {
 	@users = split(/ /, $logins[4]);
 	$username = $users[0];
 	$password = $users[1];
 	chomp ($username, $password);
 }
-until ($username ne 6){
+until($username ne 6) {
 	@users = split(/ /, $logins[5]);
 	$username = $users[0];
 	$password = $users[1];
 	chomp ($username, $password);
 }
-until ($username ne 7){
+until($username ne 7) {
 	@users = split(/ /, $logins[6]);
 	$username = $users[0];
 	$password = $users[1];
 	chomp ($username, $password);
 }
-until ($username ne 8){
+until($username ne 8) {
 	@users = split(/ /, $logins[7]);
 	$username = $users[0];
 	$password = $users[1];
 	chomp ($username, $password);
 }
-until ($username ne 9){
+until($username ne 9) {
 	@users = split(/ /, $logins[8]);
 	$username = $users[0];
 	$password = $users[1];
 	chomp ($username, $password);
 }
-until ($username ne 10){
+until($username ne 10) {
 	@users = split(/ /, $logins[9]);
 	$username = $users[0];
 	$password = $users[1];
 	chomp ($username, $password);
 }
-until ($username ne 11){
+until($username ne 11) {
 	@users = split(/ /, $logins[10]);
 	$username = $users[0];
 	$password = $users[1];
 	chomp ($username, $password);
 }
-until ($username ne 12){
+until($username ne 12) {
 	@users = split(/ /, $logins[11]);
 	$username = $users[0];
 	$password = $users[1];
 	chomp ($username, $password);
 }
-until ($username ne 13){
+until($username ne 13) {
 	@users = split(/ /, $logins[12]);
 	$username = $users[0];
 	$password = $users[1];
 	chomp ($username, $password);
 }
-until ($username ne 14){
+until($username ne 14) {
 	@users = split(/ /, $logins[13]);
 	$username = $users[0];
 	$password = $users[1];
 	chomp ($username, $password);
 }
-until ($username ne 15){
+until($username ne 15) {
 	@users = split(/ /, $logins[14]);
 	$username = $users[0];
 	$password = $users[1];
 	chomp ($username, $password);
 }
-until ($username ne 16){
+until($username ne 16) {
 	@users = split(/ /, $logins[15]);
 	$username = $users[0];
 	$password = $users[1];
 	chomp ($username, $password);
 }
-until ($username ne 17){
+until($username ne 17) {
 	@users = split(/ /, $logins[16]);
 	$username = $users[0];
 	$password = $users[1];
 	chomp ($username, $password);
 }
-until ($username ne 18){
+until($username ne 18) {
 	@users = split(/ /, $logins[17]);
 	$username = $users[0];
 	$password = $users[1];
 	chomp ($username, $password);
 }
-until ($username ne 19){
+until($username ne 19) {
 	@users = split(/ /, $logins[18]);
 	$username = $users[0];
 	$password = $users[1];
 	chomp ($username, $password);
 }
-until ($username ne 20){
+until($username ne 20) {
 	@users = split(/ /, $logins[19]);
 	$username = $users[0];
 	$password = $users[1];
 	chomp ($username, $password);
 }
-until ($username ne 21){
+until($username ne 21) {
 	@users = split(/ /, $logins[20]);
 	$username = $users[0];
 	$password = $users[1];
 	chomp ($username, $password);
 }
-until ($username ne 22){
+until($username ne 22) {
 	@users = split(/ /, $logins[21]);
 	$username = $users[0];
 	$password = $users[1];
 	chomp ($username, $password);
 }
-until ($username ne 23){
+until($username ne 23) {
 	@users = split(/ /, $logins[22]);
 	$username = $users[0];
 	$password = $users[1];
 	chomp ($username, $password);
 }
-until ($username ne 24){
+until($username ne 24) {
 	@users = split(/ /, $logins[23]);
 	$username = $users[0];
 	$password = $users[1];
 	chomp ($username, $password);
 }
-until ($username ne 25){
+until($username ne 25) {
 	@users = split(/ /, $logins[24]);
 	$username = $users[0];
 	$password = $users[1];
 	chomp ($username, $password);
 }
-until ($username ne 26){
+until($username ne 26) {
 	@users = split(/ /, $logins[25]);
 	$username = $users[0];
 	$password = $users[1];
 	chomp ($username, $password);
 }
-until ($username ne 27){
+until($username ne 27) {
 	@users = split(/ /, $logins[26]);
 	$username = $users[0];
 	$password = $users[1];
 	chomp ($username, $password);
 }
-until ($username ne 28){
+until($username ne 28) {
 	@users = split(/ /, $logins[27]);
 	$username = $users[0];
 	$password = $users[1];
 	chomp ($username, $password);
 }
-until ($username ne 29){
+until($username ne 29) {
 	@users = split(/ /, $logins[28]);
 	$username = $users[0];
 	$password = $users[1];
 	chomp ($username, $password);
 }
-until ($username ne 30){
+until($username ne 30) {
 	@users = split(/ /, $logins[29]);
 	$username = $users[0];
 	$password = $users[1];
 	chomp ($username, $password);
 }
-until ($username ne 31){
+until($username ne 31) {
 	@users = split(/ /, $logins[30]);
 	$username = $users[0];
 	$password = $users[1];
 	chomp ($username, $password);
 }
-until ($username ne 32){
+until($username ne 32) {
 	@users = split(/ /, $logins[31]);
 	$username = $users[0];
 	$password = $users[1];
 	chomp ($username, $password);
 }
-until ($username ne 33){
+until($username ne 33) {
 	@users = split(/ /, $logins[32]);
 	$username = $users[0];
 	$password = $users[1];
 	chomp ($username, $password);
 }
-until ($username ne 34){
+until($username ne 34) {
 	@users = split(/ /, $logins[33]);
 	$username = $users[0];
 	$password = $users[1];
 	chomp ($username, $password);
 }
-until ($username ne 35){
+until($username ne 35) {
 	@users = split(/ /, $logins[34]);
 	$username = $users[0];
 	$password = $users[1];
@@ -2827,54 +2827,54 @@ until ($username ne 35){
 }
 
 $parsed = 0; 
-while ($parsed == 0){
+while($parsed == 0) {
 sleep(0.5);
 $mech->get("http://thenewlosthope.net".$URL_SERVER."login.php");
 $a = $mech->content();
-	if($a =~ m/Enter Lol!/){
+	if($a =~ m/Enter Lol!/) {
 		$parsed = 1;
-	}else{
+	} else {
 		sleep(10);
-		exit();
+		exit;
 	}
 }
-if($a =~ m/Username/){
+if($a =~ m/Username/) {
 	$mech->form_number(0);
 	$mech->field("Username", $username);
 	$mech->field("Password", $password);
 	$mech->click();
 	($second, $minute, $hour, $day, $month, $year, $week_day, $day_of_year, $is_dst) = localtime(time);
 	#print "[$hour:$minute:$second] - logged in Successfully to : \n";
-}else{
+} else {
 	sleep(5);
-	exit();
+	exit;
 }
 
 
 my $levels = 9999999;
 
-while($levels){
+while($levels) {
 	get_char_name();
 	get_my_level();
 	check_shop();
-	if($MyLev <= 2500000){
+	if($MyLev <= 2500000) {
 		print "\nLow Level Fight mode\n\n";
-	}else{
+	} else {
 		print "\nHigh Level Fight mode\n\n";
 	}
 	
-		if (get_steal_wait() == 0) {
+		if(get_steal_wait() == 0) {
 			#my ($status, $result) = merge_test();
-			#if($status == 1){
+			#if($status == 1) {
 			#	merge();
 			#} else {
 				steal();
 			#}
 		}
 	auto_level_up();
-	if($MyLev <= 2500000){
+	if($MyLev <= 2500000) {
 		low_fight(low_level());	
-	}else{
+	} else {
 		cpm_level();
 		fight();
 	}
@@ -2882,4 +2882,4 @@ while($levels){
 }
 
 
-exit();
+exit;
