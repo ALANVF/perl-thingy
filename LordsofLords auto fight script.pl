@@ -43,7 +43,7 @@ my @logins;
 my @users;
 my ($parsed, $tmp, $mech);
 my ($a,$b, $c);
-my ($second, $minute, $hour, $Day, $Month, $Year, $WeekDay, $DayOfYear, $IsDST);
+my ($second, $minute, $hour, $day, $month, $year, $week_day, $day_of_year, $is_dst);
 my ($clicks);
 my $users;
 my $datestring;
@@ -412,50 +412,50 @@ $parsed = 0;
                 $b =~ s/sleepers//sg;
                 $b =~ s/This//sg;
                 print $b;
-		($second, $minute, $hour, $Day, $Month, $Year, $WeekDay, $DayOfYear, $IsDST) = localtime(time);
-			$Year = $Year + 1900;
-			$Month = $Month + 1;
+		($second, $minute, $hour, $day, $month, $year, $week_day, $day_of_year, $is_dst) = localtime(time);
+			$year = $year + 1900;
+			$month = $month + 1;
 			my $MonthName;
-			if($Month == 1){
+			if($month == 1){
 				$MonthName = "January";
 			}
-			if($Month == 2){
+			if($month == 2){
 				$MonthName = "February";
 			}
-			if($Month == 3){
+			if($month == 3){
 				$MonthName = "March";
 			}
-			if($Month == 4){
+			if($month == 4){
 				$MonthName = "April";
 			}
-			if($Month == 5){
+			if($month == 5){
 				$MonthName = "May";
 			}
-			if($Month == 6){
+			if($month == 6){
 				$MonthName = "June";
 			}
-			if($Month == 7){
+			if($month == 7){
 				$MonthName = "July";
 			}
-			if($Month == 8){
+			if($month == 8){
 				$MonthName = "August";
 			}
-			if($Month == 9){
+			if($month == 9){
 				$MonthName = "September";
 			}
-			if($Month == 10){
+			if($month == 10){
 				$MonthName = "October";
 			}
-			if($Month == 11){
+			if($month == 11){
 				$MonthName = "November";
 			}		
-			if($Month == 12){
+			if($month == 12){
 				$MonthName = "December";
 			}
 				my $stealrec = $b;
-				open(FILE, ">>$title$name $filefix ~ $MonthName $Year StealRecord.txt")
+				open(FILE, ">>$title$name $filefix ~ $MonthName $year StealRecord.txt")
 				or die "failed to open file!!!!";
-				print FILE "[$Day/$Month/$Year] ~ [$hour:$minute:$second] - you stole $stealrec\n";
+				print FILE "[$day/$month/$year] ~ [$hour:$minute:$second] - you stole $stealrec\n";
 				close(FILE);
         }else{$stealtime = time; $stealtime = $stealtime + 2000; print "Freeplay not detected, stealing cancelled...\n";}
 }
@@ -663,7 +663,7 @@ sub LowFight {
 		
 		
 		$a = $b;
-		($second, $minute, $hour, $Day, $Month, $Year, $WeekDay, $DayOfYear, $IsDST) = localtime(time);
+		($second, $minute, $hour, $day, $month, $year, $week_day, $day_of_year, $is_dst) = localtime(time);
 		$a =~ m/(You win.*exp )/;
 		$a =~ m/(The battle tied.)/;
 		print "$antal :[$hour:$minute:$second]: " . $1 . "\n";
@@ -1459,51 +1459,51 @@ sub Fight {
 			}
 		}
 	if ($averagecountdown == 0){
-		($second, $minute, $hour, $Day, $Month, $Year, $WeekDay, $DayOfYear, $IsDST) = localtime(time);
-		$Year = $Year + 1900;
-		$Month = $Month + 1;
+		($second, $minute, $hour, $day, $month, $year, $week_day, $day_of_year, $is_dst) = localtime(time);
+		$year = $year + 1900;
+		$month = $month + 1;
 		my $MonthName;
-		if($Month == 1){
+		if($month == 1){
 			$MonthName = "January";
 		}
-		if($Month == 2){
+		if($month == 2){
 			$MonthName = "February";
 		}
-		if($Month == 3){
+		if($month == 3){
 			$MonthName = "March";
 		}
-		if($Month == 4){
+		if($month == 4){
 			$MonthName = "April";
 		}
-		if($Month == 5){
+		if($month == 5){
 			$MonthName = "May";
 		}
-		if($Month == 6){
+		if($month == 6){
 			$MonthName = "June";
 		}
-		if($Month == 7){
+		if($month == 7){
 			$MonthName = "July";
 		}
-		if($Month == 8){
+		if($month == 8){
 			$MonthName = "August";
 		}
-		if($Month == 9){
+		if($month == 9){
 			$MonthName = "September";
 		}
-		if($Month == 10){
+		if($month == 10){
 			$MonthName = "October";
 		}
-		if($Month == 11){
+		if($month == 11){
 			$MonthName = "November";
 		}		
-		if($Month == 12){
+		if($month == 12){
 			$MonthName = "December";
 		}
 		
-		open(FILE, ">>$name $filefix ~ $MonthName $Year\.txt")
+		open(FILE, ">>$name $filefix ~ $MonthName $year\.txt")
 		or die "failed to open file!!!!";
 		
-		print FILE "MAIN STATUS FOR $name at $hour:$minute:$second~$Day/$Month/$Year\n\n";
+		print FILE "MAIN STATUS FOR $name at $hour:$minute:$second~$day/$month/$year\n\n";
 		print FILE "$name\'s current level is $Forlev\n";
 		print FILE "You need $Nextlevel EXP to level\n";
 		print FILE "You can expect to level on $datestring\n";
@@ -1538,7 +1538,7 @@ sub Fight {
 			printf FILE ", ARlevel: %.3e\n\n", $arlevel->bstr();
 		}
 		
-		print FILE "SHOP STATUS FOR $name at $hour:$minute:$second~$Day/$Month/$Year\n\n";
+		print FILE "SHOP STATUS FOR $name at $hour:$minute:$second~$day/$month/$year\n\n";
 		print FILE "Current Max:		$SHOPMAX\n";
 		print FILE "WEAPON:			$SHOPWEAP\n";
 		print FILE "ATTACKSPELL:		$SHOPAS\n";
@@ -1553,7 +1553,7 @@ sub Fight {
 		print FILE "HAND:			$SHOPHAND\n";
 		print FILE "FEET:			$SHOPFEET\n\n";
 	
-		print FILE "AVERAGE'S FOR $name at $hour:$minute:$second~$Day/$Month/$Year\n\n";
+		print FILE "AVERAGE'S FOR $name at $hour:$minute:$second~$day/$month/$year\n\n";
 		print FILE "You can expect: $experseconds EXP/Sec.\n";
 		print FILE "You can expect: $goldseconds GOLD/Sec.\n";
 		print FILE "You can expect: $experminutes EXP/Min.\n";
@@ -1564,12 +1564,12 @@ sub Fight {
 		print FILE "You can expect: $golddays GOLD/Day.\n\n";
 		close(FILE);
 		
-		print "\nMAIN STATUS FOR $name at $hour:$minute:$second~$Day/$Month/$Year\n\n";
+		print "\nMAIN STATUS FOR $name at $hour:$minute:$second~$day/$month/$year\n\n";
 		print "$name\'s current level is $Forlev\n";
 		print "You need $Nextlevel EXP to level\n";
 		print "You can expect to level on $datestring\n";
 		printf "Your current CPM level is : %.3e\n\n", $level->bstr();
-		print "AVERAGE'S FOR $name at $hour:$minute:$second~$Day/$Month/$Year\n\n";
+		print "AVERAGE'S FOR $name at $hour:$minute:$second~$day/$month/$year\n\n";
 		print "You can expect: $experseconds EXP/Sec.\n";
 		print "you can expect: $goldseconds GOLD/Sec.\n";
 		print "You can expect: $experminutes EXP/Min.\n";
@@ -1606,8 +1606,8 @@ sub Fight {
 		}
 		
 		$a = $b;
-		($second, $minute, $hour, $Day, $Month, $Year, $WeekDay, $DayOfYear, $IsDST) = localtime(time);
-		$Year = $Year + 1900;
+		($second, $minute, $hour, $day, $month, $year, $week_day, $day_of_year, $is_dst) = localtime(time);
+		$year = $year + 1900;
 		$a =~ m/(You win.*exp )/;
 		$a =~ m/(The battle tied.)/;
 		print "$antal: [$hour:$minute:$second]: " . $1 . "\n";
@@ -2884,7 +2884,7 @@ if($a =~ m/Username/){
 	$mech->field("Username", $username);
 	$mech->field("Password", $password);
 	$mech->click();
-	($second, $minute, $hour, $Day, $Month, $Year, $WeekDay, $DayOfYear, $IsDST) = localtime(time);
+	($second, $minute, $hour, $day, $month, $year, $week_day, $day_of_year, $is_dst) = localtime(time);
 	#print "[$hour:$minute:$second] - logged in Successfully to : \n";
 }else{
 	sleep(5);
