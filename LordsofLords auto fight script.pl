@@ -42,15 +42,15 @@ my @stats;
 my @logins;
 my @users;
 my ($parsed, $tmp, $mech);
-my ($a,$b, $c);
+my ($a, $b, $c);
 my ($second, $minute, $hour, $day, $month, $year, $week_day, $day_of_year, $is_dst);
-my ($clicks);
+#my $clicks; (UNUSED)
 my $users;
 my $datestring;
 my $charname;
 my $title;
 my $name = "";
-my $DoSearch = "";
+#my $DoSearch = ""; (UNUSED)
 my $antal = new Math::BigFloat;
 my $wdlevel = new Math::BigFloat;
 my $aslevel = new Math::BigFloat;
