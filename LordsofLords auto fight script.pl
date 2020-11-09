@@ -72,7 +72,7 @@ my $MergeName;
 my $autolevel;
 my $MyLev;
 my $masslevel = 1500;
-my $Alternate = 60;
+my $alternate = 60;
 my $agilmagecount = 6;
 my $fightercount = 3;
 my $magecount = 3;
@@ -120,73 +120,53 @@ my $SHOPBELT;
 my $SHOPPANTS;
 my $SHOPHAND;
 my $SHOPFEET;
-my $URLSERVER;
-my $filefix;
+my $URL_SERVER;
+my $file_fix;
 my $temp1 = new Math::BigFloat;
-my $temploop = new Math::BigFloat;
+my $temp_loop = new Math::BigFloat;
 my $purebuild = 180;
 
-if($char_type == 7){
-	print "SINGLE STAT MODE, make sure you have selected the right stat.\n";
-	$Alternate = 180;
+
+if($char_type ~~ [7..12]) {
+	say "SINGLE STAT MODE, make sure you have selected the right stat.";
+	$alternate = 180;
 	$shop_yes_no = 2;
 }
-if($char_type == 8){
-	print "SINGLE STAT MODE, make sure you have selected the right stat.\n";
-	$Alternate = 180;
-	$shop_yes_no = 2;
-}
-if($char_type == 9){
-	print "SINGLE STAT MODE, make sure you have selected the right stat.\n";
-	$Alternate = 180;
-	$shop_yes_no = 2;
-}
-if($char_type == 10){
-	print "SINGLE STAT MODE, make sure you have selected the right stat.\n";
-	$Alternate = 180;
-	$shop_yes_no = 2;
-}
-if($char_type == 11){
-	print "SINGLE STAT MODE, make sure you have selected the right stat.\n";
-	$Alternate = 180;
-	$shop_yes_no = 2;
-}
-if($char_type == 12){
-	print "SINGLE STAT MODE, make sure you have selected the right stat.\n";
-	$Alternate = 180;
-	$shop_yes_no = 2;
-}
-if ($merger_name eq "MergerName"){
+
+if($merger_name eq "MergerName"){
 	$merger_name = "Undefined";
 }
-if($server == 1){
-	$URLSERVER = "/m3/";
-	$filefix = "m3";
-}elsif($server = 2){
-	$URLSERVER = "/sotse/";
-	$filefix = "sotse";
+
+if($server == 1) {
+	$URL_SERVER = "/m3/";
+	$file_fix = "m3";
+} elsif($server == 2) {
+	$URL_SERVER = "/sotse/";
+	$file_fix = "sotse";
 }
-$temploop = $loop_wait * 10;
+
+$temp_loop = $loop_wait * 10;
+
 #---------------------
 
 sub Stealwait {
-        $stealwait = 3600;
-        $stealtime = time;
-        $stealtime = $stealtime + $stealwait; # if stealer can't be found, click for 1k seconds
-        #print time . "|" . $stealtime . "\n";
-        #print "stealtime: " . $stealtime . "\n";
-        $parsed = 0; $stealcount = 0;
-        while ($parsed == 0) {sleep(1);
-        #print $stealcount . "\n";
-        $mech->get("http://thenewlosthope.net".$URLSERVER."steal.php");
-        $a = $mech->content();
-        if ($a =~ m/Parsed/) {$parsed = 1; $stealwait = 0;}
+		$stealwait = 3600;
+		$stealtime = time;
+		$stealtime = $stealtime + $stealwait; # if stealer can't be found, click for 1k seconds
+		#print time . "|" . $stealtime . "\n";
+		#print "stealtime: " . $stealtime . "\n";
+		$parsed = 0; $stealcount = 0;
+		while ($parsed == 0) {sleep(1);
+		#print $stealcount . "\n";
+		$mech->get("http://thenewlosthope.net".$URL_SERVER."steal.php");
+		$a = $mech->content();
+		if ($a =~ m/Parsed/) {$parsed = 1; $stealwait = 0;}
 		else{
 			sleep(10);
 			exit();
 		}
-        $stealcount = $stealcount+1; if ($stealcount == 5) {
-        }
+		$stealcount = $stealcount+1; if ($stealcount == 5) {
+		}
 		if ($a =~ m/recover/){
 			$a = $mech->content();
 			$a =~ m/(Take.*This)/s;
@@ -206,7 +186,7 @@ sub Stealwait {
 			$stealtime = time;
 			$stealtime = $stealtime + $stealwait;
 		}
-    }
+	}
 	$temp1 = $stealwait;
 	$temp1 =~ s/\s//g;
 	$stealantal = $temp1;
@@ -219,7 +199,7 @@ sub Mergetest{
 	$parsed = 0; 
 	while ($parsed == 0){
 		sleep(1);
-		$mech->get("http://thenewlosthope.net".$URLSERVER."theone.php");
+		$mech->get("http://thenewlosthope.net".$URL_SERVER."theone.php");
 		$a = $mech->content();
 		if ($a =~ m/Parsed/){
 			$parsed = 1;
@@ -258,7 +238,7 @@ sub MergeId{
 	$parsed = 0; 
 	while ($parsed == 0){
 		sleep(1);
-		$mech->get("http://thenewlosthope.net".$URLSERVER."theone.php");
+		$mech->get("http://thenewlosthope.net".$URL_SERVER."theone.php");
 		$a = $mech->content();
 		if ($a =~ m/Parsed/){
 			$parsed = 1;
@@ -333,7 +313,7 @@ sub MergeName{
 	$parsed = 0; 
 	while ($parsed == 0){
 		sleep(1);
-		$mech->get("http://thenewlosthope.net".$URLSERVER."theone.php");
+		$mech->get("http://thenewlosthope.net".$URL_SERVER."theone.php");
 		$a = $mech->content();
 		if ($a =~ m/Parsed/){
 		$parsed = 1;
@@ -342,7 +322,7 @@ sub MergeName{
 			exit();
 		}
 	}
-	    $a = $mech->content();
+		$a = $mech->content();
 		$a =~ s/(.*)($MergeId)//sg; #remove before
 		$a =~ s~</option>.*~~sg; #remove after
 		$a =~ s/"//sgi;
@@ -357,7 +337,7 @@ sub Merge {
 		$parsed = 0; 
 		while ($parsed == 0){
 		sleep(1);
-		$mech->get("http://thenewlosthope.net".$URLSERVER."theone.php");
+		$mech->get("http://thenewlosthope.net".$URL_SERVER."theone.php");
 		$a = $mech->content();
 		if ($a =~ m/Parsed/){
 		$parsed = 1;
@@ -373,7 +353,7 @@ sub Merge {
 	$mech->click_button('value' => 'EMERGE TO BE THE ONE!');
 	$a = $mech->content();
 	print "Successfully merged with: " . $MergeName . "\n";
-		open(FILE, ">>$filefix MERGERESULTS.txt")
+		open(FILE, ">>$file_fix MERGERESULTS.txt")
 		or die "failed to open file!!!!";
 		print FILE "$a\n";
 		close(FILE);
@@ -383,8 +363,8 @@ sub Steal {
 $parsed = 0;
 	while($parsed == 0){
 	sleep(1);
-	$mech->get("http://thenewlosthope.net".$URLSERVER."steal.php");
-    $a = $mech->content();
+	$mech->get("http://thenewlosthope.net".$URL_SERVER."steal.php");
+	$a = $mech->content();
 	if ($a =~ m/Parsed/){
 	$parsed = 1;
 	}else{
@@ -392,26 +372,26 @@ $parsed = 0;
 			exit();
 		}
 	}
-        $a = $mech->content();
-        if ($a =~ m/Freeplay/) { # steal only if we have freeplay
-                $a = "\<option\>" . "$steal_char" . ".*?\<\/option\>";
-                $tmp = $mech->content();
-                #print $tmp;
-                if($tmp =~ m/($a)/) {print "Stealer found\n";} else {print "Stealer not found! - not stealing!\n"; return();}
-                $tmp =~ m/($a)/s;
-                $tmp = $1;
-                $tmp =~ s/<.*?>//sg;
-                print "Stealing from: " . $tmp;
-                $mech->form_number(0);
-                $mech->select("Opp", $tmp);
-                $mech->click_button('value' => 'Steal Stats or Items');
-                $a = $mech->content();
-                $a =~ m/(sleepers.*This)/s;
-                $b = $1;
-                $b =~ s/<.*?>//sg;
-                $b =~ s/sleepers//sg;
-                $b =~ s/This//sg;
-                print $b;
+		$a = $mech->content();
+		if ($a =~ m/Freeplay/) { # steal only if we have freeplay
+				$a = "\<option\>" . "$steal_char" . ".*?\<\/option\>";
+				$tmp = $mech->content();
+				#print $tmp;
+				if($tmp =~ m/($a)/) {print "Stealer found\n";} else {print "Stealer not found! - not stealing!\n"; return();}
+				$tmp =~ m/($a)/s;
+				$tmp = $1;
+				$tmp =~ s/<.*?>//sg;
+				print "Stealing from: " . $tmp;
+				$mech->form_number(0);
+				$mech->select("Opp", $tmp);
+				$mech->click_button('value' => 'Steal Stats or Items');
+				$a = $mech->content();
+				$a =~ m/(sleepers.*This)/s;
+				$b = $1;
+				$b =~ s/<.*?>//sg;
+				$b =~ s/sleepers//sg;
+				$b =~ s/This//sg;
+				print $b;
 		($second, $minute, $hour, $day, $month, $year, $week_day, $day_of_year, $is_dst) = localtime(time);
 			$year = $year + 1900;
 			$month = $month + 1;
@@ -453,19 +433,19 @@ $parsed = 0;
 				$MonthName = "December";
 			}
 				my $stealrec = $b;
-				open(FILE, ">>$title$name $filefix ~ $MonthName $year StealRecord.txt")
+				open(FILE, ">>$title$name $file_fix ~ $MonthName $year StealRecord.txt")
 				or die "failed to open file!!!!";
 				print FILE "[$day/$month/$year] ~ [$hour:$minute:$second] - you stole $stealrec\n";
 				close(FILE);
-        }else{$stealtime = time; $stealtime = $stealtime + 2000; print "Freeplay not detected, stealing cancelled...\n";}
+		}else{$stealtime = time; $stealtime = $stealtime + 2000; print "Freeplay not detected, stealing cancelled...\n";}
 }
 
 sub Lowlevel {
 	$parsed = 0; 
 	while ($parsed == 0){
 		sleep(0.5);
-#		$mech->get("http://thenewlosthope.net".$URLSERVER."fight_control.php");
-		$mech->get("http://thenewlosthope.net".$URLSERVER."world_control.php");
+#		$mech->get("http://thenewlosthope.net".$URL_SERVER."fight_control.php");
+		$mech->get("http://thenewlosthope.net".$URL_SERVER."world_control.php");
 		$a = $mech->content();
 		if ($a =~ m/Thief/){
 		$parsed = 1;
@@ -506,12 +486,12 @@ sub Lowlevel {
 	$mrlevel = new Math::BigFloat $stats[7];
 
 	#cpms m2 only
-    $wdlevel->bdiv('603'); 
-    $aslevel->bdiv('554'); 
-    $mslevel->bdiv('84'); 
-    $deflevel->bdiv('42'); 
-    $arlevel->bdiv('57'); 
-    $mrlevel->bdiv('72'); 
+	$wdlevel->bdiv('603'); 
+	$aslevel->bdiv('554'); 
+	$mslevel->bdiv('84'); 
+	$deflevel->bdiv('42'); 
+	$arlevel->bdiv('57'); 
+	$mrlevel->bdiv('72'); 
 
 	$wdlevel->bfround(1);
 	$aslevel->bfround(1);
@@ -600,7 +580,7 @@ sub LowFight {
 	$parsed = 0;
 	while ($parsed == 0){
 		sleep(0.5);
-		$mech->get("http://thenewlosthope.net".$URLSERVER."fight_control.php");
+		$mech->get("http://thenewlosthope.net".$URL_SERVER."fight_control.php");
 		$a = $mech->content();
 		if ($a =~ m/Skeleton/){
 			$parsed = 1;
@@ -684,7 +664,7 @@ sub LowFight {
 
 sub Autolevelup {
 	$parsed = 0; while ($parsed == 0) {sleep(0.5);
-	$mech->get("http://thenewlosthope.net".$URLSERVER."stats.php");
+	$mech->get("http://thenewlosthope.net".$URL_SERVER."stats.php");
 	$a = $mech->content();
 	if ($a =~ m/Parsed/){
 		$parsed = 1;
@@ -704,7 +684,7 @@ sub Autolevelup {
 	$ActualLevel = $b;
 	
 	if($char_type == 6){
-		$Alternate = 75;
+		$alternate = 75;
 	}
 	while ($a =~ m/(Congra.*exp)/){
 		if ($char_type == 1) {if ($agilmagecount == 6){
@@ -841,9 +821,9 @@ sub Autolevelup {
 		$FormatedLev = reverse $temp1;
 	}
 	
-	print "[Level : $FormatedLev][$Alternate] You Auto-Leveled " . $autolevel . "\n";
-			$Alternate = $Alternate - 1;
-		if($Alternate == 0){
+	print "[Level : $FormatedLev][$alternate] You Auto-Leveled " . $autolevel . "\n";
+			$alternate = $alternate - 1;
+		if($alternate == 0){
 			&TestShop;
 			exit();
 		}
@@ -880,8 +860,8 @@ sub CPMlevel {
 	$parsed = 0; 
 	while ($parsed == 0){
 		sleep(0.5);
-#		$mech->get("http://thenewlosthope.net".$URLSERVER."fight_control.php");
-		$mech->get("http://thenewlosthope.net".$URLSERVER."world_control.php");
+#		$mech->get("http://thenewlosthope.net".$URL_SERVER."fight_control.php");
+		$mech->get("http://thenewlosthope.net".$URL_SERVER."world_control.php");
 		$a = $mech->content();
 		if ($a =~ m/Thief/){
 		$parsed = 1;
@@ -922,12 +902,12 @@ sub CPMlevel {
 	$mrlevel = new Math::BigFloat $stats[7];
 
 	#cpms m2 only
-    $wdlevel->bdiv('1661622');
-    $aslevel->bdiv('1877897');
+	$wdlevel->bdiv('1661622');
+	$aslevel->bdiv('1877897');
 	$mslevel->bdiv('3028631');
-    $deflevel->bdiv('1817170');
-    $arlevel->bdiv('363482.2');
-    $mrlevel->bdiv('363497.2');
+	$deflevel->bdiv('1817170');
+	$arlevel->bdiv('363482.2');
+	$mrlevel->bdiv('363497.2');
 
 	$wdlevel->bfround(1);
 	$aslevel->bfround(1);
@@ -1016,7 +996,7 @@ sub Fight {
 	$parsed = 0;
 	while ($parsed == 0){
 		sleep(0.5);
-		$mech->get("http://thenewlosthope.net".$URLSERVER."fight_control.php");
+		$mech->get("http://thenewlosthope.net".$URL_SERVER."fight_control.php");
 		$a = $mech->content();
 		if ($a =~ m/Skeleton/){
 			$parsed = 1;
@@ -1030,10 +1010,10 @@ sub Fight {
 	$mech->click();
 	$cpm = $mech->content();
 	$cpm =~ m/(\<option\>208.*Duke)/;
-    $cpm = $1;
-    $cpm =~ s/ - Shadowlord Duke//g;
-    $cpm =~ s/\>209/\>/;
-    $cpm =~ s/<.*?>//g;
+	$cpm = $1;
+	$cpm =~ s/ - Shadowlord Duke//g;
+	$cpm =~ s/\>209/\>/;
+	$cpm =~ s/<.*?>//g;
 	print $cpm . "\n";
 	$mech->form_number(1);
 	$mech->select("Monster", $cpm);
@@ -1500,7 +1480,7 @@ sub Fight {
 			$MonthName = "December";
 		}
 		
-		open(FILE, ">>$name $filefix ~ $MonthName $year\.txt")
+		open(FILE, ">>$name $file_fix ~ $MonthName $year\.txt")
 		or die "failed to open file!!!!";
 		
 		print FILE "MAIN STATUS FOR $name at $hour:$minute:$second~$day/$month/$year\n\n";
@@ -1627,7 +1607,7 @@ sub Fight {
 }
 
 sub Levelupagimage {
-		$mech->get("http://thenewlosthope.net".$URLSERVER."stats.php");
+		$mech->get("http://thenewlosthope.net".$URL_SERVER."stats.php");
 		sleep(0.5);
 		if(($aslevel <= $deflevel) && ($aslevel <= $mrlevel)) {
 		$mech->form_number(1);
@@ -1657,7 +1637,7 @@ sub Levelupagimage {
 			print "You Leveled up Agility\n";
 			sleep(1);
 			return();
-        }
+		}
 
 		if(($mrlevel <= $deflevel) && ($mrlevel <= $aslevel)) {
 		$mech->form_number(1);
@@ -1672,12 +1652,12 @@ sub Levelupagimage {
 			print "You Leveled up Concentration\n";
 			sleep(1);
 			return();
-        }
+		}
 }
 
 
 sub Levelupfighter {
-		$mech->get("http://thenewlosthope.net".$URLSERVER."stats.php");
+		$mech->get("http://thenewlosthope.net".$URL_SERVER."stats.php");
 		sleep(0.5);
 		if(($wdlevel <= $mrlevel) && ($wdlevel <= $arlevel)) {
 		$mech->form_number(1);
@@ -1705,7 +1685,7 @@ sub Levelupfighter {
 			}
 			print "You Leveled up Dexterity\n";
 			return();
-        }
+		}
 
 		if(($mrlevel <= $wdlevel) && ($mrlevel <= $arlevel)) {
 		$mech->form_number(1);
@@ -1719,11 +1699,11 @@ sub Levelupfighter {
 			}
 			print "You Leveled up Concentration\n";
 			return();
-        }
+		}
 	}
 
 sub Levelupmage {
-		$mech->get("http://thenewlosthope.net".$URLSERVER."stats.php");
+		$mech->get("http://thenewlosthope.net".$URL_SERVER."stats.php");
 		sleep(0.5);
 		if(($aslevel <= $arlevel) && ($aslevel <= $mrlevel)) {
 		$mech->form_number(1);
@@ -1751,7 +1731,7 @@ sub Levelupmage {
 			}
 			print "You Leveled up Dexterity\n";
 			return();
-        }
+		}
 
 		if(($mrlevel <= $arlevel) && ($mrlevel <= $aslevel)) {
 		$mech->form_number(1);
@@ -1765,11 +1745,11 @@ sub Levelupmage {
 			}
 			print "You Leveled up Concentration\n";
 			return();
-        }
+		}
 }
 
 sub Leveluppurefighter {
-		$mech->get("http://thenewlosthope.net".$URLSERVER."stats.php");
+		$mech->get("http://thenewlosthope.net".$URL_SERVER."stats.php");
 		sleep(0.5);
 		if($wdlevel <= $arlevel) {
 		$mech->form_number(1);
@@ -1801,7 +1781,7 @@ sub Leveluppurefighter {
 }
 	
 sub Leveluppuremage {
-		$mech->get("http://thenewlosthope.net".$URLSERVER."stats.php");
+		$mech->get("http://thenewlosthope.net".$URL_SERVER."stats.php");
 		sleep(0.5);
 		if($mrlevel >= $aslevel) {
 		$mech->form_number(1);
@@ -1836,7 +1816,7 @@ sub Leveluppuremage {
 }
 
 sub Levelupcontrafighter {
-		$mech->get("http://thenewlosthope.net".$URLSERVER."stats.php");
+		$mech->get("http://thenewlosthope.net".$URL_SERVER."stats.php");
 		sleep(0.5);
 		if(($wdlevel <= $mslevel) && ($wdlevel <= $arlevel)) {
 		$mech->form_number(1);
@@ -1866,7 +1846,7 @@ sub Levelupcontrafighter {
 			print "You Leveled up Contravention\n";
 			sleep(1);
 			return();
-        }
+		}
 
 		if(($arlevel <= $mslevel) && ($arlevel <= $wdlevel)) {
 		$mech->form_number(1);
@@ -1881,14 +1861,14 @@ sub Levelupcontrafighter {
 			print "You Leveled up Dexterity\n";
 			sleep(1);
 			return();
-        }
+		}
 }
 
 sub CheckShop{
 		$parsed = 0; 
 	while (!$parsed){
 		sleep(1);
-		$mech->get("http://thenewlosthope.net".$URLSERVER."shop.php");
+		$mech->get("http://thenewlosthope.net".$URL_SERVER."shop.php");
 		$a = $mech->content();
 		if($a =~ m/Parsed/){
 			$parsed = 1;
@@ -1935,7 +1915,7 @@ sub CheckShop{
 	my $ahand;
 	my $afeet;
 	
-	#open(FILE, ">$filefix shops.txt")
+	#open(FILE, ">$file_fix shops.txt")
 	#or die "failed to open file!!!!";
 	#print FILE "$a1\n";
 	#close(FILE);
@@ -2133,7 +2113,7 @@ sub TestShop{
 		$parsed = 0; 
 	while (!$parsed){
 		sleep(1);
-		$mech->get("http://thenewlosthope.net".$URLSERVER."shop.php");
+		$mech->get("http://thenewlosthope.net".$URL_SERVER."shop.php");
 		$a = $mech->content();
 		if($a =~ m/Parsed/){
 			$parsed = 1;
@@ -2372,7 +2352,7 @@ sub BuyUpgrades{
 	$parsed = 0; 
 	while (!$parsed){
 		sleep(1);
-		$mech->get("http://thenewlosthope.net".$URLSERVER."shop.php");
+		$mech->get("http://thenewlosthope.net".$URL_SERVER."shop.php");
 		$a = $mech->content();
 		if($a =~ m/Parsed/){
 			$parsed = 1;
@@ -2552,7 +2532,7 @@ sub MyLevel{
 	$parsed = 0; 
 	while (!$parsed){
 		sleep(0.5);
-		$mech->get("http://thenewlosthope.net".$URLSERVER."main.php");
+		$mech->get("http://thenewlosthope.net".$URL_SERVER."main.php");
 		$a = $mech->content();
 		if($a =~ m/Parsed/){
 			$parsed = 1;
@@ -2561,7 +2541,7 @@ sub MyLevel{
 	
 	$a = $mech->content();
 	$a =~ s/<.*?>//sg;
-    $a =~ m/(Level : .*)/s;
+	$a =~ m/(Level : .*)/s;
 	$a =~ s/\n/ /g;
 	$a =~ s/LordsofLords/ /g;
 	$a =~ s/ //g;
@@ -2588,7 +2568,7 @@ sub Charname{
 	$parsed = 0; 
 	while (!$parsed){
 		sleep(0.5);
-		$mech->get("http://thenewlosthope.net".$URLSERVER."stats.php");
+		$mech->get("http://thenewlosthope.net".$URL_SERVER."stats.php");
 		$a = $mech->content();
 		if($a =~ m/Parsed/){
 			$parsed = 1;
@@ -2629,18 +2609,18 @@ $mech->timeout(5); #2 second timeout! for n00b SilenT
 $mech->agent_alias( 'Windows Mozilla' );
 
 print " 
-         \\\\\\///
-        / _  _ \\\
-      (| (.)(.) |)
+		 \\\\\\///
+		/ _  _ \\\
+	  (| (.)(.) |)
 .---.OOOo--()--oOOO.---.
 |                      |
 | www.thenewlosthope.net |
 |                      |
 '---.oooO--------------'
-     (   )   Oooo.
-      \\\ (    (   )
-       \\\_)    ) /
-             (_/
+	 (   )   Oooo.
+	  \\\ (    (   )
+	   \\\_)    ) /
+			 (_/
 \n";
 
 #Login
@@ -2870,7 +2850,7 @@ until ($username ne 35){
 $parsed = 0; 
 while ($parsed == 0){
 sleep(0.5);
-$mech->get("http://thenewlosthope.net".$URLSERVER."login.php");
+$mech->get("http://thenewlosthope.net".$URL_SERVER."login.php");
 $a = $mech->content();
 	if($a =~ m/Enter Lol!/){
 		$parsed = 1;
