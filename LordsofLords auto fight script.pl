@@ -51,7 +51,6 @@ my $charname;
 my $title;
 my $name = "";
 #my $DoSearch = ""; (UNUSED)
-my $antal = new Math::BigFloat;
 my $wdlevel = new Math::BigFloat;
 my $aslevel = new Math::BigFloat;
 my $mslevel = new Math::BigFloat;
@@ -167,7 +166,7 @@ sub get_steal_wait {
 	$mech->get("http://thenewlosthope.net${URL_SERVER}steal.php");
 	my $content = $mech->content();
 	
-	if($content !~ m/Parsed/) {
+	unless($content =~ m/Parsed/) {
 		sleep 10;
 		exit;
 	}
@@ -206,7 +205,7 @@ sub merge_test {
 	$mech->get("http://thenewlosthope.net${URL_SERVER}theone.php");
 	my $content = $mech->content();
 
-	if($content !~ m/Parsed/) {
+	unless($content =~ m/Parsed/) {
 		sleep 10;
 		exit;
 	}
@@ -241,7 +240,7 @@ sub get_merge_id {
 	$mech->get("http://thenewlosthope.net${URL_SERVER}theone.php");
 	$content = $mech->content();
 	
-	if($content !~ m/Parsed/) {
+	unless($content =~ m/Parsed/) {
 		sleep 10;
 		exit;
 	}
@@ -314,7 +313,7 @@ sub get_merge_name($merge_id) {
 	$mech->get("http://thenewlosthope.net${URL_SERVER}theone.php");
 	my $content = $mech->content();
 	
-	if($content !~ m/Parsed/) {
+	unless($content =~ m/Parsed/) {
 		sleep 10;
 		exit;
 	}
@@ -337,7 +336,7 @@ sub merge {
 	$mech->get("http://thenewlosthope.net${URL_SERVER}theone.php");
 	my $content = $mech->content();
 	
-	if($content !~ m/Parsed/) {
+	unless($content =~ m/Parsed/) {
 		sleep 10;
 		exit;
 	}
@@ -365,7 +364,7 @@ sub steal {
 	$mech->get("http://thenewlosthope.net".$URL_SERVER."steal.php");
 	my $content = $mech->content();
 	
-	if($content !~ m/Parsed/) {
+	unless($content =~ m/Parsed/) {
 		sleep 10;
 		exit;
 	}
@@ -425,7 +424,7 @@ sub low_level {
 	$mech->get("http://thenewlosthope.net${URL_SERVER}world_control.php");
 	my $content = $mech->content();
 	
-	if($content !~ m/Thief/) {
+	unless($content =~ m/Thief/) {
 		sleep 10;
 		exit;
 	}
@@ -549,95 +548,97 @@ sub low_level {
 			when(6) { @levels{wd, ms,  ar}   }
 		}
 	};
-	my $level = (grep {defined} sort {$a <=> $b} @possible_levels)[0]->copy(); # find minimum value
+	my $level = (sort grep {defined} @possible_levels)[0]->copy(); # find minimum value
 
 	printf " --> Skeleton level: %.3e\n", $level->bstr();
+
+	return $level;
 }
 
-sub LowFight($level) {
-# setup fight
-	my($cpm);
-	$parsed = 0;
-	while ($parsed == 0){
-		sleep(0.5);
-		$mech->get("http://thenewlosthope.net".$URL_SERVER."fight_control.php");
-		$a = $mech->content();
-		if ($a =~ m/Skeleton/){
-			$parsed = 1;
-		}else{
-			sleep(10);
-			exit();
-		}
+sub low_fight($level) {
+	# Setup fight
+
+	sleep 0.5;
+	
+	$mech->get("http://thenewlosthope.net${URL_SERVER}fight_control.php");
+	my $content = $mech->content();
+	
+	unless($content =~ m/Skeleton/) {
+		sleep 10;
+		exit;
 	}
+	
 	$mech->form_number(2);
 	$mech->field("Difficulty", $level);
 	$mech->click();
 	$mech->form_number(1);
 	$mech->click();
-	$a = $mech->content();
-	$a =~ m/(You win.*exp )/;
-	$a =~ m/(battle)/;
-	$a =~ m/(You have been jailed for violating our rules)/;
-	#print $1 . "\n";
+	
+	$content = $mech->content();
+	$content =~ m/(You win.*exp )/;
+	$content =~ m/(battle)/;
+	$content =~ m/(You have been jailed for violating our rules)/;
+	
 	#my $antal = 500 + int rand (500);
+
+	# Unsure what to do here. Perhaps it's related to this commit? (near the end)
+	# https://github.com/ALANVF/perl-thingy/commit/a5a43a88016b1cefda9236c07e2cd00d76cdff82#diff-f3f0aa1c7cc9604ea1bd0a6b3b5b62fa096daab0866f113d9cc5cb960eb7fa9b
 	$steal_antal = new Math::BigFloat $steal_antal;
 	$steal_antal->bdiv($loop_wait);
 	$steal_antal->bstr();
 	$steal_antal->bfround(1);
-	$antal = $steal_antal;
-	my $jail;
+	
+	my $antal = $steal_antal->copy();
 
-# REPEAT:
-	while($antal > 0) {
-		sleep($loop_wait); #default = 0.3
-		$antal = $antal -1;
+	# REPEAT:
+	while($antal-- > 0) {
+		sleep $loop_wait; # Default = 0.3
+		
 		$mech->reload();
-		$a = $mech->content();
-		$b = $a;
-		$c = $a;
-# KILLED
-		if($a =~ m/(been.*slain)/) {
-			print "ERROR - TOO HIGH MONSTER LEVEL! - you were slain!\n";exit(0);
-		}
-# JAILED
-		if ($b =~ m/jail time.*<br>/) {
-			print"You have been Jailed - Sleep 5 seconds.\n";
-			sleep(5);
-		}
-
-# LOGGED OUT
-
-		if ($c =~ m/logged/) {
-			print "LOGGED OUT! sleeping for 5 seconds before restart!\n";
-			sleep(5);
-			exit();
-		}
-
-
-# STEAL TIME? then exit to steal
-		if ($antal <= 0) {
-			sleep(5);
-			print "Waiting last few seconds before steal\n";
-			exit();
+		$content = $mech->content();
+		
+		# KILLED
+		if($content =~ m/(been.*slain)/) {
+			say "ERROR - TOO HIGH MONSTER LEVEL! - you were slain!";
+			exit 0;
 		}
 		
+		# JAILED
+		if($content =~ m/jail time.*<br>/) {
+			say "You have been Jailed - Sleep 5 seconds.";
+			sleep(5);
+		}
+
+		# LOGGED OUT
+		if($content =~ m/logged/) {
+			say "LOGGED OUT! sleeping for 5 seconds before restart";
+			sleep 5;
+			exit;
+		}
+
+		# STEAL TIME? then exit to steal
+		if($antal <= 0) {
+			sleep 5;
+			say "Waiting last few seconds before steal";
+			exit;
+		}
 		
-		$a = $b;
-		($second, $minute, $hour, $day, $month, $year, $week_day, $day_of_year, $is_dst) = localtime(time);
-		$a =~ m/(You win.*exp )/;
-		$a =~ m/(The battle tied.)/;
-		print "$antal :[$hour:$minute:$second]: " . $1 . "\n";
+		my ($second, $minute, $hour) = localtime(time);
+		
+		$content =~ m/(You win.*exp )/;
+		$content =~ m/(The battle tied.)/;
+		say "$antal :[$hour:$minute:$second]: $1";
 
-
-
-# level up if necessary
-		if ($b =~ m/(Congra.*exp)/) {
-			if ($char_type == 1) {&Levelupagimage; return();}
-			if ($char_type == 2) {&Levelupfighter; return();}
-			if ($char_type == 3) {&Levelupmage; return();}
-			if ($char_type == 4) {&Leveluppurefighter; return();}
-			if ($char_type == 5) {&Leveluppuremage; return();}
-			if ($char_type == 6) {&Levelupcontrafighter; return();}
+		# Level up if necessary
+		if($content =~ m/(Congra.*exp)/) {
+			given($char_type) {
+				when(1) {Levelupagimage()}
+				when(2) {Levelupfighter()}
+				when(3) {Levelupmage()}
+				when(4) {Leveluppurefighter()}
+				when(5) {Leveluppuremage()}
+				when(6) {Levelupcontrafighter()}
+			}
 		}
 	}
 }
@@ -1008,7 +1009,7 @@ sub Fight($level) {
 	$steal_antal->bdiv($loop_wait);
 	$steal_antal->bstr();
 	$steal_antal->bfround(1);
-	$antal = $steal_antal;
+	my $antal = $steal_antal;
 	my $jail;
 	my $averagecountdown = 900;
 # REPEAT:
@@ -2874,8 +2875,7 @@ while($levels){
 		}
 	&Autolevelup;
 	if($MyLev <= 2500000){
-		low_level();
-		&LowFight;	
+		low_fight(low_level());	
 	}else{
 		&CPMlevel;
 		&Fight;
