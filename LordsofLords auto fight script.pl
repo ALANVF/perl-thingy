@@ -41,7 +41,8 @@ my ($all, $stat);
 my @stats;
 my @logins;
 my @users;
-my ($parsed, $tmp, $mech);
+my $parsed; # SHOULD NOT BE GLOBAL
+my ($tmp, $mech);
 my ($a, $b, $c);
 my ($second, $minute, $hour, $day, $month, $year, $week_day, $day_of_year, $is_dst);
 #my $clicks; (UNUSED)
@@ -59,11 +60,8 @@ my $deflevel = new Math::BigFloat;
 my $arlevel = new Math::BigFloat;
 my $mrlevel = new Math::BigFloat;
 my $level = new Math::BigFloat;
-my $stealwait;
-my $stealtime;
-my $stealantal = new Math::BigFloat;
+my $steal_antal = new Math::BigFloat; # SHOULD NOT BE GLOBAL
 my $mytime;
-my $stealcount;
 my $intstrlvl = 0;
 my $MergeList;
 my $Mergeready;
@@ -149,25 +147,38 @@ $temp_loop = $loop_wait * 10;
 
 #---------------------
 
-sub Stealwait {
-		$stealwait = 3600;
-		$stealtime = time;
-		$stealtime = $stealtime + $stealwait; # if stealer can't be found, click for 1k seconds
-		#print time . "|" . $stealtime . "\n";
-		#print "stealtime: " . $stealtime . "\n";
-		$parsed = 0; $stealcount = 0;
-		while ($parsed == 0) {sleep(1);
-		#print $stealcount . "\n";
-		$mech->get("http://thenewlosthope.net".$URL_SERVER."steal.php");
+sub get_steal_wait {
+	my $steal_wait = 3600;
+	my $steal_time = time;
+	my $steal_count = 0;
+	
+	$steal_time = $steal_time + $steal_wait; # if stealer can't be found, click for 1k seconds
+	#print time . "|" . $steal_time . "\n";
+	#print "steal_time: " . $steal_time . "\n";
+	my $parsed = 0;
+	
+	while($parsed == 0) {
+		sleep(1);
+		
+		#print $steal_count . "\n";
+		
+		$mech->get("http://thenewlosthope.net${URL_SERVER}steal.php");
 		$a = $mech->content();
-		if ($a =~ m/Parsed/) {$parsed = 1; $stealwait = 0;}
-		else{
+		
+		if($a =~ m/Parsed/) {
+			$parsed = 1;
+			$steal_wait = 0;
+		} else {
 			sleep(10);
 			exit();
 		}
-		$stealcount = $stealcount+1; if ($stealcount == 5) {
+		
+		$steal_count++;
+		
+		if($steal_count == 5) { # (USELESS)
 		}
-		if ($a =~ m/recover/){
+
+		if($a =~ m/recover/) {
 			$a = $mech->content();
 			$a =~ m/(Take.*This)/s;
 			$b = $1;
@@ -181,18 +192,25 @@ sub Stealwait {
 			$b =~ s/seconds//sg;
 			$b =~ s/<.*?>//sg;
 			$b =~ s/,//g;
-			$stealwait = $b;
-			print "In recover, gotta wait " . $stealwait . " seconds before I can steal...\n\n";
-			$stealtime = time;
-			$stealtime = $stealtime + $stealwait;
+			$steal_wait = $b;
+			
+			say "In recover, gotta wait $steal_wait seconds before I can steal...\n";
+			
+			$steal_time = time;
+			$steal_time += $steal_wait;
 		}
 	}
-	$temp1 = $stealwait;
+
+	# (USELESS)
+	$temp1 = $steal_wait;
 	$temp1 =~ s/\s//g;
-	$stealantal = $temp1;
-		if($stealantal == 0){
-			$stealantal = 1800;
-		}
+	my $steal_antal = $temp1;
+	#
+	if($steal_antal == 0){
+		$steal_antal = 1800;
+	}
+	
+	return $steal_wait;
 }
 
 sub Mergetest{
@@ -437,7 +455,11 @@ $parsed = 0;
 				or die "failed to open file!!!!";
 				print FILE "[$day/$month/$year] ~ [$hour:$minute:$second] - you stole $stealrec\n";
 				close(FILE);
-		}else{$stealtime = time; $stealtime = $stealtime + 2000; print "Freeplay not detected, stealing cancelled...\n";}
+		} else {
+			my $steal_time = time; # (UNUSED)
+			$steal_time = $steal_time + 2000;
+			print "Freeplay not detected, stealing cancelled...\n";
+		}
 }
 
 sub Lowlevel {
@@ -600,11 +622,11 @@ sub LowFight {
 	$a =~ m/(You have been jailed for violating our rules)/;
 	#print $1 . "\n";
 	#my $antal = 500 + int rand (500);
-	$stealantal = new Math::BigFloat $stealantal;
-	$stealantal->bdiv($loop_wait);
-	$stealantal->bstr();
-	$stealantal->bfround(1);
-	$antal = $stealantal;
+	$steal_antal = new Math::BigFloat $steal_antal;
+	$steal_antal->bdiv($loop_wait);
+	$steal_antal->bstr();
+	$steal_antal->bfround(1);
+	$antal = $steal_antal;
 	my $jail;
 
 # REPEAT:
@@ -1024,11 +1046,11 @@ sub Fight {
 	$a =~ m/(You have been jailed for violating our rules)/;
 	#print $1 . "\n";
 	#my $antal = 500 + int rand (500);
-	$stealantal = new Math::BigFloat $stealantal;
-	$stealantal->bdiv($loop_wait);
-	$stealantal->bstr();
-	$stealantal->bfround(1);
-	$antal = $stealantal;
+	$steal_antal = new Math::BigFloat $steal_antal;
+	$steal_antal->bdiv($loop_wait);
+	$steal_antal->bstr();
+	$steal_antal->bfround(1);
+	$antal = $steal_antal;
 	my $jail;
 	my $averagecountdown = 900;
 # REPEAT:
@@ -2883,8 +2905,8 @@ while($levels){
 	}else{
 		print "\nHigh Level Fight mode\n\n";
 	}
-	&Stealwait;
-		if ($stealwait == 0) {
+	
+		if (get_steal_wait() == 0) {
 		#	&Mergetest;
 	#		if ($Mergeready == 1){
 #				&Merge;
