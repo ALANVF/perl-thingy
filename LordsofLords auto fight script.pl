@@ -597,23 +597,25 @@ sub low_fight($level) {
 		$mech->reload();
 		$content = $mech->content();
 		
-		# KILLED
-		if($content =~ m/(been.*slain)/) {
-			say "ERROR - TOO HIGH MONSTER LEVEL! - you were slain!";
-			exit 0;
-		}
-		
-		# JAILED
-		if($content =~ m/jail time.*<br>/) {
-			say "You have been Jailed - Sleep 5 seconds.";
-			sleep(5);
-		}
+		given($content) {
+			# KILLED
+			when(m/(been.*slain)/) {
+				say "ERROR - TOO HIGH MONSTER LEVEL! - you were slain!";
+				exit 0;
+			}
 
-		# LOGGED OUT
-		if($content =~ m/logged/) {
-			say "LOGGED OUT! sleeping for 5 seconds before restart";
-			sleep 5;
-			exit;
+			# JAILED
+			when(m/jail time.*<br>/) {
+				say "You have been Jailed - Sleep 5 seconds.";
+				sleep 5;
+			}
+
+			# LOGGED OUT
+			when(m/logged/) {
+				say "LOGGED OUT! sleeping for 5 seconds before restart";
+				sleep 5;
+				exit;
+			}
 		}
 
 		# STEAL TIME? then exit to steal
@@ -632,12 +634,12 @@ sub low_fight($level) {
 		# Level up if necessary
 		if($content =~ m/(Congra.*exp)/) {
 			given($char_type) {
-				when(1) {Levelupagimage()}
-				when(2) {Levelupfighter()}
-				when(3) {Levelupmage()}
-				when(4) {Leveluppurefighter()}
-				when(5) {Leveluppuremage()}
-				when(6) {Levelupcontrafighter()}
+				Levelupagimage()       when 1;
+				Levelupfighter()       when 2;
+				Levelupmage()          when 3;
+				Leveluppurefighter()   when 4;
+				Leveluppuremage()      when 5;
+				Levelupcontrafighter() when 6;
 			}
 		}
 	}
