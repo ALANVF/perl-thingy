@@ -37,8 +37,7 @@ my $merger_name = $ARGV[7] or die "merger_name error";
 my $max_level   = $ARGV[8] or die "max_level error";
 
 # Global variables
-my ($all, $stat);
-my @stats;
+my $stat;
 my @logins;
 my @users;
 my $parsed; # SHOULD NOT BE GLOBAL
@@ -419,29 +418,35 @@ sub steal {
 	}
 }
 
-sub Lowlevel {
-	$parsed = 0; 
-	while ($parsed == 0){
-		sleep(0.5);
-#		$mech->get("http://thenewlosthope.net".$URL_SERVER."fight_control.php");
-		$mech->get("http://thenewlosthope.net".$URL_SERVER."world_control.php");
-		$a = $mech->content();
-		if ($a =~ m/Thief/){
-		$parsed = 1;
-		}else{
-			sleep(10);
-			exit();
-		}
+sub low_level {
+	sleep 0.5;
+
+	#$mech->get("http://thenewlosthope.net${URL_SERVER}fight_control.php");
+	$mech->get("http://thenewlosthope.net${URL_SERVER}world_control.php");
+	my $content = $mech->content();
+	
+	if($content !~ m/Thief/) {
+		sleep 10;
+		exit;
 	}
+
 	$mech->form_number(1);
 	$mech->click();
-	$all = $mech->content();
-	#test for free upgrade
-	if ($all =~ m/Click here to upgrade/) {
-		sleep(0.5); $mech->form_number(0);$mech->click();
-		print "Free upgrade detected and cleared. Restarting\n";
-		exit();
+
+	my $all = $mech->content();
+	
+	# test for free upgrade
+	if($all =~ m/Click here to upgrade/) {
+		sleep 0.5;
+		
+		$mech->form_number(0);
+		$mech->click();
+		
+		say "Free upgrade detected and cleared. Restarting";
+
+		exit;
 	}
+
 	$all =~ m/(Min<br>.*monster)/s;
 	$stat = $1;
 	$stat =~ m/(\<br.*td\>)/;
@@ -449,111 +454,107 @@ sub Lowlevel {
 	$stat =~ s/<.*?>/:/sg;
 	$stat =~ s/\.//g;
 	#print $stat;
-	@stats = split(/:/, $stat);
-	$stats[1] =~ s/,//sg;
-	$stats[2] =~ s/,//sg;
-	$stats[4] =~ s/,//sg;
-	$stats[5] =~ s/,//sg;
-	$stats[6] =~ s/,//sg;
-	$stats[7] =~ s/,//sg;
 
-	$wdlevel = new Math::BigFloat $stats[1];
-	$aslevel = new Math::BigFloat $stats[2];
-	$mslevel = new Math::BigFloat $stats[4];
-	$deflevel = new Math::BigFloat $stats[5];
-	$arlevel = new Math::BigFloat $stats[6];
-	$mrlevel = new Math::BigFloat $stats[7];
+	my @stats = (split ":", $stat)[1, 2, 4..7];
+	my %levels = (
+		wd => undef,
+		as => undef,
+		ms => undef,
+		def => undef,
+		ar => undef,
+		mr => undef
+	);
+
+	for my $key (keys %levels) {
+		$levels{$key} = new Math::BigFloat do {
+			shift @stats;
+			s/,//sg;
+		};
+	}
 
 	#cpms m2 only
-	$wdlevel->bdiv('603'); 
-	$aslevel->bdiv('554'); 
-	$mslevel->bdiv('84'); 
-	$deflevel->bdiv('42'); 
-	$arlevel->bdiv('57'); 
-	$mrlevel->bdiv('72'); 
+	$levels{wd}->bdiv('603'); 
+	$levels{as}->bdiv('554'); 
+	$levels{ms}->bdiv('84'); 
+	$levels{def}->bdiv('42'); 
+	$levels{ar}->bdiv('57'); 
+	$levels{mr}->bdiv('72'); 
 
-	$wdlevel->bfround(1);
-	$aslevel->bfround(1);
-	$mslevel->bfround(1);
-	$deflevel->bfround(1);
-	$arlevel->bfround(1);
-	$mrlevel->bfround(1);
+	for my $level (values %levels) {
+		$level->bfround(1);
+	}
 
-	$aslevel->bmul('2.5'); # multiplier for correct AS
-	$wdlevel->bmul('2.5'); #multiplier for correct wd
-if($char_type ==4){
-	$wdlevel->bdiv('2.5');
-}
-if($char_type ==5){
-	$aslevel->bdiv('2.5');
-}
-if($char_type == 1) {
-	printf "ASlevel: %.3e", $aslevel->bstr();
-	printf ", DEFlevel: %.3e", $deflevel->bstr();
-	printf ", MRlevel: %.3e", $mrlevel->bstr();
-	}
-if($char_type == 2) {
-	printf "WDlevel: %.3e", $wdlevel->bstr();
-	printf ", ARlevel: %.3e", $arlevel->bstr();
-	printf ", MRlevel: %.3e", $mrlevel->bstr();
-	}
-if($char_type == 3) {
-	printf "ASlevel: %.3e", $aslevel->bstr();
-	printf ", ARlevel: %.3e", $arlevel->bstr();
-	printf ", MRlevel: %.3e", $mrlevel->bstr();
-	}
-if($char_type == 4) {
-	printf "WDlevel: %.3e", $wdlevel->bstr();
-	printf ", ARlevel: %.3e", $arlevel->bstr();
-	}
-if($char_type == 5) {
-	printf "ASlevel: %.3e", $aslevel->bstr();
-	printf ", MRlevel: %.3e", $mrlevel->bstr();
-	}
-if($char_type == 6) {
-	printf "WDlevel: %.3e", $wdlevel->bstr();
-	printf ", MSlevel: %.3e", $mslevel->bstr();
-	printf ", ARlevel: %.3e", $arlevel->bstr();
-	}
+	$levels{as}->bmul('2.5'); # multiplier for correct AS
+	$levels{wd}->bmul('2.5'); # multiplier for correct wd
 	
-	# for agi mage:
-	if ($char_type == 1) {
-	$level = $aslevel->copy();
-	if ($level >= $deflevel) {$level = $deflevel->copy();}
-	if ($level >= $mrlevel) {$level = $mrlevel->copy();}
+	$levels{wd}->bdiv('2.5') if $char_type == 4;
+	$levels{as}->bdiv('2.5') if $char_type == 5;
+	
+	
+	given($char_type) {
+		when(1) {
+			printf('ASlevel: %.3e, DEFlevel: %.3e, MRlevel: %.3e',
+				$levels{as}->bstr(),
+				$levels{def}->bstr(),
+				$levels{mr}->bstr()
+			);
+		}
+	
+		when(2) {
+			printf('WDlevel: %.3e, ARlevel: %.3e, MRlevel: %.3e',
+				$levels{wd}->bstr(),
+				$levels{ar}->bstr(),
+				$levels{mr}->bstr()
+			);
+		}
+
+		when(3) {
+			printf('ASlevel: %.3e, ARlevel: %.3e, MRlevel: %.3e',
+				$levels{as}->bstr(),
+				$levels{ar}->bstr(),
+				$levels{mr}->bstr()
+			);
+		}
+		
+		when(4) {
+			printf('WDlevel: %.3e, ARlevel: %.3e$8',
+				$levels{wd}->bstr(),
+				$levels{ar}->bstr()
+			);
+		}
+		
+		when(5) {
+			printf('ASlevel: %.3e, MRlevel: %.3e$8',
+				$levels{as}->bstr(),
+				$levels{mr}->bstr()
+			);
+		}
+
+		when(6) {
+			printf('WDlevel: %.3e, MSlevel: %.3e, ARlevel: %.3e',
+				$levels{wd}->bstr(),
+				$levels{ms}->bstr(),
+				$levels{ar}->bstr()
+			);
+		}
 	}
-	# for fighter
-	if ($char_type == 2) {
-	$level = $wdlevel->copy();
-	if ($level >= $arlevel) {$level = $arlevel->copy();}
-	if ($level >= $mrlevel) {$level = $mrlevel->copy();}
-	}
-	# for mage
-	if ($char_type == 3) {
-	$level = $aslevel->copy();
-	if ($level >= $arlevel) {$level = $arlevel->copy();}
-	if ($level >= $mrlevel) {$level = $mrlevel->copy();}
-	}
-	# for pure fighter
-	if ($char_type == 4) {
-	$level = $wdlevel->copy();
-	if ($level >= $arlevel) {$level = $arlevel->copy();}
-	}
-	# for pure mage
-	if ($char_type == 5) {
-	$level = $aslevel->copy();
-	if ($level >= $mrlevel) {$level = $mrlevel->copy();}
-	}
-	if ($char_type == 6) {
-	$level = $wdlevel->copy();
-	if ($level >= $mslevel) {$level = $mslevel->copy();}
-	if ($level >= $arlevel) {$level = $arlevel->copy();}
-	}
+
+	my @possible_levels = do {
+		given($char_type) {
+			when(1) { @levels{as, def, mr}   } # for agi mage
+			when(2) { @levels{wd, ar,  mr}   } # for fighter
+			when(3) { @levels{as, ar,  mr}   } # for mage
+			when(4) { @levels{ws, ar}, undef } # for pure fighter
+			when(5) { @levels{as, mr}, undef } # for pure mage
+			when(6) { @levels{wd, ms,  ar}   }
+		}
+	};
+	my $level = (grep {defined} sort {$a <=> $b} @possible_levels)[0]->copy(); # find minimum value
 
 	printf " --> Skeleton level: %.3e\n", $level->bstr();
 }
 
-sub LowFight {
+sub LowFight($level) {
 # setup fight
 	my($cpm);
 	$parsed = 0;
@@ -851,7 +852,7 @@ sub CPMlevel {
 	}
 	$mech->form_number(1);
 	$mech->click();
-	$all = $mech->content();
+	my $all = $mech->content();
 	#test for free upgrade
 	if ($all =~ m/Click here to upgrade/) {
 		sleep(0.5); $mech->form_number(0);$mech->click();
@@ -865,7 +866,7 @@ sub CPMlevel {
 	$stat =~ s/<.*?>/:/sg;
 	$stat =~ s/\.//g;
 	#print $stat;
-	@stats = split(/:/, $stat);
+	my @stats = split(/:/, $stat);
 	$stats[1] =~ s/,//sg;
 	$stats[2] =~ s/,//sg;
 	$stats[4] =~ s/,//sg;
@@ -969,7 +970,7 @@ if($char_type == 6) {
 	printf " --> CPM level: %.3e\n", $level->bstr();
 }
 
-sub Fight {
+sub Fight($level) {
 # setup fight
 	my($cpm);
 	$parsed = 0;
@@ -2873,7 +2874,7 @@ while($levels){
 		}
 	&Autolevelup;
 	if($MyLev <= 2500000){
-		&Lowlevel;
+		low_level();
 		&LowFight;	
 	}else{
 		&CPMlevel;
