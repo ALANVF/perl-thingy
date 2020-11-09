@@ -63,8 +63,6 @@ my $level = new Math::BigFloat;
 my $steal_antal = new Math::BigFloat; # SHOULD NOT BE GLOBAL
 my $mytime;
 my $intstrlvl = 0;
-my $MergeList;
-my $Mergeready;
 my $MergeId;
 my $MergeName;
 my $autolevel;
@@ -186,7 +184,7 @@ sub get_steal_wait {
 	return $steal_wait;
 }
 
-sub Mergetest {
+sub merge_test {
 	sleep 1;
 	
 	$mech->get("http://thenewlosthope.net${URL_SERVER}theone.php");
@@ -206,20 +204,22 @@ sub Mergetest {
 	$a =~ s/<//sg;
 	$a =~ s/>//sg;
 	$a =~ s/optionvalue=//sg;
-	$a =~ s~/option~~sg;
+	$a =~ s!/option!!sg;
 	#$a =~ s/\d//sg;
-	$a =~ s~/select/tdtdinputtype=submitname=actionvalue=~~sg;
-	$MergeList = $a;
-	if ($MergeList =~ m/$merger_name/i){
-	print "MERGER WITH NAME '$merger_name' AVAILABLE!!!\n";
-	$Mergeready = 1;
-		&MergeId;
+	$a =~ s!/select/tdtdinputtype=submitname=actionvalue=!!sg;
+	my $merge_list = $a;
+	
+	if($merge_list =~ m/$merger_name/i) {
+		say "MERGER WITH NAME '$merger_name' AVAILABLE!!!";
 		
-	}else{
-	print "No merger with name '$merger_name' available.\n";
-	$Mergeready = 0;
+		MergeId();
+		
+		return 1;
+	} else {
+		say "No merger with name '$merger_name' available.";
+
+		return 0;
 	}
-return();
 }
 
 sub MergeId{
@@ -2877,8 +2877,7 @@ while($levels){
 	}
 	
 		if (get_steal_wait() == 0) {
-		#	&Mergetest;
-	#		if ($Mergeready == 1){
+	#		if (merge_test() == 1){
 #				&Merge;
 #			}
 	#		else{
