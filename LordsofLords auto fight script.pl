@@ -222,7 +222,6 @@ sub merge_test {
 	$content =~ s/>//sg;
 	$content =~ s/optionvalue=//sg;
 	$content =~ s!/option!!sg;
-	#$content =~ s/\d//sg;
 	$content =~ s!/select/tdtdinputtype=submitname=actionvalue=!!sg;
 	my $merge_list = $content;
 	
@@ -357,7 +356,7 @@ sub merge {
 	say "Successfully merged with: $merge_name";
 	
 	open(FILE, ">>$file_fix MERGERESULTS.txt") or die "failed to open file!!!!";
-	print FILE "$content\n"; # (maybe change to `say`?)
+	print FILE "$content\n";
 	close FILE;
 }
 
@@ -378,7 +377,6 @@ sub steal {
 		$content = "<option>$steal_char.*?</option>";
 		
 		my $tmp = $mech->content();
-		#print $tmp;
 		
 		if($tmp =~ m/($content)/) {
 			say "Stealer found";
@@ -391,7 +389,7 @@ sub steal {
 		$tmp = $1;
 		$tmp =~ s/<.*?>//sg;
 
-		print "Stealing from: " . $tmp;
+		print "Stealing from: $tmp";
 		
 		$mech->form_number(0);
 		$mech->select("Opp", $tmp);
@@ -400,27 +398,23 @@ sub steal {
 		$content = $mech->content();
 		$content =~ m/(sleepers.*This)/s;
 		
-		$b = $1;
-		$b =~ s/<.*?>//sg;
-		$b =~ s/sleepers//sg;
-		$b =~ s/This//sg;
+		my $steal_rec = $1;
+
+		$steal_rec =~ s/<.*?>//sg;
+		$steal_rec =~ s/sleepers//sg;
+		$steal_rec =~ s/This//sg;
 		
-		print $b;
+		print $steal_rec;
 
 		my ($second, $minute, $hour, $day, $month, $year, $week_day, $day_of_year, $is_dst) = localtime(time);
 		my $actual_year = $year + 1900;
 		my $actual_month = $month + 1;
 		my $month_name = $MONTHS[$month];
-		my $steal_rec = $b;
 
 		open(FILE, ">>$title$name $file_fix ~ $month_name $actual_year StealRecord.txt") or die "failed to open file!!!!";
 		print FILE "[$day/$actual_month/$actual_year] ~ [$hour:$minute:$second] - you stole $steal_rec\n";
 		close FILE;
 	} else {
-		# (UNUSED)
-		my $steal_time = time;
-		$steal_time += 2000;
-		
 		say "Freeplay not detected, stealing cancelled...";
 	}
 }
