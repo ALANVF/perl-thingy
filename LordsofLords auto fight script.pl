@@ -63,7 +63,6 @@ my $level = new Math::BigFloat;
 my $steal_antal = new Math::BigFloat; # SHOULD NOT BE GLOBAL
 my $mytime;
 my $intstrlvl = 0;
-my $MergeId;
 my $MergeName;
 my $autolevel;
 my $MyLev;
@@ -212,7 +211,7 @@ sub merge_test {
 	if($merge_list =~ m/$merger_name/i) {
 		say "MERGER WITH NAME '$merger_name' AVAILABLE!!!";
 		
-		MergeId();
+		get_merge_id();
 		
 		return 1;
 	} else {
@@ -222,18 +221,15 @@ sub merge_test {
 	}
 }
 
-sub MergeId{
-	$parsed = 0; 
-	while ($parsed == 0){
-		sleep(1);
-		$mech->get("http://thenewlosthope.net".$URL_SERVER."theone.php");
-		$a = $mech->content();
-		if ($a =~ m/Parsed/){
-			$parsed = 1;
-		}else{
-			sleep(10);
-			exit();
-		}
+sub get_merge_id {
+	sleep 1;
+	
+	$mech->get("http://thenewlosthope.net${URL_SERVER}theone.php");
+	$a = $mech->content();
+	
+	if($a !~ m/Parsed/) {
+		sleep 10;
+		exit;
 	}
 	
 	$a =~ s/inactive+/  BLOCKER /sgi; 
@@ -291,13 +287,16 @@ sub MergeId{
 	$a =~ s/(.*)(~)//sg; #remove before
 	$a =~ s/@.*//sg; #remove after
 	$a =~ s/\s*$//;
-	$MergeId = $a;
-	print "$MergeId \n";
-	&MergeName;
-return();
+	my $merge_id = $a;
+	
+	say $merge_id;
+	
+	MergeName($merge_id);
+
+	return;
 }
 
-sub MergeName{
+sub MergeName($merge_id) {
 	$parsed = 0; 
 	while ($parsed == 0){
 		sleep(1);
@@ -311,7 +310,7 @@ sub MergeName{
 		}
 	}
 		$a = $mech->content();
-		$a =~ s/(.*)($MergeId)//sg; #remove before
+		$a =~ s/(.*)($merge_id)//sg; #remove before
 		$a =~ s~</option>.*~~sg; #remove after
 		$a =~ s/"//sgi;
 		$a =~ s/>//sgi;
