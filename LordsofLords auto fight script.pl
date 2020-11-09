@@ -150,58 +150,51 @@ sub get_steal_wait {
 	
 	$steal_time += $steal_wait; # if stealer can't be found, click for 1k seconds
 	
-	my $parsed = 0;
-	until($parsed) {
-		sleep 1;
-		
-		$mech->get("http://thenewlosthope.net${URL_SERVER}steal.php");
-		$a = $mech->content();
-		
-		if($a =~ m/Parsed/) {
-			$parsed = 1;
-			$steal_wait = 0;
-		} else {
-			sleep 10;
-			exit;
-		}
+	sleep 1;
+	
+	$mech->get("http://thenewlosthope.net${URL_SERVER}steal.php");
+	$a = $mech->content();
+	
+	if($a !~ m/Parsed/) {
+		sleep 10;
+		exit;
+	}
 
-		if($a =~ m/recover/) {
-			$a = $mech->content();
-			$a =~ m/(Take.*This)/s;
-			$b = $1;
-			$b =~ s/<.*?>//sg;
-			$b =~ m/(Take.*seconds)/s;
-			$b = $1;
-			$b =~ m/(for.*seconds)/s;
-			$b = $1;
-			$b =~ s/for//sg;
-			$b =~ s/seconds//sg;
-			$b =~ s/<.*?>//sg;
-			$b =~ s/,//g;
-			$steal_wait = $b;
-			
-			say "In recover, gotta wait $steal_wait seconds before I can steal...\n";
-			
-			$steal_time = time;
-			$steal_time += $steal_wait;
-		}
+	$steal_wait = 0;
+
+	if($a =~ m/recover/) {
+		$a = $mech->content();
+		$a =~ m/(Take.*This)/s;
+		$b = $1;
+		$b =~ s/<.*?>//sg;
+		$b =~ m/(Take.*seconds)/s;
+		$b = $1;
+		$b =~ m/(for.*seconds)/s;
+		$b = $1;
+		$b =~ s/for//sg;
+		$b =~ s/seconds//sg;
+		$b =~ s/<.*?>//sg;
+		$b =~ s/,//g;
+		$steal_wait = $b;
+		
+		say "In recover, gotta wait $steal_wait seconds before I can steal...\n";
+		
+		$steal_time = time;
+		$steal_time += $steal_wait;
 	}
 	
 	return $steal_wait;
 }
 
-sub Mergetest{
-	$parsed = 0; 
-	while ($parsed == 0){
-		sleep(1);
-		$mech->get("http://thenewlosthope.net".$URL_SERVER."theone.php");
-		$a = $mech->content();
-		if ($a =~ m/Parsed/){
-			$parsed = 1;
-		}else{
-			sleep(10);
-			exit();
-		}
+sub Mergetest {
+	sleep 1;
+	
+	$mech->get("http://thenewlosthope.net${URL_SERVER}theone.php");
+	$a = $mech->content();
+
+	if($a !~ m/Parsed/) {
+		sleep 10;
+		exit;
 	}
 
 	$a =~ s/\s//sg;
