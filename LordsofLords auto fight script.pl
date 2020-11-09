@@ -150,18 +150,18 @@ sub get_steal_wait {
 	sleep 1;
 	
 	$mech->get("http://thenewlosthope.net${URL_SERVER}steal.php");
-	$a = $mech->content();
+	my $content = $mech->content();
 	
-	if($a !~ m/Parsed/) {
+	if($content !~ m/Parsed/) {
 		sleep 10;
 		exit;
 	}
 
 	$steal_wait = 0;
 
-	if($a =~ m/recover/) {
-		$a = $mech->content();
-		$a =~ m/(Take.*This)/s;
+	if($content =~ m/recover/) {
+		$content = $mech->content(); # (USELESS?)
+		$content =~ m/(Take.*This)/s;
 		$b = $1;
 		$b =~ s/<.*?>//sg;
 		$b =~ m/(Take.*seconds)/s;
@@ -187,37 +187,35 @@ sub merge_test {
 	sleep 1;
 	
 	$mech->get("http://thenewlosthope.net${URL_SERVER}theone.php");
-	$a = $mech->content();
+	my $content = $mech->content();
 
-	if($a !~ m/Parsed/) {
+	if($content !~ m/Parsed/) {
 		sleep 10;
 		exit;
 	}
 
-	$a =~ s/\s//sg;
-	$a =~ s/inactive/  BLOCKER /sgi; 
-	$a =~ s/EMERGETOBETHEONE!/  STOPPER /sg; 
-	$a =~ s/(.*)( BLOCKER )//sg; #remove before
-	$a =~ s/  STOPPER .*//sg; #remove after
-	$a =~ s/"//sg;
-	$a =~ s/<//sg;
-	$a =~ s/>//sg;
-	$a =~ s/optionvalue=//sg;
-	$a =~ s!/option!!sg;
-	#$a =~ s/\d//sg;
-	$a =~ s!/select/tdtdinputtype=submitname=actionvalue=!!sg;
-	my $merge_list = $a;
+	$content =~ s/\s//sg;
+	$content =~ s/inactive/  BLOCKER /sgi; 
+	$content =~ s/EMERGETOBETHEONE!/  STOPPER /sg; 
+	$content =~ s/(.*)( BLOCKER )//sg; #remove before
+	$content =~ s/  STOPPER .*//sg; #remove after
+	$content =~ s/"//sg;
+	$content =~ s/<//sg;
+	$content =~ s/>//sg;
+	$content =~ s/optionvalue=//sg;
+	$content =~ s!/option!!sg;
+	#$content =~ s/\d//sg;
+	$content =~ s!/select/tdtdinputtype=submitname=actionvalue=!!sg;
+	my $merge_list = $content;
 	
 	if($merge_list =~ m/$merger_name/i) {
 		say "MERGER WITH NAME '$merger_name' AVAILABLE!!!";
 		
-		get_merge_id();
-		
-		return 1;
+		return (1, get_merge_id());
 	} else {
 		say "No merger with name '$merger_name' available.";
 
-		return 0;
+		return (0, undef);
 	}
 }
 
@@ -225,75 +223,73 @@ sub get_merge_id {
 	sleep 1;
 	
 	$mech->get("http://thenewlosthope.net${URL_SERVER}theone.php");
-	$a = $mech->content();
+	$content = $mech->content();
 	
-	if($a !~ m/Parsed/) {
+	if($content !~ m/Parsed/) {
 		sleep 10;
 		exit;
 	}
 	
-	$a =~ s/inactive+/  BLOCKER /sgi; 
-	$a =~ s/EMERGE TO BE THE ONE!/  STOPPER /sg; 
-	$a =~ s/(.*)( BLOCKER )//sg; #remove before
-	$a =~ s/  STOPPER .*//sg; #remove after
-	$a =~ s/lady//sgi;
-	$a =~ s/dame//sgi;
-	$a =~ s/masteries//sgi;
-	$a =~ s/judgette//sgi;
-	$a =~ s/cannones//sgi;
-	$a =~ s/counsel//sgi;
-	$a =~ s/baroness//sgi;
-	$a =~ s/mayoress//sgi;
-	$a =~ s/viscountess//sgi;
-	$a =~ s/earless//sgi;
-	$a =~ s/countess//sgi;
-	$a =~ s/marchioness//sgi;
-	$a =~ s/generalia//sgi;
-	$a =~ s/duchess//sgi;
-	$a =~ s/princess//sgi;
-	$a =~ s/queen//sgi;
-	$a =~ s/lord//sgi;
-	$a =~ s/sir//sgi;
-	$a =~ s/master//sgi;
-	$a =~ s/judge//sgi;
-	$a =~ s/cannoner//sgi;
-	$a =~ s/council//sgi;
-	$a =~ s/baron//sgi;	
-	$a =~ s/major//sgi;
-	$a =~ s/viscount//sgi;
-	$a =~ s/earl//sgi;
-	$a =~ s/count//sgi;	
-	$a =~ s/marquess//sgi;
-	$a =~ s/general//sgi;
-	$a =~ s/duke//sgi;
-	$a =~ s/prince//sgi;
-	$a =~ s/king//sgi;
-	$a =~ s/admin//sgi;
-	$a =~ s/cop//sgi;
-	$a =~ s/mod//sgi;
-	$a =~ s/support//sgi;
-	$a =~ s/demon//sgi;
-	$a =~ s/danger//sgi;
-	$a =~ s/untrust//sgi;
-	$a =~ s/beggar//sgi;
-	$a =~ s/criminal//sgi;
-	$a =~ s/stealer//sgi;
-	$a =~ s/helper//sgi;
-	$a =~ s/<option value="/~/sgi;
-	$a =~ s/\s//sgi;
-	$a =~ s/$merger_name.*/@/sgi;
-	$a =~ s/"//sgi;
-	$a =~ s/>//sgi;
-	$a =~ s/(.*)(~)//sg; #remove before
-	$a =~ s/@.*//sg; #remove after
-	$a =~ s/\s*$//;
-	my $merge_id = $a;
+	$content =~ s/inactive+/  BLOCKER /sgi; 
+	$content =~ s/EMERGE TO BE THE ONE!/  STOPPER /sg; 
+	$content =~ s/(.*)( BLOCKER )//sg; #remove before
+	$content =~ s/  STOPPER .*//sg; #remove after
+	$content =~ s/lady//sgi;
+	$content =~ s/dame//sgi;
+	$content =~ s/masteries//sgi;
+	$content =~ s/judgette//sgi;
+	$content =~ s/cannones//sgi;
+	$content =~ s/counsel//sgi;
+	$content =~ s/baroness//sgi;
+	$content =~ s/mayoress//sgi;
+	$content =~ s/viscountess//sgi;
+	$content =~ s/earless//sgi;
+	$content =~ s/countess//sgi;
+	$content =~ s/marchioness//sgi;
+	$content =~ s/generalia//sgi;
+	$content =~ s/duchess//sgi;
+	$content =~ s/princess//sgi;
+	$content =~ s/queen//sgi;
+	$content =~ s/lord//sgi;
+	$content =~ s/sir//sgi;
+	$content =~ s/master//sgi;
+	$content =~ s/judge//sgi;
+	$content =~ s/cannoner//sgi;
+	$content =~ s/council//sgi;
+	$content =~ s/baron//sgi;	
+	$content =~ s/major//sgi;
+	$content =~ s/viscount//sgi;
+	$content =~ s/earl//sgi;
+	$content =~ s/count//sgi;	
+	$content =~ s/marquess//sgi;
+	$content =~ s/general//sgi;
+	$content =~ s/duke//sgi;
+	$content =~ s/prince//sgi;
+	$content =~ s/king//sgi;
+	$content =~ s/admin//sgi;
+	$content =~ s/cop//sgi;
+	$content =~ s/mod//sgi;
+	$content =~ s/support//sgi;
+	$content =~ s/demon//sgi;
+	$content =~ s/danger//sgi;
+	$content =~ s/untrust//sgi;
+	$content =~ s/beggar//sgi;
+	$content =~ s/criminal//sgi;
+	$content =~ s/stealer//sgi;
+	$content =~ s/helper//sgi;
+	$content =~ s/<option value="/~/sgi;
+	$content =~ s/\s//sgi;
+	$content =~ s/$merger_name.*/@/sgi;
+	$content =~ s/"//sgi;
+	$content =~ s/>//sgi;
+	$content =~ s/(.*)(~)//sg; #remove before
+	$content =~ s/@.*//sg; #remove after
+	$content =~ s/\s*$//;
+	my $merge_id = $content;
 	
 	say $merge_id;
-	
-	get_merge_name($merge_id);
 
-	return;
+	return get_merge_name($merge_id);
 }
 
 sub get_merge_name($merge_id) {
@@ -307,42 +303,43 @@ sub get_merge_name($merge_id) {
 		exit;
 	}
 
-	$content = $mech->content();
+	$content = $mech->content(); # (USELESS?)
 	$content =~ s/(.*)($merge_id)//sg; #remove before
 	$content =~ s~</option>.*~~sg; #remove after
 	$content =~ s/"//sgi;
 	$content =~ s/>//sgi;
 	$content =~ s/\s*$//;
 	
-	$merge_name = $a; # SHOULD NOT BE GLOBAL
+	$merge_name = $content; # SHOULD NOT BE GLOBAL
 	
 	return $content;
 }
 
-sub Merge {
-		$parsed = 0; 
-		while ($parsed == 0){
-		sleep(1);
-		$mech->get("http://thenewlosthope.net".$URL_SERVER."theone.php");
-		$a = $mech->content();
-		if ($a =~ m/Parsed/){
-		$parsed = 1;
-		}else{
-			sleep(10);
-			exit();
-		}
+sub merge {
+	sleep 1;
+	
+	$mech->get("http://thenewlosthope.net${URL_SERVER}theone.php");
+	my $content = $mech->content();
+	
+	if($content !~ m/Parsed/) {
+		sleep 10;
+		exit;
 	}
-	$a = $mech->content();
-	print "Merging with: " . $merge_name . "\n";
+
+	$content = $mech->content(); # (USELESS?)
+	
+	say "Merging with: $merge_name";
+	
 	$mech->form_number(0);
 	$mech->select("inactive", $merge_name);
 	$mech->click_button('value' => 'EMERGE TO BE THE ONE!');
-	$a = $mech->content();
-	print "Successfully merged with: " . $merge_name . "\n";
-		open(FILE, ">>$file_fix MERGERESULTS.txt")
-		or die "failed to open file!!!!";
-		print FILE "$a\n";
-		close(FILE);
+	$content = $mech->content();
+	
+	say "Successfully merged with: $merge_name";
+	
+	open(FILE, ">>$file_fix MERGERESULTS.txt") or die "failed to open file!!!!";
+	print FILE "$content\n"; # (maybe change to `say`?)
+	close FILE;
 }
 
 sub Steal {
@@ -2875,12 +2872,12 @@ while($levels){
 	}
 	
 		if (get_steal_wait() == 0) {
-	#		if (merge_test() == 1){
-#				&Merge;
-#			}
-	#		else{
+			#my ($status, $result) = merge_test();
+			#if($status == 1){
+			#	merge();
+			#} else {
 				&Steal;
-	#		}
+			#}
 		}
 	&Autolevelup;
 	if($MyLev <= 2500000){
