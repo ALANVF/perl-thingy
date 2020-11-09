@@ -63,7 +63,7 @@ my $level = new Math::BigFloat;
 my $steal_antal = new Math::BigFloat; # SHOULD NOT BE GLOBAL
 my $mytime;
 my $intstrlvl = 0;
-my $MergeName;
+my $merge_name; # SHOULD NOT BE GLOBAL
 my $autolevel;
 my $MyLev;
 my $masslevel = 1500;
@@ -291,33 +291,32 @@ sub get_merge_id {
 	
 	say $merge_id;
 	
-	MergeName($merge_id);
+	get_merge_name($merge_id);
 
 	return;
 }
 
-sub MergeName($merge_id) {
-	$parsed = 0; 
-	while ($parsed == 0){
-		sleep(1);
-		$mech->get("http://thenewlosthope.net".$URL_SERVER."theone.php");
-		$a = $mech->content();
-		if ($a =~ m/Parsed/){
-		$parsed = 1;
-		}else{
-			sleep(10);
-			exit();
-		}
+sub get_merge_name($merge_id) {
+	sleep 1;
+	
+	$mech->get("http://thenewlosthope.net${URL_SERVER}theone.php");
+	my $content = $mech->content();
+	
+	if($content !~ m/Parsed/) {
+		sleep 10;
+		exit;
 	}
-		$a = $mech->content();
-		$a =~ s/(.*)($merge_id)//sg; #remove before
-		$a =~ s~</option>.*~~sg; #remove after
-		$a =~ s/"//sgi;
-		$a =~ s/>//sgi;
-		$a =~ s/\s*$//;
-		$MergeName = $a;
 
-return();	
+	$content = $mech->content();
+	$content =~ s/(.*)($merge_id)//sg; #remove before
+	$content =~ s~</option>.*~~sg; #remove after
+	$content =~ s/"//sgi;
+	$content =~ s/>//sgi;
+	$content =~ s/\s*$//;
+	
+	$merge_name = $a; # SHOULD NOT BE GLOBAL
+	
+	return $content;
 }
 
 sub Merge {
@@ -334,12 +333,12 @@ sub Merge {
 		}
 	}
 	$a = $mech->content();
-	print "Merging with: " . $MergeName . "\n";
+	print "Merging with: " . $merge_name . "\n";
 	$mech->form_number(0);
-	$mech->select("inactive", $MergeName);
+	$mech->select("inactive", $merge_name);
 	$mech->click_button('value' => 'EMERGE TO BE THE ONE!');
 	$a = $mech->content();
-	print "Successfully merged with: " . $MergeName . "\n";
+	print "Successfully merged with: " . $merge_name . "\n";
 		open(FILE, ">>$file_fix MERGERESULTS.txt")
 		or die "failed to open file!!!!";
 		print FILE "$a\n";
