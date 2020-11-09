@@ -37,20 +37,17 @@ my $merger_name = $ARGV[7] or die "merger_name error";
 my $max_level   = $ARGV[8] or die "max_level error";
 
 # Global variables
-my $stat;
 my @logins;
 my @users;
 my $parsed; # SHOULD NOT BE GLOBAL
 my ($tmp, $mech);
 my ($a, $b, $c);
 my ($second, $minute, $hour, $day, $month, $year, $week_day, $day_of_year, $is_dst);
-#my $clicks; (UNUSED)
 my $users;
 my $datestring;
 my $charname;
 my $title;
 my $name = "";
-#my $DoSearch = ""; (UNUSED)
 my $wdlevel = new Math::BigFloat;
 my $aslevel = new Math::BigFloat;
 my $mslevel = new Math::BigFloat;
@@ -447,12 +444,11 @@ sub low_level {
 	}
 
 	$all =~ m/(Min<br>.*monster)/s;
-	$stat = $1;
+	my $stat = $1;
 	$stat =~ m/(\<br.*td\>)/;
 	$stat = $1;
 	$stat =~ s/<.*?>/:/sg;
 	$stat =~ s/\.//g;
-	#print $stat;
 
 	my @stats = (split ":", $stat)[1, 2, 4..7];
 	my %levels = (
@@ -634,18 +630,18 @@ sub low_fight($level) {
 		# Level up if necessary
 		if($content =~ m/(Congra.*exp)/) {
 			given($char_type) {
-				Levelupagimage()       when 1;
-				Levelupfighter()       when 2;
-				Levelupmage()          when 3;
-				Leveluppurefighter()   when 4;
-				Leveluppuremage()      when 5;
-				Levelupcontrafighter() when 6;
+				level_up_agi_mage()       when 1;
+				level_up_fighter()       when 2;
+				level_up_mage()          when 3;
+				level_up_pure_fighter()   when 4;
+				level_up_pure_mage()      when 5;
+				level_up_contra_fighter() when 6;
 			}
 		}
 	}
 }
 
-sub Autolevelup {
+sub auto_level_up {
 	$parsed = 0; while ($parsed == 0) {sleep(0.5);
 	$mech->get("http://thenewlosthope.net".$URL_SERVER."stats.php");
 	$a = $mech->content();
@@ -807,7 +803,7 @@ sub Autolevelup {
 	print "[Level : $FormatedLev][$alternate] You Auto-Leveled " . $autolevel . "\n";
 			$alternate = $alternate - 1;
 		if($alternate == 0){
-			&TestShop;
+			test_shop();
 			exit();
 		}
 		if($agilmagecount == 0){
@@ -839,7 +835,7 @@ sub Autolevelup {
 	}
 }
 
-sub CPMlevel {
+sub cpm_level {
 	$parsed = 0; 
 	while ($parsed == 0){
 		sleep(0.5);
@@ -863,7 +859,7 @@ sub CPMlevel {
 		exit();
 	}
 	$all =~ m/(Min<br>.*monster)/s;
-	$stat = $1;
+	my $stat = $1;
 	$stat =~ m/(\<br.*td\>)/;
 	$stat = $1;
 	$stat =~ s/<.*?>/:/sg;
@@ -973,7 +969,7 @@ if($char_type == 6) {
 	printf " --> CPM level: %.3e\n", $level->bstr();
 }
 
-sub Fight($level) {
+sub fight($level) {
 # setup fight
 	my($cpm);
 	$parsed = 0;
@@ -1579,17 +1575,17 @@ sub Fight($level) {
 
 # level up if necessary
 		if ($b =~ m/(Congra.*exp)/) {
-			if ($char_type == 1) {&Levelupagimage; return();}
-			if ($char_type == 2) {&Levelupfighter; return();}
-			if ($char_type == 3) {&Levelupmage; return();}
-			if ($char_type == 4) {&Leveluppurefighter; return();}
-			if ($char_type == 5) {&Leveluppuremage; return();}
-			if ($char_type == 6) {&Levelupcontrafighter; return();}
+			if ($char_type == 1) {level_up_agi_mage(); return();}
+			if ($char_type == 2) {level_up_fighter(); return();}
+			if ($char_type == 3) {level_up_mage(); return();}
+			if ($char_type == 4) {level_up_pure_fighter(); return();}
+			if ($char_type == 5) {level_up_pure_mage(); return();}
+			if ($char_type == 6) {level_up_contra_fighter(); return();}
 		}
 	}
 }
 
-sub Levelupagimage {
+sub level_up_agi_mage {
 		$mech->get("http://thenewlosthope.net".$URL_SERVER."stats.php");
 		sleep(0.5);
 		if(($aslevel <= $deflevel) && ($aslevel <= $mrlevel)) {
@@ -1604,7 +1600,7 @@ sub Levelupagimage {
 			}
 			print "You Leveled up Intelligence\n";
 			sleep(1);
-			&TestShop;;
+			test_shop();;
 			return();
 		}
 		if(($deflevel <= $aslevel) && ($deflevel <= $mrlevel)) {
@@ -1639,7 +1635,7 @@ sub Levelupagimage {
 }
 
 
-sub Levelupfighter {
+sub level_up_fighter {
 		$mech->get("http://thenewlosthope.net".$URL_SERVER."stats.php");
 		sleep(0.5);
 		if(($wdlevel <= $mrlevel) && ($wdlevel <= $arlevel)) {
@@ -1653,7 +1649,7 @@ sub Levelupfighter {
 				$mech->click_button('name' => 'Stats', 'value' => 'Strength');			
 			}
 			print "You Leveled up Strength\n";
-			&TestShop;;
+			test_shop();;
 			return();
 		}
 		if(($arlevel <= $wdlevel) && ($arlevel <= $mrlevel)) {
@@ -1685,7 +1681,7 @@ sub Levelupfighter {
 		}
 	}
 
-sub Levelupmage {
+sub level_up_mage {
 		$mech->get("http://thenewlosthope.net".$URL_SERVER."stats.php");
 		sleep(0.5);
 		if(($aslevel <= $arlevel) && ($aslevel <= $mrlevel)) {
@@ -1699,7 +1695,7 @@ sub Levelupmage {
 				$mech->click_button('name' => 'Stats', 'value' => 'Intelligence');			
 			}
 			print "You Leveled up Intelligence\n";
-			&TestShop;;
+			test_shop();;
 			return();
 		}
 		if(($arlevel <= $aslevel) && ($arlevel <= $mrlevel)) {
@@ -1731,7 +1727,7 @@ sub Levelupmage {
 		}
 }
 
-sub Leveluppurefighter {
+sub level_up_pure_fighter {
 		$mech->get("http://thenewlosthope.net".$URL_SERVER."stats.php");
 		sleep(0.5);
 		if($wdlevel <= $arlevel) {
@@ -1745,7 +1741,7 @@ sub Leveluppurefighter {
 				$mech->click_button('name' => 'Stats', 'value' => 'Strength');			
 			}
 			print "Leveled up Strength\n";
-			&TestShop;;
+			test_shop();;
 			return();
 		}		
 		if($arlevel <= $wdlevel) {
@@ -1763,7 +1759,7 @@ sub Leveluppurefighter {
 		}
 }
 	
-sub Leveluppuremage {
+sub level_up_pure_mage {
 		$mech->get("http://thenewlosthope.net".$URL_SERVER."stats.php");
 		sleep(0.5);
 		if($mrlevel >= $aslevel) {
@@ -1778,7 +1774,7 @@ sub Leveluppuremage {
 			}
 			print "Leveled up Intelligence\n";
 			sleep(0.5);
-			&TestShop;
+			test_shop();
 			return();
 		}
 
@@ -1798,7 +1794,7 @@ sub Leveluppuremage {
 		}
 }
 
-sub Levelupcontrafighter {
+sub level_up_contra_fighter {
 		$mech->get("http://thenewlosthope.net".$URL_SERVER."stats.php");
 		sleep(0.5);
 		if(($wdlevel <= $mslevel) && ($wdlevel <= $arlevel)) {
@@ -1813,7 +1809,7 @@ sub Levelupcontrafighter {
 			}
 			print "You Leveled up Strength\n";
 			sleep(1);
-			&TestShop;;
+			test_shop();;
 			return();
 		}
 		if(($mslevel <= $wdlevel) && ($mslevel <= $arlevel)) {
@@ -1847,7 +1843,7 @@ sub Levelupcontrafighter {
 		}
 }
 
-sub CheckShop{
+sub check_shop {
 		$parsed = 0; 
 	while (!$parsed){
 		sleep(1);
@@ -2092,7 +2088,7 @@ sub CheckShop{
 	#print "your current Feet shops is       :$afeet\n";
 }
 
-sub TestShop{
+sub test_shop{
 		$parsed = 0; 
 	while (!$parsed){
 		sleep(1);
@@ -2324,14 +2320,14 @@ sub TestShop{
 	#print "your current Feet shops is       :$afeet\n";
 
 	if($shop_yes_no == 1){
-		&BuyUpgrades;
+		buy_upgrades();
 	}else{
 		print "Shops were not bought this time\n";
 		exit();
 	}
 }
 	
-sub BuyUpgrades{
+sub buy_upgrades {
 	$parsed = 0; 
 	while (!$parsed){
 		sleep(1);
@@ -2511,7 +2507,7 @@ sub BuyUpgrades{
 	return();
 }
 
-sub MyLevel{
+sub get_my_level{
 	$parsed = 0; 
 	while (!$parsed){
 		sleep(0.5);
@@ -2547,7 +2543,7 @@ sub MyLevel{
 	}
 }	
 
-sub Charname{
+sub get_char_name{
 	$parsed = 0; 
 	while (!$parsed){
 		sleep(0.5);
@@ -2858,9 +2854,9 @@ if($a =~ m/Username/){
 my $levels = 9999999;
 
 while($levels){
-	&Charname;
-	&MyLevel;
-	&CheckShop;
+	get_char_name();
+	get_my_level();
+	check_shop();
 	if($MyLev <= 2500000){
 		print "\nLow Level Fight mode\n\n";
 	}else{
@@ -2875,12 +2871,12 @@ while($levels){
 				steal();
 			#}
 		}
-	&Autolevelup;
+	auto_level_up();
 	if($MyLev <= 2500000){
 		low_fight(low_level());	
 	}else{
-		&CPMlevel;
-		&Fight;
+		cpm_level();
+		fight();
 	}
 	$levels = $levels - 1;
 }
