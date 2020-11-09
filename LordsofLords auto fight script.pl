@@ -120,6 +120,22 @@ my $file_fix;
 my $temp1 = new Math::BigFloat;
 my $purebuild = 180;
 
+# Constants
+my @MONTHS = (
+	"January",
+	"February",
+	"March",
+	"April",
+	"May",
+	"June",
+	"July",
+	"August",
+	"September",
+	"October",
+	"November",
+	"December"
+);
+
 
 if($char_type ~~ [7..12]) {
 	say "SINGLE STAT MODE, make sure you have selected the right stat.";
@@ -162,6 +178,7 @@ sub get_steal_wait {
 	if($content =~ m/recover/) {
 		$content = $mech->content(); # (USELESS?)
 		$content =~ m/(Take.*This)/s;
+		
 		$b = $1;
 		$b =~ s/<.*?>//sg;
 		$b =~ m/(Take.*seconds)/s;
@@ -172,6 +189,7 @@ sub get_steal_wait {
 		$b =~ s/seconds//sg;
 		$b =~ s/<.*?>//sg;
 		$b =~ s/,//g;
+		
 		$steal_wait = $b;
 		
 		say "In recover, gotta wait $steal_wait seconds before I can steal...\n";
@@ -333,6 +351,7 @@ sub merge {
 	$mech->form_number(0);
 	$mech->select("inactive", $merge_name);
 	$mech->click_button('value' => 'EMERGE TO BE THE ONE!');
+	
 	$content = $mech->content();
 	
 	say "Successfully merged with: $merge_name";
@@ -342,89 +361,68 @@ sub merge {
 	close FILE;
 }
 
-sub Steal {
-$parsed = 0;
-	while($parsed == 0){
-	sleep(1);
+sub steal {
+	sleep 1;
+	
 	$mech->get("http://thenewlosthope.net".$URL_SERVER."steal.php");
-	$a = $mech->content();
-	if ($a =~ m/Parsed/){
-	$parsed = 1;
-	}else{
-			sleep(10);
-			exit();
-		}
+	my $content = $mech->content();
+	
+	if($content !~ m/Parsed/) {
+		sleep 10;
+		exit;
 	}
-		$a = $mech->content();
-		if ($a =~ m/Freeplay/) { # steal only if we have freeplay
-				$a = "\<option\>" . "$steal_char" . ".*?\<\/option\>";
-				$tmp = $mech->content();
-				#print $tmp;
-				if($tmp =~ m/($a)/) {print "Stealer found\n";} else {print "Stealer not found! - not stealing!\n"; return();}
-				$tmp =~ m/($a)/s;
-				$tmp = $1;
-				$tmp =~ s/<.*?>//sg;
-				print "Stealing from: " . $tmp;
-				$mech->form_number(0);
-				$mech->select("Opp", $tmp);
-				$mech->click_button('value' => 'Steal Stats or Items');
-				$a = $mech->content();
-				$a =~ m/(sleepers.*This)/s;
-				$b = $1;
-				$b =~ s/<.*?>//sg;
-				$b =~ s/sleepers//sg;
-				$b =~ s/This//sg;
-				print $b;
-		($second, $minute, $hour, $day, $month, $year, $week_day, $day_of_year, $is_dst) = localtime(time);
-			$year = $year + 1900;
-			$month = $month + 1;
-			my $MonthName;
-			if($month == 1){
-				$MonthName = "January";
-			}
-			if($month == 2){
-				$MonthName = "February";
-			}
-			if($month == 3){
-				$MonthName = "March";
-			}
-			if($month == 4){
-				$MonthName = "April";
-			}
-			if($month == 5){
-				$MonthName = "May";
-			}
-			if($month == 6){
-				$MonthName = "June";
-			}
-			if($month == 7){
-				$MonthName = "July";
-			}
-			if($month == 8){
-				$MonthName = "August";
-			}
-			if($month == 9){
-				$MonthName = "September";
-			}
-			if($month == 10){
-				$MonthName = "October";
-			}
-			if($month == 11){
-				$MonthName = "November";
-			}		
-			if($month == 12){
-				$MonthName = "December";
-			}
-				my $stealrec = $b;
-				open(FILE, ">>$title$name $file_fix ~ $MonthName $year StealRecord.txt")
-				or die "failed to open file!!!!";
-				print FILE "[$day/$month/$year] ~ [$hour:$minute:$second] - you stole $stealrec\n";
-				close(FILE);
+
+	$content = $mech->content(); # (USELESS?)
+	
+	if($content =~ m/Freeplay/) { # steal only if we have freeplay
+		$content = "<option>$steal_char.*?</option>";
+		
+		my $tmp = $mech->content();
+		#print $tmp;
+		
+		if($tmp =~ m/($content)/) {
+			say "Stealer found";
 		} else {
-			my $steal_time = time; # (UNUSED)
-			$steal_time = $steal_time + 2000;
-			print "Freeplay not detected, stealing cancelled...\n";
+			say "Stealer not found! - not stealing!";
+			return;
 		}
+		
+		$tmp =~ m/($content)/s;
+		$tmp = $1;
+		$tmp =~ s/<.*?>//sg;
+
+		print "Stealing from: " . $tmp;
+		
+		$mech->form_number(0);
+		$mech->select("Opp", $tmp);
+		$mech->click_button('value' => 'Steal Stats or Items');
+		
+		$content = $mech->content();
+		$content =~ m/(sleepers.*This)/s;
+		
+		$b = $1;
+		$b =~ s/<.*?>//sg;
+		$b =~ s/sleepers//sg;
+		$b =~ s/This//sg;
+		
+		print $b;
+
+		my ($second, $minute, $hour, $day, $month, $year, $week_day, $day_of_year, $is_dst) = localtime(time);
+		my $actual_year = $year + 1900;
+		my $actual_month = $month + 1;
+		my $month_name = $MONTHS[$month];
+		my $steal_rec = $b;
+
+		open(FILE, ">>$title$name $file_fix ~ $month_name $actual_year StealRecord.txt") or die "failed to open file!!!!";
+		print FILE "[$day/$actual_month/$actual_year] ~ [$hour:$minute:$second] - you stole $steal_rec\n";
+		close FILE;
+	} else {
+		# (UNUSED)
+		my $steal_time = time;
+		$steal_time += 2000;
+		
+		say "Freeplay not detected, stealing cancelled...";
+	}
 }
 
 sub Lowlevel {
@@ -2876,7 +2874,7 @@ while($levels){
 			#if($status == 1){
 			#	merge();
 			#} else {
-				&Steal;
+				steal();
 			#}
 		}
 	&Autolevelup;
