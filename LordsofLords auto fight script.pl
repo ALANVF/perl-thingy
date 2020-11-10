@@ -59,16 +59,15 @@ my $steal_antal = new Math::BigFloat; # SHOULD NOT BE GLOBAL
 my $mytime;
 my $intstrlvl = 0;
 my $merge_name; # SHOULD NOT BE GLOBAL
-my $autolevel;
 my $MyLev;
 my $masslevel = 1500;
 my $alternate = 60;
-my $agilmagecount = 6;
-my $fightercount = 3;
-my $magecount = 3;
-my $puremagecount = 3;
-my $purefightercount = 3;
-my $cfcount = 17;
+my $agi_mage_count = 6;
+my $fighter_count = 3;
+my $mage_count = 3;
+my $pure_mage_count = 3;
+my $pure_fighter_count = 3;
+my $cf_count = 17;
 my $shop1;
 my $shop2;
 my $shop3;
@@ -113,7 +112,7 @@ my $SHOPFEET;
 my $URL_SERVER;
 my $file_fix;
 my $temp1 = new Math::BigFloat;
-my $purebuild = 180;
+my $pure_build = 180;
 
 # Constants
 my @MONTHS = (
@@ -208,8 +207,8 @@ sub merge_test {
 	}
 
 	$content =~ s/\s//sg;
-	$content =~ s/inactive/  BLOCKER /sgi; 
-	$content =~ s/EMERGETOBETHEONE!/  STOPPER /sg; 
+	$content =~ s/inactive/  BLOCKER /sgi;
+	$content =~ s/EMERGETOBETHEONE!/  STOPPER /sg;
 	$content =~ s/(.*)( BLOCKER )//sg; #remove before
 	$content =~ s/  STOPPER .*//sg; #remove after
 	$content =~ s/"//sg;
@@ -242,8 +241,8 @@ sub get_merge_id {
 		exit;
 	}
 	
-	$content =~ s/inactive+/  BLOCKER /sgi; 
-	$content =~ s/EMERGE TO BE THE ONE!/  STOPPER /sg; 
+	$content =~ s/inactive+/  BLOCKER /sgi;
+	$content =~ s/EMERGE TO BE THE ONE!/  STOPPER /sg;
 	$content =~ s/(.*)( BLOCKER )//sg; #remove before
 	$content =~ s/  STOPPER .*//sg; #remove after
 	$content =~ s/lady//sgi;
@@ -268,11 +267,11 @@ sub get_merge_id {
 	$content =~ s/judge//sgi;
 	$content =~ s/cannoner//sgi;
 	$content =~ s/council//sgi;
-	$content =~ s/baron//sgi;	
+	$content =~ s/baron//sgi;
 	$content =~ s/major//sgi;
 	$content =~ s/viscount//sgi;
 	$content =~ s/earl//sgi;
-	$content =~ s/count//sgi;	
+	$content =~ s/count//sgi;
 	$content =~ s/marquess//sgi;
 	$content =~ s/general//sgi;
 	$content =~ s/duke//sgi;
@@ -401,7 +400,7 @@ sub steal {
 		
 		print $steal_rec;
 
-		my ($second, $minute, $hour, $day, $month, $year, $week_day, $day_of_year, $is_dst) = localtime(time);
+		my ($second, $minute, $hour, $day, $month, $year) = localtime(time);
 		my $actual_year = $year + 1900;
 		my $actual_month = $month + 1;
 		my $month_name = $MONTHS[$month];
@@ -468,12 +467,12 @@ sub low_level {
 	}
 
 	#cpms m2 only
-	$levels{wd}->bdiv('603'); 
-	$levels{as}->bdiv('554'); 
-	$levels{ms}->bdiv('84'); 
-	$levels{def}->bdiv('42'); 
-	$levels{ar}->bdiv('57'); 
-	$levels{mr}->bdiv('72'); 
+	$levels{wd}->bdiv('603');
+	$levels{as}->bdiv('554');
+	$levels{ms}->bdiv('84');
+	$levels{def}->bdiv('42');
+	$levels{ar}->bdiv('57');
+	$levels{mr}->bdiv('72');
 
 	for my $level (values %levels) {
 		$level->bfround(1);
@@ -642,151 +641,155 @@ sub low_fight($level) {
 }
 
 sub auto_level_up {
-	$parsed = 0;
-	while($parsed == 0) {
-		sleep(0.5);
-		$mech->get("http://thenewlosthope.net".$URL_SERVER."stats.php");
-		$a = $mech->content();
-		
-		if($a =~ m/Parsed/) {
-			$parsed = 1;
-		} else {
-			sleep(10);
-			exit;
-		}
+	sleep 0.5;
+
+	$mech->get("http://thenewlosthope.net${URL_SERVER}stats.php");
+	my $content = $mech->content();
+	
+	unless($content =~ m/Parsed/) {
+		sleep 10;
+		exit;
 	}
-	$a = $mech->content();
+	
+	$content = $mech->content(); # (USELESS?)
 	$b = $mech->content();
 
-	my $ActualLevel = $MyLev;
 	$b =~ m/(Level : .*Exp :)/;
 	$b = $1;
 	$b =~ s/<\/td> .*//si;
 	$b =~ s/Level : //si;
-	$ActualLevel = $b;
+	my $actual_level = $b;
 	
 	if($char_type == 6) {
 		$alternate = 75;
 	}
 
-	while($a =~ m/(Congra.*exp)/) {
-		if($char_type == 1) {
-			if($agilmagecount == 6) {
-				$autolevel = "Agility";
-				$agilmagecount = $agilmagecount - 1;
-			} elsif($agilmagecount >= 4) {
-				$autolevel = "Intelligence";
-				$agilmagecount = $agilmagecount - 1;
-			} elsif($agilmagecount >= 0) {
-				$autolevel = "Concentration";
-				$agilmagecount = $agilmagecount - 1;
+	while($content =~ m/(Congra.*exp)/) {
+		# Note: there's a chance that $auto_level will never be assigned a
+		#       value here. Please take note and provide default value when it
+		#       happens.
+		my $auto_level;
+
+		given($char_type) {
+			when(1) {
+				if($agi_mage_count >= 0) {
+					$auto_level = do {
+						if($agi_mage_count == 6) {
+							"Agility"
+						} elsif($agi_mage_count >= 4) {
+							"Intelligence"
+						} else {
+							"Concentration"
+						}
+					};
+
+					$agi_mage_count--;
+				}
 			}
-		}
-		if($char_type == 2) {
-			if($fightercount == 3) {
-				$autolevel = "Dexterity";
-				$fightercount = $fightercount - 1;
-			} elsif($fightercount >= 2) {
-				$autolevel = "Concentration";
-				$fightercount = $fightercount - 1;
-			} elsif($fightercount >= 0) {
-				$autolevel = "Strength";
-				$fightercount = $fightercount - 1;
+			
+			when(2) {
+				if($fighter_count >= 0) {
+					$auto_level = do {
+						if($fighter_count == 3) {
+							"Dexterity"
+						} elsif($fighter_count >= 2) {
+							"Concentration"
+						} else {
+							"Strength"
+						}
+					};
+
+					$fighter_count--;
+				}
 			}
-		}
-		if($char_type == 3) {
-			if($magecount == 3) {
-				$autolevel = "Concentration";
-				$magecount = $magecount - 1;
-			} elsif($magecount >= 2) {
-				$autolevel = "Dexterity";
-				$magecount = $magecount - 1;
-			} elsif($magecount >= 0) {
-				$autolevel = "Intelligence";
-				$magecount = $magecount - 1;
+
+			when(3) {
+				if($mage_count >= 0) {
+					$auto_level = do {
+						if($mage_count == 3) {
+							"Concentration"
+						} elsif($mage_count >= 2) {
+							"Dexterity"
+						} else {
+							"Intelligence"
+						}
+					};
+					
+					$mage_count--;
+				}
 			}
-		}
-		if($char_type == 4) {
-			if($purefightercount == 3) {
-				$autolevel = "Strength";
-				$purefightercount = $purefightercount - 1;
-			} elsif($purefightercount >= 0) {
-				$autolevel = "Dexterity";
-				$purefightercount = $purefightercount - 1;
+
+			when(4) {
+				if($pure_fighter_count >= 0) {
+					$auto_level = do {
+						if($pure_fighter_count == 3) {
+							"Strength"
+						} else {
+							"Dexterity"
+						}
+					};
+
+					$pure_fighter_count--;
+				}
+			}		
+			
+			when(5) {
+				if($pure_mage_count >= 0) {
+					$auto_level = do {
+						if($pure_mage_count >= 3) {
+							"Intelligence"
+						} else {
+							"Concentration"
+						}
+					};
+
+					$pure_mage_count--;
+				}
 			}
-		}		
-		if($char_type == 5) {
-			if($puremagecount >= 3) {
-				$autolevel = "Intelligence";
-				$puremagecount = $puremagecount - 1;
-			} elsif($puremagecount >= 0) {
-				$autolevel = "Concentration";
-				$puremagecount = $puremagecount - 1;
+
+			when(6) {
+				if($cf_count ~~ [1..17]) {
+					$auto_level = do {
+						given($cf_count) {
+							"Strength"      when [11, 14, 17];
+							"Dexterity"     when [8, 10, 13, 16];
+							"Contravention" when [1..7, 9, 12, 15];
+						}
+					};
+
+					$cf_count--;
+				}
 			}
-		}
-		if($char_type == 6) {
-			if(($cfcount == 17) || ($cfcount == 14) || ($cfcount == 11)) {
-				$autolevel = "Strength";
-				$cfcount = $cfcount - 1;
-			} elsif(($cfcount == 16) || ($cfcount == 13) || ($cfcount == 10) || ($cfcount == 8)) {
-				$autolevel = "Dexterity";
-				$cfcount = $cfcount - 1;
-			} elsif(($cfcount == 15) || ($cfcount == 12) || ($cfcount == 9) || ($cfcount == 7) || ($cfcount == 6) || ($cfcount == 5) || ($cfcount == 4) || ($cfcount == 3) || ($cfcount == 2) || ($cfcount == 1)) {
-				$autolevel = "Contravention";
-				$cfcount = $cfcount - 1;
-			}
-		}
-		if($char_type == 7) {
-			if($purebuild >= 0) {
-				$autolevel = "Strength";
-				$purebuild = $purebuild - 1;
-			}
-		}
-		if($char_type == 8) {
-			if($purebuild >= 0) {
-				$autolevel = "Dexterity";
-				$purebuild = $purebuild - 1;
-			}
-		}
-		if($char_type == 9) {
-			if($purebuild >= 0) {
-				$autolevel = "Agility";
-				$purebuild = $purebuild - 1;
-			}
-		}
-		if($char_type == 10) {
-			if($purebuild >= 0) {
-				$autolevel = "Intelligence";
-				$purebuild = $purebuild - 1;
-			}
-		}
-		if($char_type == 11) {
-			if($purebuild >= 0) {
-				$autolevel = "Concentration";
-				$purebuild = $purebuild - 1;
-			}
-		}
-		if($char_type == 12) {
-			if($purebuild >= 0) {
-				$autolevel = "Contravention";
-				$purebuild = $purebuild - 1;
+
+			when([7..12]) {
+				if($pure_build >= 0) {
+					$auto_level = do {
+						given($char_type) {
+							"Strength"      when 7;
+							"Dexterity"     when 8;
+							"Agility"       when 9;
+							"Intelligence"  when 10;
+							"Concentration" when 11;
+							"Contravention" when 12;
+						}
+					};
+
+					$pure_build--;
+				}
 			}
 		}
 
 		$mech->form_number(1);
-		if($a =~ m/Freeplay/i) {
-			$mech->field("Stats", $autolevel);
-			$mech->click_button('name' => 'Stats', 'value' => $autolevel);
+
+		if($content =~ m/Freeplay/i || $MyLev > $masslevel) {
+			$mech->field("Stats", $auto_level);
+			$mech->click_button(name => "Stats", value => $auto_level);
 		} else {
-			if($MyLev <= $masslevel) {
-				$mech->field("cStats", $autolevel);
-				$mech->click_button('name' => 'cStats', 'value' => $autolevel);
-			} elsif($MyLev >= $masslevel) {
-				$mech->field("Stats", $autolevel);
-				$mech->click_button('name' => 'Stats', 'value' => $autolevel);			
-			}
+			$mech->field("cStats", $auto_level);
+			$mech->click_button(name => "cStats", value => $auto_level);
 		}
-		$a = $mech->content();
+
+		$content = $mech->content();
 		$b = $mech->content();
 		$c = $mech->content();
 		$b =~ m/(Level : .*Exp :)/;
@@ -794,64 +797,42 @@ sub auto_level_up {
 		$b =~ s/<\/td> .*//si;
 		$b =~ s/Level : //si;
 		$b =~ s/,//si;
-		if($b =~ m/m1/is) {
-			$b =~ s/m1/000000/si;
-		}
-		if($b =~ m/m2/is) {
-			$b =~ s/m2/000000000000/si;
-		}
-		if($b =~ m/m3/is) {
-			$b =~ s/m3/000000000000000000/si;
-		}
+		$b =~ s/m1/000000/si if $b =~ m/m1/is;
+		$b =~ s/m2/000000000000/si if $b =~ m/m2/is;
+		$b =~ s/m3/000000000000000000/si if $b =~ m/m3/is;
 		$c =~ m/(You leveled up .* levels!)/;
 		$c = $1;
 		$c =~ s/,//si;
 		$c =~ s/\D//gsi;
-		$ActualLevel = $b + $c;
-		my $FormatedLev = $ActualLevel;
-		while($FormatedLev =~ m/([0-9]{4})/) {
-			my $temp1 = reverse $FormatedLev;
-			$temp1 =~ s/(?<=(\d\d\d))(?=(\d))/,/;
-			$FormatedLev = reverse $temp1;
-		}
-	
-		print "[Level : $FormatedLev][$alternate] You Auto-Leveled " . $autolevel . "\n";
-		$alternate = $alternate - 1;
-		if($alternate == 0) {
+		$actual_level = $b + $c;
+
+		my $formatted_level = $actual_level =~ s/(?<!^)\d{3}(?=(\d{3})*$)/,$&/rgn;
+		say "[Level : $formatted_level][$alternate] You Auto-Leveled $auto_level";
+		
+		if(--$alternate == 0) {
 			test_shop();
 			exit;
 		}
-		if($agilmagecount == 0) {
-			$agilmagecount = 6;
-		}
-		if($fightercount == 0) {
-			$fightercount = 3;
-		}
-		if($magecount == 0) {
-			$magecount = 3;
-		}
-		if($purefightercount == 0) {
-			$purefightercount = 3;
-		}
-		if($puremagecount == 0) {
-			$puremagecount = 3;
-		}
-		if($cfcount == 0) {
-			$cfcount = 17;
-		}
-		if($purebuild == 0) {
-			$purebuild = 180;
-		}
-		if($ActualLevel >= $max_level) {
-			print "Max level reached, exiting.\n";
+
+		$agi_mage_count = 6     if $agi_mage_count == 0;
+		$fighter_count = 3      if $fighter_count == 0;
+		$mage_count = 3         if $mage_count == 0;
+		$pure_fighter_count = 3 if $pure_fighter_count == 0;
+		$pure_mage_count = 3    if $pure_mage_count == 0;
+		$cf_count = 17          if $cf_count == 0;
+		$pure_build = 180       if $pure_build == 0;
+
+		if($actual_level >= $max_level) {
+			say "Max level reached, exiting.";
 			exit;
 		}
-		sleep(0.5);
+
+		sleep 0.5;
 	}
 }
 
 sub cpm_level {
-	$parsed = 0; 
+	$parsed = 0;
 	while($parsed == 0) {
 		sleep(0.5);
 #		$mech->get("http://thenewlosthope.net".$URL_SERVER."fight_control.php");
@@ -1111,7 +1092,7 @@ sub fight($level) {
 				my $Nextleveltime = new Math::BigFloat $Nextlevel / $experaverage;
 				$datestring = localtime();
 				my $epoc = time();
-				$epoc = $epoc + $Nextleveltime; 
+				$epoc = $epoc + $Nextleveltime;
 				$datestring = strftime "%x %H:%M:%S", localtime($epoc);
 				
 				#expersecond
@@ -1611,7 +1592,7 @@ sub level_up_agi_mage {
 			$mech->click_button('name' => 'cStats', 'value' => 'Intelligence');
 		} elsif($MyLev >= $masslevel) {
 			$mech->field("Stats", "Intelligence");
-			$mech->click_button('name' => 'Stats', 'value' => 'Intelligence');			
+			$mech->click_button('name' => 'Stats', 'value' => 'Intelligence');
 		}
 		print "You Leveled up Intelligence\n";
 		sleep(1);
@@ -1625,7 +1606,7 @@ sub level_up_agi_mage {
 			$mech->click_button('name' => 'cStats', 'value' => 'Agility');
 		} elsif($MyLev >= $masslevel) {
 			$mech->field("Stats", "Agility");
-			$mech->click_button('name' => 'Stats', 'value' => 'Agility');			
+			$mech->click_button('name' => 'Stats', 'value' => 'Agility');
 		}
 		print "You Leveled up Agility\n";
 		sleep(1);
@@ -1639,7 +1620,7 @@ sub level_up_agi_mage {
 			$mech->click_button('name' => 'cStats', 'value' => 'Concentration');
 		} elsif($MyLev >= $masslevel) {
 			$mech->field("Stats", "Concentration");
-			$mech->click_button('name' => 'Stats', 'value' => 'Concentration');			
+			$mech->click_button('name' => 'Stats', 'value' => 'Concentration');
 		}
 		print "You Leveled up Concentration\n";
 		sleep(1);
@@ -1658,7 +1639,7 @@ sub level_up_fighter {
 			$mech->click_button('name' => 'cStats', 'value' => 'Strength');
 		} elsif($MyLev >= $masslevel) {
 			$mech->field("Stats", "Strength");
-			$mech->click_button('name' => 'Stats', 'value' => 'Strength');			
+			$mech->click_button('name' => 'Stats', 'value' => 'Strength');
 		}
 		print "You Leveled up Strength\n";
 		test_shop();
@@ -1671,7 +1652,7 @@ sub level_up_fighter {
 			$mech->click_button('name' => 'cStats', 'value' => 'Dexterity');
 		} elsif($MyLev >= $masslevel) {
 			$mech->field("Stats", "Dexterity");
-			$mech->click_button('name' => 'Stats', 'value' => 'Dexterity');			
+			$mech->click_button('name' => 'Stats', 'value' => 'Dexterity');
 		}
 		print "You Leveled up Dexterity\n";
 		return;
@@ -1684,7 +1665,7 @@ sub level_up_fighter {
 			$mech->click_button('name' => 'cStats', 'value' => 'Concentration');
 		} elsif($MyLev >= $masslevel) {
 			$mech->field("Stats", "Concentration");
-			$mech->click_button('name' => 'Stats', 'value' => 'Concentration');			
+			$mech->click_button('name' => 'Stats', 'value' => 'Concentration');
 		}
 		print "You Leveled up Concentration\n";
 		return;
@@ -1701,7 +1682,7 @@ sub level_up_mage {
 			$mech->click_button('name' => 'cStats', 'value' => 'Intelligence');
 		} elsif($MyLev >= $masslevel) {
 			$mech->field("Stats", "Intelligence");
-			$mech->click_button('name' => 'Stats', 'value' => 'Intelligence');			
+			$mech->click_button('name' => 'Stats', 'value' => 'Intelligence');
 		}
 		print "You Leveled up Intelligence\n";
 		test_shop();
@@ -1714,7 +1695,7 @@ sub level_up_mage {
 			$mech->click_button('name' => 'cStats', 'value' => 'Dexterity');
 		} elsif($MyLev >= $masslevel) {
 			$mech->field("Stats", "Dexterity");
-			$mech->click_button('name' => 'Stats', 'value' => 'Dexterity');			
+			$mech->click_button('name' => 'Stats', 'value' => 'Dexterity');
 		}
 		print "You Leveled up Dexterity\n";
 		return;
@@ -1727,7 +1708,7 @@ sub level_up_mage {
 			$mech->click_button('name' => 'cStats', 'value' => 'Concentration');
 		} elsif($MyLev >= $masslevel) {
 			$mech->field("Stats", "Concentration");
-			$mech->click_button('name' => 'Stats', 'value' => 'Concentration');			
+			$mech->click_button('name' => 'Stats', 'value' => 'Concentration');
 		}
 		print "You Leveled up Concentration\n";
 		return;
@@ -1744,7 +1725,7 @@ sub level_up_pure_fighter {
 			$mech->click_button('name' => 'cStats', 'value' => 'Strength');
 		} elsif($MyLev >= $masslevel) {
 			$mech->field("Stats", "Strength");
-			$mech->click_button('name' => 'Stats', 'value' => 'Strength');			
+			$mech->click_button('name' => 'Stats', 'value' => 'Strength');
 		}
 		print "Leveled up Strength\n";
 		test_shop();
@@ -1757,7 +1738,7 @@ sub level_up_pure_fighter {
 			$mech->click_button('name' => 'cStats', 'value' => 'Dexterity');
 		} elsif($MyLev >= $masslevel) {
 			$mech->field("Stats", "Dexterity");
-			$mech->click_button('name' => 'Stats', 'value' => 'Dexterity');			
+			$mech->click_button('name' => 'Stats', 'value' => 'Dexterity');
 		}
 		print "You Leveled up Dexterity\n";
 		return;
@@ -1774,7 +1755,7 @@ sub level_up_pure_mage {
 			$mech->click_button('name' => 'cStats', 'value' => 'Intelligence');
 		} elsif($MyLev >= $masslevel) {
 			$mech->field("Stats", "Intelligence");
-			$mech->click_button('name' => 'Stats', 'value' => 'Intelligence');			
+			$mech->click_button('name' => 'Stats', 'value' => 'Intelligence');
 		}
 		print "Leveled up Intelligence\n";
 		sleep(0.5);
@@ -1789,7 +1770,7 @@ sub level_up_pure_mage {
 			$mech->click_button('name' => 'cStats', 'value' => 'Concentration');
 		} elsif($MyLev >= $masslevel) {
 			$mech->field("Stats", "Concentration");
-			$mech->click_button('name' => 'Stats', 'value' => 'Concentration');			
+			$mech->click_button('name' => 'Stats', 'value' => 'Concentration');
 		}
 		print "You Leveled up Concentration\n";
 		sleep(0.5);
@@ -1807,7 +1788,7 @@ sub level_up_contra_fighter {
 			$mech->click_button('name' => 'cStats', 'value' => 'Strength');
 		} elsif($MyLev >= $masslevel) {
 			$mech->field("Stats", "Strength");
-			$mech->click_button('name' => 'Stats', 'value' => 'Strength');			
+			$mech->click_button('name' => 'Stats', 'value' => 'Strength');
 		}
 		print "You Leveled up Strength\n";
 		sleep(1);
@@ -1821,7 +1802,7 @@ sub level_up_contra_fighter {
 			$mech->click_button('name' => 'cStats', 'value' => 'Contravention');
 		} elsif($MyLev >= $masslevel) {
 			$mech->field("Stats", "Contravention");
-			$mech->click_button('name' => 'Stats', 'value' => 'Contravention');			
+			$mech->click_button('name' => 'Stats', 'value' => 'Contravention');
 		}
 		print "You Leveled up Contravention\n";
 		sleep(1);
@@ -1835,7 +1816,7 @@ sub level_up_contra_fighter {
 			$mech->click_button('name' => 'cStats', 'value' => 'Dexterity');
 		} elsif($MyLev >= $masslevel) {
 			$mech->field("Stats", "Dexterity");
-			$mech->click_button('name' => 'Stats', 'value' => 'Dexterity');			
+			$mech->click_button('name' => 'Stats', 'value' => 'Dexterity');
 		}
 		print "You Leveled up Dexterity\n";
 		sleep(1);
@@ -1844,7 +1825,7 @@ sub level_up_contra_fighter {
 }
 
 sub check_shop {
-	$parsed = 0; 
+	$parsed = 0;
 	while(!$parsed) {
 		sleep(1);
 		$mech->get("http://thenewlosthope.net".$URL_SERVER."shop.php");
@@ -2084,12 +2065,12 @@ sub check_shop {
 	#print "your current Armor shops is      :$aarm\n";
 	#print "your current Belt shops is       :$abelt\n";
 	#print "your current Pants shops is      :$apants\n";
-	#print "your current Hand shops is       :$ahand\n";	
+	#print "your current Hand shops is       :$ahand\n";
 	#print "your current Feet shops is       :$afeet\n";
 }
 
 sub test_shop{
-		$parsed = 0; 
+		$parsed = 0;
 	while(!$parsed) {
 		sleep(1);
 		$mech->get("http://thenewlosthope.net".$URL_SERVER."shop.php");
@@ -2316,7 +2297,7 @@ sub test_shop{
 	#print "your current Armor shops is      :$aarm\n";
 	#print "your current Belt shops is       :$abelt\n";
 	#print "your current Pants shops is      :$apants\n";
-	#print "your current Hand shops is       :$ahand\n";	
+	#print "your current Hand shops is       :$ahand\n";
 	#print "your current Feet shops is       :$afeet\n";
 
 	if($shop_yes_no == 1) {
@@ -2328,7 +2309,7 @@ sub test_shop{
 }
 	
 sub buy_upgrades {
-	$parsed = 0; 
+	$parsed = 0;
 	while(!$parsed) {
 		sleep(1);
 		$mech->get("http://thenewlosthope.net".$URL_SERVER."shop.php");
@@ -2356,7 +2337,7 @@ sub buy_upgrades {
 			$mech->field("Amulet", $maxshop);
 		}
 		if($shop7 == 0) {
-			$mech->field("Ring", $maxshop);	
+			$mech->field("Ring", $maxshop);
 		}
 		if($shop8 == 0) {
 			$mech->field("Armor", $maxshop);
@@ -2413,7 +2394,7 @@ sub buy_upgrades {
 			$mech->field("Attackspell", $maxshop);
 		}
 		if($shop7 == 0) {
-			$mech->field("Ring", $maxshop);	
+			$mech->field("Ring", $maxshop);
 		}
 		if($shop9 == 0) {
 			$mech->field("Belt", $maxshop);
@@ -2458,7 +2439,7 @@ sub buy_upgrades {
 			$mech->field("Attackspell", $maxshop);
 		}
 		if($shop7 == 0) {
-			$mech->field("Ring", $maxshop);	
+			$mech->field("Ring", $maxshop);
 		}
 		if($shop9 == 0) {
 			$mech->field("Belt", $maxshop);
@@ -2482,7 +2463,7 @@ sub buy_upgrades {
 			$mech->field("Amulet", $maxshop);
 		}
 		if($shop7 == 0) {
-			$mech->field("Ring", $maxshop);	
+			$mech->field("Ring", $maxshop);
 		}
 		if($shop11 == 0) {
 			$mech->field("Hand", $maxshop);
@@ -2508,7 +2489,7 @@ sub buy_upgrades {
 }
 
 sub get_my_level{
-	$parsed = 0; 
+	$parsed = 0;
 	while(!$parsed) {
 		sleep(0.5);
 		$mech->get("http://thenewlosthope.net".$URL_SERVER."main.php");
@@ -2544,7 +2525,7 @@ sub get_my_level{
 }	
 
 sub get_char_name{
-	$parsed = 0; 
+	$parsed = 0;
 	while(!$parsed) {
 		sleep(0.5);
 		$mech->get("http://thenewlosthope.net".$URL_SERVER."stats.php");
@@ -2826,7 +2807,7 @@ until($username ne 35) {
 	chomp ($username, $password);
 }
 
-$parsed = 0; 
+$parsed = 0;
 while($parsed == 0) {
 sleep(0.5);
 $mech->get("http://thenewlosthope.net".$URL_SERVER."login.php");
@@ -2873,7 +2854,7 @@ while($levels) {
 		}
 	auto_level_up();
 	if($MyLev <= 2500000) {
-		low_fight(low_level());	
+		low_fight(low_level());
 	} else {
 		cpm_level();
 		fight();
