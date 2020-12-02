@@ -11,10 +11,9 @@ use WWW::Mechanize;
 use POSIX qw(strftime);
 
 use feature "say";
-#use feature "state";
 use feature "switch";
 no warnings "experimental::smartmatch";
-use featute "postderef";
+use feature "postderef";
 use feature "signatures";
 no warnings "experimental::signatures";
 
@@ -44,7 +43,7 @@ my ($tmp, $mech);
 my ($a, $b, $c);
 my ($second, $minute, $hour, $day, $month, $year, $week_day, $day_of_year, $is_dst);
 my $users;
-my $datestring;
+my $date_string;
 my $charname;
 my $title;
 my $name = "";
@@ -80,22 +79,22 @@ my $shop9;
 my $shop10;
 my $shop11;
 my $shop12;
-my $waitdiv = new Math::BigFloat;
+my $wait_div = new Math::BigFloat;
 my $exper3 = new Math::BigFloat;
-my $experaverage = new Math::BigFloat;
-my $reloadcount = 0;
+my $exper_average = new Math::BigFloat;
+my $reload_count = 0;
 my $gold3 = new Math::BigFloat;
-my $goldaverage = new Math::BigFloat;
-my $experseconds;
-my $experminutes;
-my $experhours;
-my $experdays;
-my $goldseconds;
-my $goldminutes;
-my $goldhours;
-my $golddays;
+my $gold_average = new Math::BigFloat;
+my $exper_seconds;
+my $exper_minutes;
+my $exper_hours;
+my $exper_days;
+my $gold_seconds;
+my $gold_minutes;
+my $gold_hours;
+my $gold_days;
 my $Forlev;
-my $Nextlevel = new Math::BigFloat;
+my $next_level = new Math::BigFloat;
 my $SHOPMAX;
 my $SHOPWEAP;
 my $SHOPAS;
@@ -234,7 +233,7 @@ sub get_merge_id {
 	sleep 1;
 	
 	$mech->get("http://thenewlosthope.net${URL_SERVER}theone.php");
-	$content = $mech->content();
+	my $content = $mech->content();
 	
 	unless($content =~ m/Parsed/) {
 		sleep 10;
@@ -413,6 +412,113 @@ sub steal {
 	}
 }
 
+sub parse_stats {
+	($_) = m/(Min<br>.*monster)/s;
+	($_) = m/(\<br.*td\>)/;
+	s/<.*?>/:/sg;
+	s/\.//g;
+
+	return (split ":", $_)[1, 2, 4..7];
+}
+
+sub display_levels :prototype($ \%) ($char_type, $levels) {
+	given($char_type) {
+		when(1) {
+			printf('ASlevel: %.3e, DEFlevel: %.3e, MRlevel: %.3e',
+				$levels->{as}->bstr(),
+				$levels->{def}->bstr(),
+				$levels->{mr}->bstr()
+			);
+		}
+	
+		when(2) {
+			printf('WDlevel: %.3e, ARlevel: %.3e, MRlevel: %.3e',
+				$levels->{wd}->bstr(),
+				$levels->{ar}->bstr(),
+				$levels->{mr}->bstr()
+			);
+		}
+
+		when(3) {
+			printf('ASlevel: %.3e, ARlevel: %.3e, MRlevel: %.3e',
+				$levels->{as}->bstr(),
+				$levels->{ar}->bstr(),
+				$levels->{mr}->bstr()
+			);
+		}
+		
+		when(4) {
+			printf('WDlevel: %.3e, ARlevel: %.3e$8',
+				$levels->{wd}->bstr(),
+				$levels->{ar}->bstr()
+			);
+		}
+		
+		when(5) {
+			printf('ASlevel: %.3e, MRlevel: %.3e$8',
+				$levels->{as}->bstr(),
+				$levels->{mr}->bstr()
+			);
+		}
+
+		when(6) {
+			printf('WDlevel: %.3e, MSlevel: %.3e, ARlevel: %.3e',
+				$levels->{wd}->bstr(),
+				$levels->{ms}->bstr(),
+				$levels->{ar}->bstr()
+			);
+		}
+	}
+}
+
+sub get_levels :prototype(\@ $ %) ($stats, $char_type, %div_values) {
+	my %levels = (
+		wd => undef,
+		as => undef,
+		ms => undef,
+		def => undef,
+		ar => undef,
+		mr => undef
+	);
+
+	for my $key (keys %levels) {
+		$levels{$key} = new Math::BigFloat do {
+			shift @$stats;
+			s/,//sg;
+		};
+	}
+
+	#cpms m2 only
+	while(my ($name, $level) = each %levels) {
+		my $div_value = $div_values{$name} or die "Value not provided for ".(uc $name)."level!";
+		$level->bdiv($div_value);
+		$level->bfround(1);
+	}
+
+	$levels{as}->bmul('2.5'); # multiplier for correct AS
+	$levels{wd}->bmul('2.5'); # multiplier for correct wd
+	
+	$levels{wd}->bdiv('2.5') if $char_type == 4;
+	$levels{as}->bdiv('2.5') if $char_type == 5;
+
+	return %levels;
+}
+
+sub get_minimum_level :prototype($ \%) ($char_type, $levels) {
+	my @possible_levels = do {
+		given($char_type) {
+			when(1) { $levels->@{"as", "def", "mr"} } # for agi mage
+			when(2) { $levels->@{"wd", "ar",  "mr"} } # for fighter
+			when(3) { $levels->@{"as", "ar",  "mr"} } # for mage
+			when(4) { $levels->@{"ws", "ar"},       } # for pure fighter
+			when(5) { $levels->@{"as", "mr"},       } # for pure mage
+			when(6) { $levels->@{"wd", "ms",  "ar"} }
+		}
+	};
+	
+	return (sort @possible_levels)[0]->copy(); # find minimum value
+}
+
 sub low_level {
 	sleep 0.5;
 
@@ -427,7 +533,6 @@ sub low_level {
 
 	$mech->form_number(1);
 	$mech->click();
-
 	my $all = $mech->content();
 	
 	# test for free upgrade
@@ -442,108 +547,19 @@ sub low_level {
 		exit;
 	}
 
-	$all =~ m/(Min<br>.*monster)/s;
-	my $stat = $1;
-	$stat =~ m/(\<br.*td\>)/;
-	$stat = $1;
-	$stat =~ s/<.*?>/:/sg;
-	$stat =~ s/\.//g;
-
-	my @stats = (split ":", $stat)[1, 2, 4..7];
-	my %levels = (
-		wd => undef,
-		as => undef,
-		ms => undef,
-		def => undef,
-		ar => undef,
-		mr => undef
+	my @stats = parse_stats($all);
+	my %levels = get_levels(@stats, $char_type,
+		wd => '603',
+		as => '554',
+		ms => '84',
+		def => '42',
+		ar => '57',
+		mr => '72'
 	);
 
-	for my $key (keys %levels) {
-		$levels{$key} = new Math::BigFloat do {
-			shift @stats;
-			s/,//sg;
-		};
-	}
+	display_levels($char_type, %levels);
 
-	#cpms m2 only
-	$levels{wd}->bdiv('603');
-	$levels{as}->bdiv('554');
-	$levels{ms}->bdiv('84');
-	$levels{def}->bdiv('42');
-	$levels{ar}->bdiv('57');
-	$levels{mr}->bdiv('72');
-
-	for my $level (values %levels) {
-		$level->bfround(1);
-	}
-
-	$levels{as}->bmul('2.5'); # multiplier for correct AS
-	$levels{wd}->bmul('2.5'); # multiplier for correct wd
-	
-	$levels{wd}->bdiv('2.5') if $char_type == 4;
-	$levels{as}->bdiv('2.5') if $char_type == 5;
-	
-	
-	given($char_type) {
-		when(1) {
-			printf('ASlevel: %.3e, DEFlevel: %.3e, MRlevel: %.3e',
-				$levels{as}->bstr(),
-				$levels{def}->bstr(),
-				$levels{mr}->bstr()
-			);
-		}
-	
-		when(2) {
-			printf('WDlevel: %.3e, ARlevel: %.3e, MRlevel: %.3e',
-				$levels{wd}->bstr(),
-				$levels{ar}->bstr(),
-				$levels{mr}->bstr()
-			);
-		}
-
-		when(3) {
-			printf('ASlevel: %.3e, ARlevel: %.3e, MRlevel: %.3e',
-				$levels{as}->bstr(),
-				$levels{ar}->bstr(),
-				$levels{mr}->bstr()
-			);
-		}
-		
-		when(4) {
-			printf('WDlevel: %.3e, ARlevel: %.3e$8',
-				$levels{wd}->bstr(),
-				$levels{ar}->bstr()
-			);
-		}
-		
-		when(5) {
-			printf('ASlevel: %.3e, MRlevel: %.3e$8',
-				$levels{as}->bstr(),
-				$levels{mr}->bstr()
-			);
-		}
-
-		when(6) {
-			printf('WDlevel: %.3e, MSlevel: %.3e, ARlevel: %.3e',
-				$levels{wd}->bstr(),
-				$levels{ms}->bstr(),
-				$levels{ar}->bstr()
-			);
-		}
-	}
-
-	my @possible_levels = do {
-		given($char_type) {
-			when(1) { @levels{as, def, mr}   } # for agi mage
-			when(2) { @levels{wd, ar,  mr}   } # for fighter
-			when(3) { @levels{as, ar,  mr}   } # for mage
-			when(4) { @levels{ws, ar}, undef } # for pure fighter
-			when(5) { @levels{as, mr}, undef } # for pure mage
-			when(6) { @levels{wd, ms,  ar}   }
-		}
-	};
-	my $level = (sort grep {defined} @possible_levels)[0]->copy(); # find minimum value
+	my $level = get_minimum_level($char_type, %levels);
 
 	printf " --> Skeleton level: %.3e\n", $level->bstr();
 
@@ -832,196 +848,114 @@ sub auto_level_up {
 }
 
 sub cpm_level {
-	$parsed = 0;
-	while($parsed == 0) {
-		sleep(0.5);
-#		$mech->get("http://thenewlosthope.net".$URL_SERVER."fight_control.php");
-		$mech->get("http://thenewlosthope.net".$URL_SERVER."world_control.php");
-		$a = $mech->content();
-		if($a =~ m/Thief/) {
-			$parsed = 1;
-		} else {
-			sleep(10);
-			exit;
-		}
+	sleep 0.5;
+	
+	#$mech->get("http://thenewlosthope.net${URL_SERVER}fight_control.php");
+	$mech->get("http://thenewlosthope.net${URL_SERVER}world_control.php");
+	my $content = $mech->content();
+	
+	unless($content =~ m/Thief/) {
+		sleep 10;
+		exit;
 	}
+
 	$mech->form_number(1);
 	$mech->click();
 	my $all = $mech->content();
-	#test for free upgrade
+	
+	# Test for free upgrade
 	if($all =~ m/Click here to upgrade/) {
-		sleep(0.5); $mech->form_number(0);$mech->click();
-		print "Free upgrade detected and cleared. Restarting\n";
+		sleep 0.5;
+		
+		$mech->form_number(0);
+		$mech->click();
+		
+		say "Free upgrade detected and cleared. Restarting";
+
 		exit;
 	}
-	$all =~ m/(Min<br>.*monster)/s;
-	my $stat = $1;
-	$stat =~ m/(\<br.*td\>)/;
-	$stat = $1;
-	$stat =~ s/<.*?>/:/sg;
-	$stat =~ s/\.//g;
-	#print $stat;
-	my @stats = split(/:/, $stat);
-	$stats[1] =~ s/,//sg;
-	$stats[2] =~ s/,//sg;
-	$stats[4] =~ s/,//sg;
-	$stats[5] =~ s/,//sg;
-	$stats[6] =~ s/,//sg;
-	$stats[7] =~ s/,//sg;
 
-	$wdlevel = new Math::BigFloat $stats[1];
-	$aslevel = new Math::BigFloat $stats[2];
-	$mslevel = new Math::BigFloat $stats[4];
-	$deflevel = new Math::BigFloat $stats[5];
-	$arlevel = new Math::BigFloat $stats[6];
-	$mrlevel = new Math::BigFloat $stats[7];
+	my @stats = parse_stats($all);
+	my %levels = get_levels(@stats, $char_type,
+		wd => '1661622',
+		as => '1877897',
+		ms => '3028631',
+		def => '1817170',
+		ar => '363482.2',
+		mr => '363497.2'
+	);
 
-	#cpms m2 only
-	$wdlevel->bdiv('1661622');
-	$aslevel->bdiv('1877897');
-	$mslevel->bdiv('3028631');
-	$deflevel->bdiv('1817170');
-	$arlevel->bdiv('363482.2');
-	$mrlevel->bdiv('363497.2');
-
-	$wdlevel->bfround(1);
-	$aslevel->bfround(1);
-	$mslevel->bfround(1);
-	$deflevel->bfround(1);
-	$arlevel->bfround(1);
-	$mrlevel->bfround(1);
-
-	$aslevel->bmul('2.5'); # multiplier for correct AS
-	$wdlevel->bmul('2.5'); #multiplier for correct wd
-	if($char_type ==4) {
-		$wdlevel->bdiv('2.5');
-	}
-	if($char_type ==5) {
-		$aslevel->bdiv('2.5');
-	}
-	if($char_type == 1) {
-		printf "ASlevel: %.3e", $aslevel->bstr();
-		printf ", DEFlevel: %.3e", $deflevel->bstr();
-		printf ", MRlevel: %.3e", $mrlevel->bstr();
-	}
-	if($char_type == 2) {
-		printf "WDlevel: %.3e", $wdlevel->bstr();
-		printf ", ARlevel: %.3e", $arlevel->bstr();
-		printf ", MRlevel: %.3e", $mrlevel->bstr();
-	}
-	if($char_type == 3) {
-		printf "ASlevel: %.3e", $aslevel->bstr();
-		printf ", ARlevel: %.3e", $arlevel->bstr();
-		printf ", MRlevel: %.3e", $mrlevel->bstr();
-	}
-	if($char_type == 4) {
-		printf "WDlevel: %.3e", $wdlevel->bstr();
-		printf ", ARlevel: %.3e", $arlevel->bstr();
-	}
-	if($char_type == 5) {
-		printf "ASlevel: %.3e", $aslevel->bstr();
-		printf ", MRlevel: %.3e", $mrlevel->bstr();
-	}
-	if($char_type == 6) {
-		printf "WDlevel: %.3e", $wdlevel->bstr();
-		printf ", MSlevel: %.3e", $mslevel->bstr();
-		printf ", ARlevel: %.3e", $arlevel->bstr();
-	}
+	display_levels($char_type, %levels);
 	
-	# for agi mage:
-	if($char_type == 1) {
-		$level = $aslevel->copy();
-		if($level >= $deflevel) {$level = $deflevel->copy();}
-		if($level >= $mrlevel) {$level = $mrlevel->copy();}
-	}
-	# for fighter
-	if($char_type == 2) {
-		$level = $wdlevel->copy();
-		if($level >= $arlevel) {$level = $arlevel->copy();}
-		if($level >= $mrlevel) {$level = $mrlevel->copy();}
-	}
-	# for mage
-	if($char_type == 3) {
-		$level = $aslevel->copy();
-		if($level >= $arlevel) {$level = $arlevel->copy();}
-		if($level >= $mrlevel) {$level = $mrlevel->copy();}
-	}
-	# for pure fighter
-	if($char_type == 4) {
-		$level = $wdlevel->copy();
-		if($level >= $arlevel) {$level = $arlevel->copy();}
-	}
-	# for pure mage
-	if($char_type == 5) {
-		$level = $aslevel->copy();
-		if($level >= $mrlevel) {$level = $mrlevel->copy();}
-	}
-	if($char_type == 6) {
-		$level = $wdlevel->copy();
-		if($level >= $mslevel) {$level = $mslevel->copy();}
-		if($level >= $arlevel) {$level = $arlevel->copy();}
-	}
+	my $level = get_minimum_level($char_type, %levels);
 
 	printf " --> CPM level: %.3e\n", $level->bstr();
+
+	return $level;
 }
 
 sub fight($level) {
-# setup fight
-	my($cpm);
-	$parsed = 0;
-	while($parsed == 0) {
-		sleep(0.5);
-		$mech->get("http://thenewlosthope.net".$URL_SERVER."fight_control.php");
-		$a = $mech->content();
-		if($a =~ m/Skeleton/) {
-			$parsed = 1;
-		} else {
-			sleep(10);
-			exit;
-		}
+	# Setup fight
+	sleep 0.5;
+	
+	$mech->get("http://thenewlosthope.net${URL_SERVER}fight_control.php");
+	my $content = $mech->content();
+	
+	unless($content =~ m/Skeleton/) {
+		sleep 10;
+		exit;
 	}
+
 	$mech->form_number(2);
 	$mech->field("Difficulty", $level);
 	$mech->click();
-	$cpm = $mech->content();
-	$cpm =~ m/(\<option\>208.*Duke)/;
-	$cpm = $1;
+	my $cpm = $mech->content();
+
+	($cpm) = $cpm =~ m/(<option>208.*Duke)/;
 	$cpm =~ s/ - Shadowlord Duke//g;
-	$cpm =~ s/\>209/\>/;
+	$cpm =~ s/>209/>/;
 	$cpm =~ s/<.*?>//g;
-	print $cpm . "\n";
+
+	say $cpm;
+	
 	$mech->form_number(1);
 	$mech->select("Monster", $cpm);
 	$mech->click();
-	$a = $mech->content();
-	$a =~ m/(You win.*exp )/;
-	$a =~ m/(battle)/;
-	$a =~ m/(You have been jailed for violating our rules)/;
-	#print $1 . "\n";
-	#my $antal = 500 + int rand (500);
+	$content = $mech->content();
+	
+	# Unsure what's going on here. All 3 of these are useless
+	$content =~ m/(You win.*exp )/;
+	$content =~ m/(battle)/;
+	$content =~ m/(You have been jailed for violating our rules)/;
+	
 	$steal_antal = new Math::BigFloat $steal_antal;
 	$steal_antal->bdiv($loop_wait);
 	$steal_antal->bstr();
 	$steal_antal->bfround(1);
-	my $antal = $steal_antal;
+
+	my $antal = $steal_antal; # Maybe copy?
 	my $jail;
-	my $averagecountdown = 900;
-# REPEAT:
+	my $average_count_down = 900;
+
+	# REPEAT:
 	while($antal > 0) {
-		sleep($loop_wait); #default = 0.3
-		$antal = $antal -1;
+		sleep $loop_wait; # Default = 0.3
+
+		$antal--;
+		
 		$mech->reload();
-		if($a =~ m/(The battle tied.)/) {
-			#don't change $waitdiv or $averagescountdown
-		} else {
-			$averagecountdown = $averagecountdown - 1;
-			$waitdiv = $waitdiv + $loop_wait;
+		
+		unless($content =~ m/(The battle tied.)/) {
+			$average_count_down--;
+			$wait_div += $loop_wait;
 		}
-		$a = $mech->content();
-		$b = $a;
-		$c = $a;
-		if($averagecountdown >= 1) {
-			my $exper = $a;
+
+		$content = $mech->content();
+		$b = $content;
+		$c = $content;
+		
+		if($average_count_down >= 1) {
+			my $exper = $content;
 			$exper =~ m/(You win.*exp )/;
 			my $exper1 = $1;
 			$exper1 =~ s/,//sg;
@@ -1030,11 +964,11 @@ sub fight($level) {
 			$exper1 =~ s/exp//s;
 			$exper1 =~ s/\s//sg;
 			my $exper2 = new Math::BigFloat $exper1;
-			if($a =~ m/(The battle tied.)/) {
+			if($content =~ m/(The battle tied.)/) {
 				$exper2 = 0;
 			}
 			$exper3 = $exper2 + $exper3;
-			my $gold = $a;
+			my $gold = $content;
 			$gold =~ m/(exp and.*gold.)/;
 			my $gold1 = $1;
 			$gold1 =~ s/exp//s;
@@ -1044,376 +978,380 @@ sub fight($level) {
 			$gold1 =~ s/\.//s;
 			$gold1 =~ s/\s//sg;
 			my $gold2 = new Math::BigFloat $gold1;
-			if($a =~ m/(The battle tied.)/) {
+			if($content =~ m/(The battle tied.)/) {
 				$gold2 = 0;
 			}
+			
 			$gold3 = $gold2 + $gold3;
-			if($a =~ m/(The battle tied.)/) {
-				#don't change $reloadcount
-			} else {
-				$reloadcount = $reloadcount + 1;
+			
+			unless($content =~ m/(The battle tied.)/) {
+				$reload_count++;
 			}
-			if($waitdiv >= 300.0) {
-				$reloadcount = ($reloadcount / $waitdiv * 300);
-				$experaverage = ($exper3 / $reloadcount);
-				$experaverage =~ s/\..*//s; #remove after
-				$goldaverage = ($gold3 / $reloadcount);
-				$goldaverage =~ s/\..*//s; #remove after
-				$waitdiv = 0;
+
+			if($wait_div >= 300.0) {
+				$reload_count = $reload_count / $wait_div * 300;
+				$exper_average = $exper3 / $reload_count;
+				$exper_average =~ s/\..*//s; # Remove after
+				$gold_average = $gold3 / $reload_count;
+				$gold_average =~ s/\..*//s; # Remove after
+				$wait_div = 0;
 				$exper3 = 0;
-				$gold3 =0;
-				$reloadcount = 0;
-				my $expersecond = new Math::BigFloat $experaverage;
-				my $experminute = new Math::BigFloat $experaverage;
-				my $experhour = new Math::BigFloat $experaverage;
-				my $experday = new Math::BigFloat $experaverage;
-				$experminute = ($experminute * 60);
-				$experhour = ($experhour * 3600);
-				$experday = ($experday * 86400);
-				my $goldsecond = new Math::BigFloat $goldaverage;
-				my $goldminute = new Math::BigFloat $goldaverage;
-				my $goldhour = new Math::BigFloat $goldaverage;
-				my $goldday = new Math::BigFloat $goldaverage;
-				$goldminute = ($goldminute * 60);
-				$goldhour = ($goldhour * 3600);
-				$goldday = ($goldday * 86400);
-				my $experlength1 = length($experaverage);
-				my $experlength2 = length($expersecond);
-				my $experlength3 = length($experminute);
-				my $experlength4 = length($experhour);
-				my $experlength5 = length($experday);
-				my $Nextlength = length($Nextlevel);
-				my $goldlength1 = length($goldaverage);
-				my $goldlength2 = length($goldsecond);
-				my $goldlength3 = length($goldminute);
-				my $goldlength4 = length($goldhour);
-				my $goldlength5 = length($goldday);
-				#Time to level
-				my $Nextleveltime = new Math::BigFloat $Nextlevel / $experaverage;
-				$datestring = localtime();
-				my $epoc = time();
-				$epoc = $epoc + $Nextleveltime;
-				$datestring = strftime "%x %H:%M:%S", localtime($epoc);
+				$gold3 = 0;
+				$reload_count = 0;
 				
-				#expersecond
+				my $exper_second = new Math::BigFloat $exper_average;
+				my $exper_minute = new Math::BigFloat $exper_average;
+				my $exper_hour = new Math::BigFloat $exper_average;
+				my $exper_day = new Math::BigFloat $exper_average;
+				
+				$exper_minute *= 60;
+				$exper_hour *= 3600;
+				$exper_day *= 86400;
+				
+				my $gold_second = new Math::BigFloat $gold_average;
+				my $gold_minute = new Math::BigFloat $gold_average;
+				my $gold_hour = new Math::BigFloat $gold_average;
+				my $gold_day = new Math::BigFloat $gold_average;
+				
+				$gold_minute *= 60;
+				$gold_hour *= 3600;
+				$gold_day *= 86400;
+
+				my $experlength1 = length($exper_average);
+				my $experlength2 = length($exper_second);
+				my $experlength3 = length($exper_minute);
+				my $experlength4 = length($exper_hour);
+				my $experlength5 = length($exper_day);
+				my $next_length = length($next_level);
+				my $goldlength1 = length($gold_average);
+				my $goldlength2 = length($gold_second);
+				my $goldlength3 = length($gold_minute);
+				my $goldlength4 = length($gold_hour);
+				my $goldlength5 = length($gold_day);
+
+				#Time to level
+				my $Nextleveltime = new Math::BigFloat $next_level / $exper_average;
+				my $epoc = time() + $Nextleveltime;
+				my $date_string = strftime '%x %H:%M:%S', localtime($epoc);
+				
+				#exper_second
 				if(($experlength2 >= 7) && ($experlength2 <= 12)) {
-					$expersecond =~ s/([0-9]{6})$/ M1/g;
+					$exper_second =~ s/([0-9]{6})$/ M1/g;
 				}
 				if(($experlength2 >= 13) && ($experlength2 <= 18)) {
-					$expersecond =~ s/([0-9]{12})$/ M2/g;
+					$exper_second =~ s/([0-9]{12})$/ M2/g;
 				}
 				if(($experlength2 >= 19) && ($experlength2 <= 24)) {
-					$expersecond =~ s/([0-9]{18})$/ M3/g;
+					$exper_second =~ s/([0-9]{18})$/ M3/g;
 				}
 				if(($experlength2 >= 25) && ($experlength2 <= 30)) {
-					$expersecond =~ s/([0-9]{24})$/ M4/g;
+					$exper_second =~ s/([0-9]{24})$/ M4/g;
 				}
 				if(($experlength2 >= 31) && ($experlength2 <= 36)) {
-					$expersecond =~ s/([0-9]{30})$/ M5/g;
+					$exper_second =~ s/([0-9]{30})$/ M5/g;
 				}
 				if(($experlength2 >= 37) && ($experlength2 <= 42)) {
-					$expersecond =~ s/([0-9]{36})$/ M6/g;
+					$exper_second =~ s/([0-9]{36})$/ M6/g;
 				}
 				if(($experlength2 >= 43) && ($experlength2 <= 48)) {
-					$expersecond =~ s/([0-9]{42})$/ M7/g;
+					$exper_second =~ s/([0-9]{42})$/ M7/g;
 				}
 				if(($experlength2 >= 49) && ($experlength2 <= 54)) {
-					$expersecond =~ s/([0-9]{48})$/ M8/g;
+					$exper_second =~ s/([0-9]{48})$/ M8/g;
 				}
 				if(($experlength2 >= 55) && ($experlength2 <= 60)) {
-					$expersecond =~ s/([0-9]{54})$/ M9/g;
+					$exper_second =~ s/([0-9]{54})$/ M9/g;
 				}	
-				#experminute
+				#exper_minute
 				if(($experlength3 >= 7) && ($experlength3 <= 12)) {
-					$experminute =~ s/([0-9]{6})$/ M1/g;
+					$exper_minute =~ s/([0-9]{6})$/ M1/g;
 				}
 				if(($experlength3 >= 13) && ($experlength3 <= 18)) {
-					$experminute =~ s/([0-9]{12})$/ M2/g;
+					$exper_minute =~ s/([0-9]{12})$/ M2/g;
 				}
 				if(($experlength3 >= 19) && ($experlength3 <= 24)) {
-					$experminute =~ s/([0-9]{18})$/ M3/g;
+					$exper_minute =~ s/([0-9]{18})$/ M3/g;
 				}
 				if(($experlength3 >= 25) && ($experlength3 <= 30)) {
-					$experminute =~ s/([0-9]{24})$/ M4/g;
+					$exper_minute =~ s/([0-9]{24})$/ M4/g;
 				}
 				if(($experlength3 >= 31) && ($experlength3 <= 36)) {
-					$experminute =~ s/([0-9]{30})$/ M5/g;
+					$exper_minute =~ s/([0-9]{30})$/ M5/g;
 				}
 				if(($experlength3 >= 37) && ($experlength3 <= 42)) {
-					$experminute =~ s/([0-9]{36})$/ M6/g;
+					$exper_minute =~ s/([0-9]{36})$/ M6/g;
 				}
 				if(($experlength3 >= 43) && ($experlength3 <= 48)) {
-					$experminute =~ s/([0-9]{42})$/ M7/g;
+					$exper_minute =~ s/([0-9]{42})$/ M7/g;
 				}
 				if(($experlength3 >= 49) && ($experlength3 <= 54)) {
-					$experminute =~ s/([0-9]{48})$/ M8/g;
+					$exper_minute =~ s/([0-9]{48})$/ M8/g;
 				}
 				if(($experlength3 >= 55) && ($experlength3 <= 60)) {
-					$experminute =~ s/([0-9]{54})$/ M9/g;
+					$exper_minute =~ s/([0-9]{54})$/ M9/g;
 				}	
-				#experhour
+				#exper_hour
 				if(($experlength4 >= 7) && ($experlength4 <= 12)) {
-					$experhour =~ s/([0-9]{6})$/ M1/g;
+					$exper_hour =~ s/([0-9]{6})$/ M1/g;
 				}
 				if(($experlength4 >= 13) && ($experlength4 <= 18)) {
-					$experhour =~ s/([0-9]{12})$/ M2/g;
+					$exper_hour =~ s/([0-9]{12})$/ M2/g;
 				}
 				if(($experlength4 >= 19) && ($experlength4 <= 24)) {
-					$experhour =~ s/([0-9]{18})$/ M3/g;
+					$exper_hour =~ s/([0-9]{18})$/ M3/g;
 				}
 				if(($experlength4 >= 25) && ($experlength4 <= 30)) {
-					$experhour =~ s/([0-9]{24})$/ M4/g;
+					$exper_hour =~ s/([0-9]{24})$/ M4/g;
 				}
 				if(($experlength4 >= 31) && ($experlength4 <= 36)) {
-					$experhour =~ s/([0-9]{30})$/ M5/g;
+					$exper_hour =~ s/([0-9]{30})$/ M5/g;
 				}
 				if(($experlength4 >= 37) && ($experlength4 <= 42)) {
-					$experhour =~ s/([0-9]{36})$/ M6/g;
+					$exper_hour =~ s/([0-9]{36})$/ M6/g;
 				}
 				if(($experlength4 >= 43) && ($experlength4 <= 48)) {
-					$experhour =~ s/([0-9]{42})$/ M7/g;
+					$exper_hour =~ s/([0-9]{42})$/ M7/g;
 				}
 				if(($experlength4 >= 49) && ($experlength4 <= 54)) {
-					$experhour =~ s/([0-9]{48})$/ M8/g;
+					$exper_hour =~ s/([0-9]{48})$/ M8/g;
 				}
 				if(($experlength4 >= 55) && ($experlength4 <= 60)) {
-					$experhour =~ s/([0-9]{54})$/ M9/g;
+					$exper_hour =~ s/([0-9]{54})$/ M9/g;
 				}	
-				#experday
+				#exper_day
 				if(($experlength5 >= 7) && ($experlength5 <= 12)) {
-					$experday =~ s/([0-9]{6})$/ M1/g;
+					$exper_day =~ s/([0-9]{6})$/ M1/g;
 				}
 				if(($experlength5 >= 13) && ($experlength5 <= 18)) {
-					$experday =~ s/([0-9]{12})$/ M2/g;
+					$exper_day =~ s/([0-9]{12})$/ M2/g;
 				}
 				if(($experlength5 >= 19) && ($experlength5 <= 24)) {
-					$experday =~ s/([0-9]{18})$/ M3/g;
+					$exper_day =~ s/([0-9]{18})$/ M3/g;
 				}
 				if(($experlength5 >= 25) && ($experlength5 <= 30)) {
-					$experday =~ s/([0-9]{24})$/ M4/g;
+					$exper_day =~ s/([0-9]{24})$/ M4/g;
 				}
 				if(($experlength5 >= 31) && ($experlength5 <= 36)) {
-					$experday =~ s/([0-9]{30})$/ M5/g;
+					$exper_day =~ s/([0-9]{30})$/ M5/g;
 				}
 				if(($experlength5 >= 37) && ($experlength5 <= 42)) {
-					$experday =~ s/([0-9]{36})$/ M6/g;
+					$exper_day =~ s/([0-9]{36})$/ M6/g;
 				}
 				if(($experlength5 >= 43) && ($experlength5 <= 48)) {
-					$experday =~ s/([0-9]{42})$/ M7/g;
+					$exper_day =~ s/([0-9]{42})$/ M7/g;
 				}
 				if(($experlength5 >= 49) && ($experlength5 <= 54)) {
-					$experday =~ s/([0-9]{48})$/ M8/g;
+					$exper_day =~ s/([0-9]{48})$/ M8/g;
 				}
 				if(($experlength5 >= 55) && ($experlength5 <= 60)) {
-					$experday =~ s/([0-9]{54})$/ M9/g;
+					$exper_day =~ s/([0-9]{54})$/ M9/g;
 				}	
-				#goldsecond
+				#gold_second
 				if(($goldlength2 >= 7) && ($goldlength2 <= 12)) {
-					$goldsecond =~ s/([0-9]{6})$/ M1/g;
+					$gold_second =~ s/([0-9]{6})$/ M1/g;
 				}
 				if(($goldlength2 >= 13) && ($goldlength2 <= 18)) {
-					$goldsecond =~ s/([0-9]{12})$/ M2/g;
+					$gold_second =~ s/([0-9]{12})$/ M2/g;
 				}
 				if(($goldlength2 >= 19) && ($goldlength2 <= 24)) {
-					$goldsecond =~ s/([0-9]{18})$/ M3/g;
+					$gold_second =~ s/([0-9]{18})$/ M3/g;
 				}
 				if(($goldlength2 >= 25) && ($goldlength2 <= 30)) {
-					$goldsecond =~ s/([0-9]{24})$/ M4/g;
+					$gold_second =~ s/([0-9]{24})$/ M4/g;
 				}
 				if(($goldlength2 >= 31) && ($goldlength2 <= 36)) {
-					$goldsecond =~ s/([0-9]{30})$/ M5/g;
+					$gold_second =~ s/([0-9]{30})$/ M5/g;
 				}
 				if(($goldlength2 >= 37) && ($goldlength2 <= 42)) {
-					$goldsecond =~ s/([0-9]{36})$/ M6/g;
+					$gold_second =~ s/([0-9]{36})$/ M6/g;
 				}
 				if(($goldlength2 >= 43) && ($goldlength2 <= 48)) {
-					$goldsecond =~ s/([0-9]{42})$/ M7/g;
+					$gold_second =~ s/([0-9]{42})$/ M7/g;
 				}
 				if(($goldlength2 >= 49) && ($goldlength2 <= 54)) {
-					$goldsecond =~ s/([0-9]{48})$/ M8/g;
+					$gold_second =~ s/([0-9]{48})$/ M8/g;
 				}
 				if(($goldlength2 >= 55) && ($goldlength2 <= 60)) {
-					$goldsecond =~ s/([0-9]{54})$/ M9/g;
+					$gold_second =~ s/([0-9]{54})$/ M9/g;
 				}		
-				#goldminute
+				#gold_minute
 				if(($goldlength3 >= 7) && ($goldlength3 <= 12)) {
-					$goldminute =~ s/([0-9]{6})$/ M1/g;
+					$gold_minute =~ s/([0-9]{6})$/ M1/g;
 				}
 				if(($goldlength3 >= 13) && ($goldlength3 <= 18)) {
-					$goldminute =~ s/([0-9]{12})$/ M2/g;
+					$gold_minute =~ s/([0-9]{12})$/ M2/g;
 				}
 				if(($goldlength3 >= 19) && ($goldlength3 <= 24)) {
-					$goldminute =~ s/([0-9]{18})$/ M3/g;
+					$gold_minute =~ s/([0-9]{18})$/ M3/g;
 				}
 				if(($goldlength3 >= 25) && ($goldlength3 <= 30)) {
-					$goldminute =~ s/([0-9]{24})$/ M4/g;
+					$gold_minute =~ s/([0-9]{24})$/ M4/g;
 				}
 				if(($goldlength3 >= 31) && ($goldlength3 <= 36)) {
-					$goldminute =~ s/([0-9]{30})$/ M5/g;
+					$gold_minute =~ s/([0-9]{30})$/ M5/g;
 				}
 				if(($goldlength3 >= 37) && ($goldlength3 <= 42)) {
-					$goldminute =~ s/([0-9]{36})$/ M6/g;
+					$gold_minute =~ s/([0-9]{36})$/ M6/g;
 				}
 				if(($goldlength3 >= 43) && ($goldlength3 <= 48)) {
-					$goldminute =~ s/([0-9]{42})$/ M7/g;
+					$gold_minute =~ s/([0-9]{42})$/ M7/g;
 				}
 				if(($goldlength3 >= 49) && ($goldlength3 <= 54)) {
-					$goldminute =~ s/([0-9]{48})$/ M8/g;
+					$gold_minute =~ s/([0-9]{48})$/ M8/g;
 				}
 				if(($goldlength3 >= 55) && ($goldlength3 <= 60)) {
-					$goldminute =~ s/([0-9]{54})$/ M9/g;
+					$gold_minute =~ s/([0-9]{54})$/ M9/g;
 				}			
-				#goldhour
+				#gold_hour
 				if(($goldlength4 >= 7) && ($goldlength4 <= 12)) {
-					$goldhour =~ s/([0-9]{6})$/ M1/g;
+					$gold_hour =~ s/([0-9]{6})$/ M1/g;
 				}
 				if(($goldlength4 >= 13) && ($goldlength4 <= 18)) {
-					$goldhour =~ s/([0-9]{12})$/ M2/g;
+					$gold_hour =~ s/([0-9]{12})$/ M2/g;
 				}
 				if(($goldlength4 >= 19) && ($goldlength4 <= 24)) {
-					$goldhour =~ s/([0-9]{18})$/ M3/g;
+					$gold_hour =~ s/([0-9]{18})$/ M3/g;
 				}
 				if(($goldlength4 >= 25) && ($goldlength4 <= 30)) {
-					$goldhour =~ s/([0-9]{24})$/ M4/g;
+					$gold_hour =~ s/([0-9]{24})$/ M4/g;
 				}
 				if(($goldlength4 >= 31) && ($goldlength4 <= 36)) {
-					$goldhour =~ s/([0-9]{30})$/ M5/g;
+					$gold_hour =~ s/([0-9]{30})$/ M5/g;
 				}
 				if(($goldlength4 >= 37) && ($goldlength4 <= 42)) {
-					$goldhour =~ s/([0-9]{36})$/ M6/g;
+					$gold_hour =~ s/([0-9]{36})$/ M6/g;
 				}
 				if(($goldlength4 >= 43) && ($goldlength4 <= 48)) {
-					$goldhour =~ s/([0-9]{42})$/ M7/g;
+					$gold_hour =~ s/([0-9]{42})$/ M7/g;
 				}
 				if(($goldlength4 >= 49) && ($goldlength4 <= 54)) {
-					$goldhour =~ s/([0-9]{48})$/ M8/g;
+					$gold_hour =~ s/([0-9]{48})$/ M8/g;
 				}
 				if(($goldlength4 >= 55) && ($goldlength4 <= 60)) {
-					$goldhour =~ s/([0-9]{54})$/ M9/g;
+					$gold_hour =~ s/([0-9]{54})$/ M9/g;
 				}		
-				#goldday
+				#gold_day
 				if(($goldlength5 >= 7) && ($goldlength5 <= 12)) {
-					$goldday =~ s/([0-9]{6})$/ M1/g;
+					$gold_day =~ s/([0-9]{6})$/ M1/g;
 				}
 				if(($goldlength5 >= 13) && ($goldlength5 <= 18)) {
-					$goldday =~ s/([0-9]{12})$/ M2/g;
+					$gold_day =~ s/([0-9]{12})$/ M2/g;
 				}
 				if(($goldlength5 >= 19) && ($goldlength5 <= 24)) {
-					$goldday =~ s/([0-9]{18})$/ M3/g;
+					$gold_day =~ s/([0-9]{18})$/ M3/g;
 				}
 				if(($goldlength5 >= 25) && ($goldlength5 <= 30)) {
-					$goldday =~ s/([0-9]{24})$/ M4/g;
+					$gold_day =~ s/([0-9]{24})$/ M4/g;
 				}
 				if(($goldlength5 >= 31) && ($goldlength5 <= 36)) {
-					$goldday =~ s/([0-9]{30})$/ M5/g;
+					$gold_day =~ s/([0-9]{30})$/ M5/g;
 				}
 				if(($goldlength5 >= 37) && ($goldlength5 <= 42)) {
-					$goldday =~ s/([0-9]{36})$/ M6/g;
+					$gold_day =~ s/([0-9]{36})$/ M6/g;
 				}
 				if(($goldlength5 >= 43) && ($goldlength5 <= 48)) {
-					$goldday =~ s/([0-9]{42})$/ M7/g;
+					$gold_day =~ s/([0-9]{42})$/ M7/g;
 				}
 				if(($goldlength5 >= 49) && ($goldlength5 <= 54)) {
-					$goldday =~ s/([0-9]{48})$/ M8/g;
+					$gold_day =~ s/([0-9]{48})$/ M8/g;
 				}
 				if(($goldlength5 >= 55) && ($goldlength5 <= 60)) {
-					$goldday =~ s/([0-9]{54})$/ M9/g;
+					$gold_day =~ s/([0-9]{54})$/ M9/g;
 				}
-				#Nextlevel				
-				if(($Nextlength >= 7) && ($Nextlength <= 12)) {
-					$Nextlevel =~ s/([0-9]{6})$/ M1/g;
+				#next_level				
+				if(($next_length >= 7) && ($next_length <= 12)) {
+					$next_level =~ s/([0-9]{6})$/ M1/g;
 				}
-				if(($Nextlength >= 13) && ($Nextlength <= 18)) {
-					$Nextlevel =~ s/([0-9]{12})$/ M2/g;
+				if(($next_length >= 13) && ($next_length <= 18)) {
+					$next_level =~ s/([0-9]{12})$/ M2/g;
 				}
-				if(($Nextlength >= 19) && ($Nextlength <= 24)) {
-					$Nextlevel=~ s/([0-9]{18})$/ M3/g;
+				if(($next_length >= 19) && ($next_length <= 24)) {
+					$next_level=~ s/([0-9]{18})$/ M3/g;
 				}
-				if(($Nextlength >= 25) && ($Nextlength <= 30)) {
-					$Nextlevel=~ s/([0-9]{24})$/ M4/g;
+				if(($next_length >= 25) && ($next_length <= 30)) {
+					$next_level=~ s/([0-9]{24})$/ M4/g;
 				}
-				if(($Nextlength >= 31) && ($Nextlength <= 36)) {
-					$Nextlevel =~ s/([0-9]{30})$/ M5/g;
+				if(($next_length >= 31) && ($next_length <= 36)) {
+					$next_level =~ s/([0-9]{30})$/ M5/g;
 				}
-				if(($Nextlength >= 37) && ($Nextlength <= 42)) {
-					$Nextlevel =~ s/([0-9]{36})$/ M6/g;
+				if(($next_length >= 37) && ($next_length <= 42)) {
+					$next_level =~ s/([0-9]{36})$/ M6/g;
 				}
-				if(($Nextlength >= 43) && ($Nextlength <= 48)) {
-					$Nextlevel =~ s/([0-9]{42})$/ M7/g;
+				if(($next_length >= 43) && ($next_length <= 48)) {
+					$next_level =~ s/([0-9]{42})$/ M7/g;
 				}
-				if(($Nextlength >= 49) && ($Nextlength <= 54)) {
-					$Nextlevel =~ s/([0-9]{48})$/ M8/g;
+				if(($next_length >= 49) && ($next_length <= 54)) {
+					$next_level =~ s/([0-9]{48})$/ M8/g;
 				}
-				if(($Nextlength >= 55) && ($Nextlength <= 60)) {
-					$Nextlevel =~ s/([0-9]{54})$/ M9/g;
+				if(($next_length >= 55) && ($next_length <= 60)) {
+					$next_level =~ s/([0-9]{54})$/ M9/g;
 				}	
 				
-				while($experaverage =~ m/([0-9]{4})/) {
-					my $temp = reverse $experaverage;
+				while($exper_average =~ m/([0-9]{4})/) {
+					my $temp = reverse $exper_average;
 					$temp =~ s/(?<=(\d\d\d))(?=(\d))/,/;
-					$experaverage = reverse $temp;
+					$exper_average = reverse $temp;
 				}
-				while($expersecond =~ m/([0-9]{4})/) {
-					my $temp = reverse $expersecond;
+				while($exper_second =~ m/([0-9]{4})/) {
+					my $temp = reverse $exper_second;
 					$temp =~ s/(?<=(\d\d\d))(?=(\d))/,/;
-					$expersecond = reverse $temp;
+					$exper_second = reverse $temp;
 				}
-				while($experminute =~ m/([0-9]{4})/) {
-					my $temp = reverse $experminute;
+				while($exper_minute =~ m/([0-9]{4})/) {
+					my $temp = reverse $exper_minute;
 					$temp =~ s/(?<=(\d\d\d))(?=(\d))/,/;
-					$experminute = reverse $temp;
+					$exper_minute = reverse $temp;
 				}
-				while($experhour =~ m/([0-9]{4})/) {
-					my $temp = reverse $experhour;
+				while($exper_hour =~ m/([0-9]{4})/) {
+					my $temp = reverse $exper_hour;
 					$temp =~ s/(?<=(\d\d\d))(?=(\d))/,/;
-					$experhour = reverse $temp;
+					$exper_hour = reverse $temp;
 				}
-				while($experday =~ m/([0-9]{4})/) {
-					my $temp = reverse $experday;
+				while($exper_day =~ m/([0-9]{4})/) {
+					my $temp = reverse $exper_day;
 					$temp =~ s/(?<=(\d\d\d))(?=(\d))/,/;
-					$experday = reverse $temp;
+					$exper_day = reverse $temp;
 				}
-				while($goldaverage =~ m/([0-9]{4})/) {
-					my $temp = reverse $goldaverage;
+				while($gold_average =~ m/([0-9]{4})/) {
+					my $temp = reverse $gold_average;
 					$temp =~ s/(?<=(\d\d\d))(?=(\d))/,/;
-					$goldaverage = reverse $temp;
+					$gold_average = reverse $temp;
 				}
-				while($goldsecond =~ m/([0-9]{4})/) {
-					my $temp = reverse $goldsecond;
+				while($gold_second =~ m/([0-9]{4})/) {
+					my $temp = reverse $gold_second;
 					$temp =~ s/(?<=(\d\d\d))(?=(\d))/,/;
-					$goldsecond = reverse $temp;
+					$gold_second = reverse $temp;
 				}
-				while($goldminute =~ m/([0-9]{4})/) {
-					my $temp = reverse $goldminute;
+				while($gold_minute =~ m/([0-9]{4})/) {
+					my $temp = reverse $gold_minute;
 					$temp =~ s/(?<=(\d\d\d))(?=(\d))/,/;
-					$goldminute = reverse $temp;
+					$gold_minute = reverse $temp;
 				}		
-				while($goldhour =~ m/([0-9]{4})/) {
-					my $temp = reverse $goldhour;
+				while($gold_hour =~ m/([0-9]{4})/) {
+					my $temp = reverse $gold_hour;
 					$temp =~ s/(?<=(\d\d\d))(?=(\d))/,/;
-					$goldhour = reverse $temp;
+					$gold_hour = reverse $temp;
 				}
-				while($goldday =~ m/([0-9]{4})/) {
-					my $temp = reverse $goldday;
+				while($gold_day =~ m/([0-9]{4})/) {
+					my $temp = reverse $gold_day;
 					$temp =~ s/(?<=(\d\d\d))(?=(\d))/,/;
-					$goldday = reverse $temp;
+					$gold_day = reverse $temp;
 				}
-				while($Nextlevel =~ m/([0-9]{4})/) {
-					my $temp = reverse $Nextlevel;
+				while($next_level =~ m/([0-9]{4})/) {
+					my $temp = reverse $next_level;
 					$temp =~ s/(?<=(\d\d\d))(?=(\d))/,/;
-					$Nextlevel = reverse $temp;
+					$next_level = reverse $temp;
 				}
-				$experseconds = $expersecond;
-				$experminutes = $experminute;
-				$experhours = $experhour;
-				$experdays = $experday;
-				$goldseconds = $goldsecond;
-				$goldminutes = $goldminute;
-				$goldhours = $goldhour;
-				$golddays = $goldday;
+				$exper_seconds = $exper_second;
+				$exper_minutes = $exper_minute;
+				$exper_hours = $exper_hour;
+				$exper_days = $exper_day;
+				$gold_seconds = $gold_second;
+				$gold_minutes = $gold_minute;
+				$gold_hours = $gold_hour;
+				$gold_days = $gold_day;
 			}
-		}
-		if($averagecountdown == 0) {
+		} elsif($average_count_down == 0) {
 			($second, $minute, $hour, $day, $month, $year, $week_day, $day_of_year, $is_dst) = localtime(time);
 			$year = $year + 1900;
 			$month = $month + 1;
@@ -1460,8 +1398,8 @@ sub fight($level) {
 			
 			print FILE "MAIN STATUS FOR $name at $hour:$minute:$second~$day/$month/$year\n\n";
 			print FILE "$name\'s current level is $Forlev\n";
-			print FILE "You need $Nextlevel EXP to level\n";
-			print FILE "You can expect to level on $datestring\n";
+			print FILE "You need $next_level EXP to level\n";
+			print FILE "You can expect to level on $date_string\n";
 			printf FILE "Your current CPM level is : %.3e\n", $level->bstr();
 			
 			if($char_type == 1) {
@@ -1509,68 +1447,68 @@ sub fight($level) {
 			print FILE "FEET:			$SHOPFEET\n\n";
 		
 			print FILE "AVERAGE'S FOR $name at $hour:$minute:$second~$day/$month/$year\n\n";
-			print FILE "You can expect: $experseconds EXP/Sec.\n";
-			print FILE "You can expect: $goldseconds GOLD/Sec.\n";
-			print FILE "You can expect: $experminutes EXP/Min.\n";
-			print FILE "You can expect: $goldminutes GOLD/Min.\n";
-			print FILE "You can expect: $experhours EXP/Hour.\n";
-			print FILE "You can expect: $goldhours GOLD/Hour.\n";
-			print FILE "You can expect: $experdays EXP/Day.\n";
-			print FILE "You can expect: $golddays GOLD/Day.\n\n";
+			print FILE "You can expect: $exper_seconds EXP/Sec.\n";
+			print FILE "You can expect: $gold_seconds GOLD/Sec.\n";
+			print FILE "You can expect: $exper_minutes EXP/Min.\n";
+			print FILE "You can expect: $gold_minutes GOLD/Min.\n";
+			print FILE "You can expect: $exper_hours EXP/Hour.\n";
+			print FILE "You can expect: $gold_hours GOLD/Hour.\n";
+			print FILE "You can expect: $exper_days EXP/Day.\n";
+			print FILE "You can expect: $gold_days GOLD/Day.\n\n";
 			close(FILE);
 			
-			print "\nMAIN STATUS FOR $name at $hour:$minute:$second~$day/$month/$year\n\n";
-			print "$name\'s current level is $Forlev\n";
-			print "You need $Nextlevel EXP to level\n";
-			print "You can expect to level on $datestring\n";
+			say "\nMAIN STATUS FOR $name at $hour:$minute:$second~$day/$month/$year\n";
+			say "$name\'s current level is $Forlev";
+			say "You need $next_level EXP to level";
+			say "You can expect to level on $date_string";
 			printf "Your current CPM level is : %.3e\n\n", $level->bstr();
-			print "AVERAGE'S FOR $name at $hour:$minute:$second~$day/$month/$year\n\n";
-			print "You can expect: $experseconds EXP/Sec.\n";
-			print "you can expect: $goldseconds GOLD/Sec.\n";
-			print "You can expect: $experminutes EXP/Min.\n";
-			print "You can expect: $goldminutes GOLD/Min.\n";
-			print "You can expect: $experhours EXP/Hour.\n";
-			print "You can expect: $goldhours GOLD/Hour.\n";
-			print "You can expect: $experdays EXP/Day.\n";
-			print "You can expect: $golddays GOLD/Day.\n\n";
+			say "AVERAGE'S FOR $name at $hour:$minute:$second~$day/$month/$year\n";
+			say "You can expect: $exper_seconds EXP/Sec.";
+			say "you can expect: $gold_seconds GOLD/Sec.";
+			say "You can expect: $exper_minutes EXP/Min.";
+			say "You can expect: $gold_minutes GOLD/Min.";
+			say "You can expect: $exper_hours EXP/Hour.";
+			say "You can expect: $gold_hours GOLD/Hour.";
+			say "You can expect: $exper_days EXP/Day.";
+			say "You can expect: $gold_days GOLD/Day.\n";
 		}
-# KILLED
-		if($a =~ m/(been.*slain)/) {
-			print "ERROR - TOO HIGH MONSTER LEVEL! - you were slain!\n";
+
+		# KILLED
+		if($content =~ m/(been.*slain)/) {
+			say "ERROR - TOO HIGH MONSTER LEVEL! - you were slain!";
 			exit 0;
 		}
-# JAILED
+
+		# JAILED
 		if($b =~ m/jail time.*<br>/) {
-			print"You have been Jailed - Sleep 5 seconds.\n";
-			sleep(5);
+			say "You have been Jailed - Sleep 5 seconds.";
+			sleep 5;
 		}
 
-# LOGGED OUT
-
+		# LOGGED OUT
 		if($c =~ m/logged/) {
-			print "LOGGED OUT! sleeping for 5 seconds before restart!\n";
-			sleep(60);
+			say "LOGGED OUT! sleeping for 5 seconds before restart!";
+			sleep 60;
 			exit;
 		}
 
-
-# STEAL TIME? then exit to steal
+		# STEAL TIME? then exit to steal
 		if($antal <= 0) {
-			sleep(5);
-			print "Waiting last few seconds before steal\n";
+			sleep 5;
+			say "Waiting last few seconds before steal";
 			exit;
 		}
 		
-		$a = $b;
+		$content = $b;
 		($second, $minute, $hour, $day, $month, $year, $week_day, $day_of_year, $is_dst) = localtime(time);
 		$year = $year + 1900;
-		$a =~ m/(You win.*exp )/;
-		$a =~ m/(The battle tied.)/;
+		$content =~ m/(You win.*exp )/;
+		$content =~ m/(The battle tied.)/;
 		print "$antal: [$hour:$minute:$second]: " . $1 . "\n";
 
 
 
-# level up if necessary
+		# level up if necessary
 		if($b =~ m/(Congra.*exp)/) {
 			if($char_type == 1) {level_up_agi_mage(); return;}
 			if($char_type == 2) {level_up_fighter(); return;}
@@ -2555,7 +2493,7 @@ sub get_char_name{
 	$b =~ s/exp//i;
 	$b =~ s/,//gi;
 	$b =~ s/\s//gi;
-	$Nextlevel = new Math::BigFloat $b;
+	$next_level = new Math::BigFloat $b;
 }
 
 #---------------------
