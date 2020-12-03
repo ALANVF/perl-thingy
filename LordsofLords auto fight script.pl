@@ -400,12 +400,12 @@ sub steal {
 		print $steal_rec;
 
 		my ($second, $minute, $hour, $day, $month, $year) = localtime(time);
-		my $actual_year = $year + 1900;
-		my $actual_month = $month + 1;
+		$year += 1900;
 		my $month_name = $MONTHS[$month];
+		$month += 1;
 
-		open(FILE, ">>$title$name $file_fix ~ $month_name $actual_year StealRecord.txt") or die "failed to open file!!!!";
-		print FILE "[$day/$actual_month/$actual_year] ~ [$hour:$minute:$second] - you stole $steal_rec\n";
+		open(FILE, ">>$title$name $file_fix ~ $month_name $year StealRecord.txt") or die "failed to open file!!!!";
+		print FILE "[$day/$month/$year] ~ [$hour:$minute:$second] - you stole $steal_rec\n";
 		close FILE;
 	} else {
 		say "Freeplay not detected, stealing cancelled...";
@@ -421,10 +421,10 @@ sub parse_stats {
 	return (split ":", $_)[1, 2, 4..7];
 }
 
-sub display_levels :prototype($ \%) ($char_type, $levels) {
+sub display_levels :prototype($ \%; $) ($char_type, $levels, $handle = *STDOUT) {
 	given($char_type) {
 		when(1) {
-			printf('ASlevel: %.3e, DEFlevel: %.3e, MRlevel: %.3e',
+			printf $handle 'ASlevel: %.3e, DEFlevel: %.3e, MRlevel: %.3e', (
 				$levels->{as}->bstr(),
 				$levels->{def}->bstr(),
 				$levels->{mr}->bstr()
@@ -432,7 +432,7 @@ sub display_levels :prototype($ \%) ($char_type, $levels) {
 		}
 	
 		when(2) {
-			printf('WDlevel: %.3e, ARlevel: %.3e, MRlevel: %.3e',
+			printf $handle 'WDlevel: %.3e, ARlevel: %.3e, MRlevel: %.3e', (
 				$levels->{wd}->bstr(),
 				$levels->{ar}->bstr(),
 				$levels->{mr}->bstr()
@@ -440,7 +440,7 @@ sub display_levels :prototype($ \%) ($char_type, $levels) {
 		}
 
 		when(3) {
-			printf('ASlevel: %.3e, ARlevel: %.3e, MRlevel: %.3e',
+			printf $handle 'ASlevel: %.3e, ARlevel: %.3e, MRlevel: %.3e', (
 				$levels->{as}->bstr(),
 				$levels->{ar}->bstr(),
 				$levels->{mr}->bstr()
@@ -448,21 +448,21 @@ sub display_levels :prototype($ \%) ($char_type, $levels) {
 		}
 		
 		when(4) {
-			printf('WDlevel: %.3e, ARlevel: %.3e$8',
+			printf $handle 'WDlevel: %.3e, ARlevel: %.3e$8', (
 				$levels->{wd}->bstr(),
 				$levels->{ar}->bstr()
 			);
 		}
 		
 		when(5) {
-			printf('ASlevel: %.3e, MRlevel: %.3e$8',
+			printf $handle 'ASlevel: %.3e, MRlevel: %.3e$8', (
 				$levels->{as}->bstr(),
 				$levels->{mr}->bstr()
 			);
 		}
 
 		when(6) {
-			printf('WDlevel: %.3e, MSlevel: %.3e, ARlevel: %.3e',
+			printf $handle 'WDlevel: %.3e, MSlevel: %.3e, ARlevel: %.3e', (
 				$levels->{wd}->bstr(),
 				$levels->{ms}->bstr(),
 				$levels->{ar}->bstr()
@@ -519,7 +519,7 @@ sub get_minimum_level :prototype($ \%) ($char_type, $levels) {
 	return (sort @possible_levels)[0]->copy(); # find minimum value
 }
 
-sub low_level {
+sub low_level :prototype(\%) ($levels) {
 	sleep 0.5;
 
 	#$mech->get("http://thenewlosthope.net${URL_SERVER}fight_control.php");
@@ -548,7 +548,7 @@ sub low_level {
 	}
 
 	my @stats = parse_stats($all);
-	my %levels = get_levels(@stats, $char_type,
+	%$levels = get_levels(@stats, $char_type,
 		wd => '603',
 		as => '554',
 		ms => '84',
@@ -557,13 +557,24 @@ sub low_level {
 		mr => '72'
 	);
 
-	display_levels($char_type, %levels);
+	display_levels($char_type, %$levels);
 
-	my $level = get_minimum_level($char_type, %levels);
+	my $level = get_minimum_level($char_type, %$levels);
 
 	printf " --> Skeleton level: %.3e\n", $level->bstr();
 
 	return $level;
+}
+
+sub level_up($char_type) {
+	given($char_type) {
+		level_up_agi_mage()       when 1;
+		level_up_fighter()        when 2;
+		level_up_mage()           when 3;
+		level_up_pure_fighter()   when 4;
+		level_up_pure_mage()      when 5;
+		level_up_contra_fighter() when 6;
+	}
 }
 
 sub low_fight($level) {
@@ -643,20 +654,15 @@ sub low_fight($level) {
 		say "$antal :[$hour:$minute:$second]: $1";
 
 		# Level up if necessary
-		if($content =~ m/(Congra.*exp)/) {
-			given($char_type) {
-				level_up_agi_mage()       when 1;
-				level_up_fighter()        when 2;
-				level_up_mage()           when 3;
-				level_up_pure_fighter()   when 4;
-				level_up_pure_mage()      when 5;
-				level_up_contra_fighter() when 6;
-			}
-		}
+		level_up($char_type) if $content =~ m/(Congra.*exp)/;
 	}
 }
 
-sub auto_level_up {
+sub format_number($num) {
+	return $num =~ s/(?<!^)\d{3}(?=(\d{3})*$)/,$&/rgn
+}
+
+sub auto_level_up($char_type) {
 	sleep 0.5;
 
 	$mech->get("http://thenewlosthope.net${URL_SERVER}stats.php");
@@ -822,7 +828,7 @@ sub auto_level_up {
 		$c =~ s/\D//gsi;
 		$actual_level = $b + $c;
 
-		my $formatted_level = $actual_level =~ s/(?<!^)\d{3}(?=(\d{3})*$)/,$&/rgn;
+		my $formatted_level = format_number($actual_level);
 		say "[Level : $formatted_level][$alternate] You Auto-Leveled $auto_level";
 		
 		if(--$alternate == 0) {
@@ -847,7 +853,7 @@ sub auto_level_up {
 	}
 }
 
-sub cpm_level {
+sub cpm_level :prototype(\%) ($levels) {
 	sleep 0.5;
 	
 	#$mech->get("http://thenewlosthope.net${URL_SERVER}fight_control.php");
@@ -876,7 +882,7 @@ sub cpm_level {
 	}
 
 	my @stats = parse_stats($all);
-	my %levels = get_levels(@stats, $char_type,
+	%$levels = get_levels(@stats, $char_type,
 		wd => '1661622',
 		as => '1877897',
 		ms => '3028631',
@@ -885,16 +891,29 @@ sub cpm_level {
 		mr => '363497.2'
 	);
 
-	display_levels($char_type, %levels);
+	display_levels($char_type, %$levels);
 	
-	my $level = get_minimum_level($char_type, %levels);
+	my $level = get_minimum_level($char_type, %$levels);
 
 	printf " --> CPM level: %.3e\n", $level->bstr();
 
 	return $level;
 }
 
-sub fight($level) {
+sub shorten_amount($amount) {
+	my $length = length $amount;
+
+	if($length >= 7) {
+		my $replace_num = int(($length - 1) / 6);
+		my $num_digits = $replace_num * 6;
+
+		$amount =~ s/\d{$num_digits}$/ M$replace_num/
+	}
+
+	return $amount
+}
+
+sub fight :prototype($ \%) ($level, $levels) {
 	# Setup fight
 	sleep 0.5;
 	
@@ -951,45 +970,37 @@ sub fight($level) {
 		}
 
 		$content = $mech->content();
-		$b = $content;
-		$c = $content;
 		
 		if($average_count_down >= 1) {
+			my $did_tie = $content =~ m/The battle tied./;
+
 			my $exper = $content;
-			$exper =~ m/(You win.*exp )/;
-			my $exper1 = $1;
-			$exper1 =~ s/,//sg;
-			$exper1 =~ s/You//s;
-			$exper1 =~ s/win//s;
-			$exper1 =~ s/exp//s;
-			$exper1 =~ s/\s//sg;
-			my $exper2 = new Math::BigFloat $exper1;
-			if($content =~ m/(The battle tied.)/) {
-				$exper2 = 0;
-			}
+			($exper) = $exper =~ m/(You win.*exp )/;
+			$exper =~ s/,//sg;
+			$exper =~ s/You//s;
+			$exper =~ s/win//s;
+			$exper =~ s/exp//s;
+			$exper =~ s/\s//sg;
+			my $exper2 = $did_tie ? 0 : new Math::BigFloat $exper;
 			$exper3 = $exper2 + $exper3;
-			my $gold = $content;
-			$gold =~ m/(exp and.*gold.)/;
-			my $gold1 = $1;
-			$gold1 =~ s/exp//s;
-			$gold1 =~ s/and//s;
-			$gold1 =~ s/,//sg;
-			$gold1 =~ s/gold//s;
-			$gold1 =~ s/\.//s;
-			$gold1 =~ s/\s//sg;
-			my $gold2 = new Math::BigFloat $gold1;
-			if($content =~ m/(The battle tied.)/) {
-				$gold2 = 0;
-			}
 			
+			my $gold = $content;
+			($gold) = $gold =~ m/(exp and.*gold.)/;
+			$gold =~ s/exp//s;
+			$gold =~ s/and//s;
+			$gold =~ s/,//sg;
+			$gold =~ s/gold//s;
+			$gold =~ s/\.//s;
+			$gold =~ s/\s//sg;
+			my $gold2 = $did_tie ? 0 : new Math::BigFloat $gold;
 			$gold3 = $gold2 + $gold3;
 			
-			unless($content =~ m/(The battle tied.)/) {
+			unless($did_tie) {
 				$reload_count++;
 			}
 
 			if($wait_div >= 300.0) {
-				$reload_count = $reload_count / $wait_div * 300;
+				$reload_count = ($reload_count / $wait_div) * 300;
 				$exper_average = $exper3 / $reload_count;
 				$exper_average =~ s/\..*//s; # Remove after
 				$gold_average = $gold3 / $reload_count;
@@ -1000,477 +1011,101 @@ sub fight($level) {
 				$reload_count = 0;
 				
 				my $exper_second = new Math::BigFloat $exper_average;
-				my $exper_minute = new Math::BigFloat $exper_average;
-				my $exper_hour = new Math::BigFloat $exper_average;
-				my $exper_day = new Math::BigFloat $exper_average;
-				
-				$exper_minute *= 60;
-				$exper_hour *= 3600;
-				$exper_day *= 86400;
+				my $exper_minute = $exper_second * 60;
+				my $exper_hour = $exper_second * 3600;
+				my $exper_day = $exper_second * 86400;
 				
 				my $gold_second = new Math::BigFloat $gold_average;
-				my $gold_minute = new Math::BigFloat $gold_average;
-				my $gold_hour = new Math::BigFloat $gold_average;
-				my $gold_day = new Math::BigFloat $gold_average;
-				
-				$gold_minute *= 60;
-				$gold_hour *= 3600;
-				$gold_day *= 86400;
-
-				my $experlength1 = length($exper_average);
-				my $experlength2 = length($exper_second);
-				my $experlength3 = length($exper_minute);
-				my $experlength4 = length($exper_hour);
-				my $experlength5 = length($exper_day);
-				my $next_length = length($next_level);
-				my $goldlength1 = length($gold_average);
-				my $goldlength2 = length($gold_second);
-				my $goldlength3 = length($gold_minute);
-				my $goldlength4 = length($gold_hour);
-				my $goldlength5 = length($gold_day);
+				my $gold_minute = $gold_second * 60;
+				my $gold_hour = $gold_second * 3600;
+				my $gold_day = $gold_second * 86400;
 
 				#Time to level
-				my $Nextleveltime = new Math::BigFloat $next_level / $exper_average;
-				my $epoc = time() + $Nextleveltime;
-				my $date_string = strftime '%x %H:%M:%S', localtime($epoc);
+				my $next_level_time = new Math::BigFloat $next_level / $exper_average;
+				my $epoc = time() + $next_level_time;
+				my $date_string = strftime '%x %H:%M:%S', localtime($epoc); # (WRONG SCOPE)
+
+				#exper_average
+				$exper_average = format_number($exper_average);
+
+				#exper_seconds
+				$exper_seconds = format_number(shorten_amount($exper_second));
+
+				#exper_minutes
+				$exper_minutes = format_number(shorten_amount($exper_minute));
 				
-				#exper_second
-				if(($experlength2 >= 7) && ($experlength2 <= 12)) {
-					$exper_second =~ s/([0-9]{6})$/ M1/g;
-				}
-				if(($experlength2 >= 13) && ($experlength2 <= 18)) {
-					$exper_second =~ s/([0-9]{12})$/ M2/g;
-				}
-				if(($experlength2 >= 19) && ($experlength2 <= 24)) {
-					$exper_second =~ s/([0-9]{18})$/ M3/g;
-				}
-				if(($experlength2 >= 25) && ($experlength2 <= 30)) {
-					$exper_second =~ s/([0-9]{24})$/ M4/g;
-				}
-				if(($experlength2 >= 31) && ($experlength2 <= 36)) {
-					$exper_second =~ s/([0-9]{30})$/ M5/g;
-				}
-				if(($experlength2 >= 37) && ($experlength2 <= 42)) {
-					$exper_second =~ s/([0-9]{36})$/ M6/g;
-				}
-				if(($experlength2 >= 43) && ($experlength2 <= 48)) {
-					$exper_second =~ s/([0-9]{42})$/ M7/g;
-				}
-				if(($experlength2 >= 49) && ($experlength2 <= 54)) {
-					$exper_second =~ s/([0-9]{48})$/ M8/g;
-				}
-				if(($experlength2 >= 55) && ($experlength2 <= 60)) {
-					$exper_second =~ s/([0-9]{54})$/ M9/g;
-				}	
-				#exper_minute
-				if(($experlength3 >= 7) && ($experlength3 <= 12)) {
-					$exper_minute =~ s/([0-9]{6})$/ M1/g;
-				}
-				if(($experlength3 >= 13) && ($experlength3 <= 18)) {
-					$exper_minute =~ s/([0-9]{12})$/ M2/g;
-				}
-				if(($experlength3 >= 19) && ($experlength3 <= 24)) {
-					$exper_minute =~ s/([0-9]{18})$/ M3/g;
-				}
-				if(($experlength3 >= 25) && ($experlength3 <= 30)) {
-					$exper_minute =~ s/([0-9]{24})$/ M4/g;
-				}
-				if(($experlength3 >= 31) && ($experlength3 <= 36)) {
-					$exper_minute =~ s/([0-9]{30})$/ M5/g;
-				}
-				if(($experlength3 >= 37) && ($experlength3 <= 42)) {
-					$exper_minute =~ s/([0-9]{36})$/ M6/g;
-				}
-				if(($experlength3 >= 43) && ($experlength3 <= 48)) {
-					$exper_minute =~ s/([0-9]{42})$/ M7/g;
-				}
-				if(($experlength3 >= 49) && ($experlength3 <= 54)) {
-					$exper_minute =~ s/([0-9]{48})$/ M8/g;
-				}
-				if(($experlength3 >= 55) && ($experlength3 <= 60)) {
-					$exper_minute =~ s/([0-9]{54})$/ M9/g;
-				}	
-				#exper_hour
-				if(($experlength4 >= 7) && ($experlength4 <= 12)) {
-					$exper_hour =~ s/([0-9]{6})$/ M1/g;
-				}
-				if(($experlength4 >= 13) && ($experlength4 <= 18)) {
-					$exper_hour =~ s/([0-9]{12})$/ M2/g;
-				}
-				if(($experlength4 >= 19) && ($experlength4 <= 24)) {
-					$exper_hour =~ s/([0-9]{18})$/ M3/g;
-				}
-				if(($experlength4 >= 25) && ($experlength4 <= 30)) {
-					$exper_hour =~ s/([0-9]{24})$/ M4/g;
-				}
-				if(($experlength4 >= 31) && ($experlength4 <= 36)) {
-					$exper_hour =~ s/([0-9]{30})$/ M5/g;
-				}
-				if(($experlength4 >= 37) && ($experlength4 <= 42)) {
-					$exper_hour =~ s/([0-9]{36})$/ M6/g;
-				}
-				if(($experlength4 >= 43) && ($experlength4 <= 48)) {
-					$exper_hour =~ s/([0-9]{42})$/ M7/g;
-				}
-				if(($experlength4 >= 49) && ($experlength4 <= 54)) {
-					$exper_hour =~ s/([0-9]{48})$/ M8/g;
-				}
-				if(($experlength4 >= 55) && ($experlength4 <= 60)) {
-					$exper_hour =~ s/([0-9]{54})$/ M9/g;
-				}	
-				#exper_day
-				if(($experlength5 >= 7) && ($experlength5 <= 12)) {
-					$exper_day =~ s/([0-9]{6})$/ M1/g;
-				}
-				if(($experlength5 >= 13) && ($experlength5 <= 18)) {
-					$exper_day =~ s/([0-9]{12})$/ M2/g;
-				}
-				if(($experlength5 >= 19) && ($experlength5 <= 24)) {
-					$exper_day =~ s/([0-9]{18})$/ M3/g;
-				}
-				if(($experlength5 >= 25) && ($experlength5 <= 30)) {
-					$exper_day =~ s/([0-9]{24})$/ M4/g;
-				}
-				if(($experlength5 >= 31) && ($experlength5 <= 36)) {
-					$exper_day =~ s/([0-9]{30})$/ M5/g;
-				}
-				if(($experlength5 >= 37) && ($experlength5 <= 42)) {
-					$exper_day =~ s/([0-9]{36})$/ M6/g;
-				}
-				if(($experlength5 >= 43) && ($experlength5 <= 48)) {
-					$exper_day =~ s/([0-9]{42})$/ M7/g;
-				}
-				if(($experlength5 >= 49) && ($experlength5 <= 54)) {
-					$exper_day =~ s/([0-9]{48})$/ M8/g;
-				}
-				if(($experlength5 >= 55) && ($experlength5 <= 60)) {
-					$exper_day =~ s/([0-9]{54})$/ M9/g;
-				}	
-				#gold_second
-				if(($goldlength2 >= 7) && ($goldlength2 <= 12)) {
-					$gold_second =~ s/([0-9]{6})$/ M1/g;
-				}
-				if(($goldlength2 >= 13) && ($goldlength2 <= 18)) {
-					$gold_second =~ s/([0-9]{12})$/ M2/g;
-				}
-				if(($goldlength2 >= 19) && ($goldlength2 <= 24)) {
-					$gold_second =~ s/([0-9]{18})$/ M3/g;
-				}
-				if(($goldlength2 >= 25) && ($goldlength2 <= 30)) {
-					$gold_second =~ s/([0-9]{24})$/ M4/g;
-				}
-				if(($goldlength2 >= 31) && ($goldlength2 <= 36)) {
-					$gold_second =~ s/([0-9]{30})$/ M5/g;
-				}
-				if(($goldlength2 >= 37) && ($goldlength2 <= 42)) {
-					$gold_second =~ s/([0-9]{36})$/ M6/g;
-				}
-				if(($goldlength2 >= 43) && ($goldlength2 <= 48)) {
-					$gold_second =~ s/([0-9]{42})$/ M7/g;
-				}
-				if(($goldlength2 >= 49) && ($goldlength2 <= 54)) {
-					$gold_second =~ s/([0-9]{48})$/ M8/g;
-				}
-				if(($goldlength2 >= 55) && ($goldlength2 <= 60)) {
-					$gold_second =~ s/([0-9]{54})$/ M9/g;
-				}		
-				#gold_minute
-				if(($goldlength3 >= 7) && ($goldlength3 <= 12)) {
-					$gold_minute =~ s/([0-9]{6})$/ M1/g;
-				}
-				if(($goldlength3 >= 13) && ($goldlength3 <= 18)) {
-					$gold_minute =~ s/([0-9]{12})$/ M2/g;
-				}
-				if(($goldlength3 >= 19) && ($goldlength3 <= 24)) {
-					$gold_minute =~ s/([0-9]{18})$/ M3/g;
-				}
-				if(($goldlength3 >= 25) && ($goldlength3 <= 30)) {
-					$gold_minute =~ s/([0-9]{24})$/ M4/g;
-				}
-				if(($goldlength3 >= 31) && ($goldlength3 <= 36)) {
-					$gold_minute =~ s/([0-9]{30})$/ M5/g;
-				}
-				if(($goldlength3 >= 37) && ($goldlength3 <= 42)) {
-					$gold_minute =~ s/([0-9]{36})$/ M6/g;
-				}
-				if(($goldlength3 >= 43) && ($goldlength3 <= 48)) {
-					$gold_minute =~ s/([0-9]{42})$/ M7/g;
-				}
-				if(($goldlength3 >= 49) && ($goldlength3 <= 54)) {
-					$gold_minute =~ s/([0-9]{48})$/ M8/g;
-				}
-				if(($goldlength3 >= 55) && ($goldlength3 <= 60)) {
-					$gold_minute =~ s/([0-9]{54})$/ M9/g;
-				}			
-				#gold_hour
-				if(($goldlength4 >= 7) && ($goldlength4 <= 12)) {
-					$gold_hour =~ s/([0-9]{6})$/ M1/g;
-				}
-				if(($goldlength4 >= 13) && ($goldlength4 <= 18)) {
-					$gold_hour =~ s/([0-9]{12})$/ M2/g;
-				}
-				if(($goldlength4 >= 19) && ($goldlength4 <= 24)) {
-					$gold_hour =~ s/([0-9]{18})$/ M3/g;
-				}
-				if(($goldlength4 >= 25) && ($goldlength4 <= 30)) {
-					$gold_hour =~ s/([0-9]{24})$/ M4/g;
-				}
-				if(($goldlength4 >= 31) && ($goldlength4 <= 36)) {
-					$gold_hour =~ s/([0-9]{30})$/ M5/g;
-				}
-				if(($goldlength4 >= 37) && ($goldlength4 <= 42)) {
-					$gold_hour =~ s/([0-9]{36})$/ M6/g;
-				}
-				if(($goldlength4 >= 43) && ($goldlength4 <= 48)) {
-					$gold_hour =~ s/([0-9]{42})$/ M7/g;
-				}
-				if(($goldlength4 >= 49) && ($goldlength4 <= 54)) {
-					$gold_hour =~ s/([0-9]{48})$/ M8/g;
-				}
-				if(($goldlength4 >= 55) && ($goldlength4 <= 60)) {
-					$gold_hour =~ s/([0-9]{54})$/ M9/g;
-				}		
-				#gold_day
-				if(($goldlength5 >= 7) && ($goldlength5 <= 12)) {
-					$gold_day =~ s/([0-9]{6})$/ M1/g;
-				}
-				if(($goldlength5 >= 13) && ($goldlength5 <= 18)) {
-					$gold_day =~ s/([0-9]{12})$/ M2/g;
-				}
-				if(($goldlength5 >= 19) && ($goldlength5 <= 24)) {
-					$gold_day =~ s/([0-9]{18})$/ M3/g;
-				}
-				if(($goldlength5 >= 25) && ($goldlength5 <= 30)) {
-					$gold_day =~ s/([0-9]{24})$/ M4/g;
-				}
-				if(($goldlength5 >= 31) && ($goldlength5 <= 36)) {
-					$gold_day =~ s/([0-9]{30})$/ M5/g;
-				}
-				if(($goldlength5 >= 37) && ($goldlength5 <= 42)) {
-					$gold_day =~ s/([0-9]{36})$/ M6/g;
-				}
-				if(($goldlength5 >= 43) && ($goldlength5 <= 48)) {
-					$gold_day =~ s/([0-9]{42})$/ M7/g;
-				}
-				if(($goldlength5 >= 49) && ($goldlength5 <= 54)) {
-					$gold_day =~ s/([0-9]{48})$/ M8/g;
-				}
-				if(($goldlength5 >= 55) && ($goldlength5 <= 60)) {
-					$gold_day =~ s/([0-9]{54})$/ M9/g;
-				}
-				#next_level				
-				if(($next_length >= 7) && ($next_length <= 12)) {
-					$next_level =~ s/([0-9]{6})$/ M1/g;
-				}
-				if(($next_length >= 13) && ($next_length <= 18)) {
-					$next_level =~ s/([0-9]{12})$/ M2/g;
-				}
-				if(($next_length >= 19) && ($next_length <= 24)) {
-					$next_level=~ s/([0-9]{18})$/ M3/g;
-				}
-				if(($next_length >= 25) && ($next_length <= 30)) {
-					$next_level=~ s/([0-9]{24})$/ M4/g;
-				}
-				if(($next_length >= 31) && ($next_length <= 36)) {
-					$next_level =~ s/([0-9]{30})$/ M5/g;
-				}
-				if(($next_length >= 37) && ($next_length <= 42)) {
-					$next_level =~ s/([0-9]{36})$/ M6/g;
-				}
-				if(($next_length >= 43) && ($next_length <= 48)) {
-					$next_level =~ s/([0-9]{42})$/ M7/g;
-				}
-				if(($next_length >= 49) && ($next_length <= 54)) {
-					$next_level =~ s/([0-9]{48})$/ M8/g;
-				}
-				if(($next_length >= 55) && ($next_length <= 60)) {
-					$next_level =~ s/([0-9]{54})$/ M9/g;
-				}	
+				#exper_hours
+				$exper_hours = format_number(shorten_amount($exper_hour));
 				
-				while($exper_average =~ m/([0-9]{4})/) {
-					my $temp = reverse $exper_average;
-					$temp =~ s/(?<=(\d\d\d))(?=(\d))/,/;
-					$exper_average = reverse $temp;
-				}
-				while($exper_second =~ m/([0-9]{4})/) {
-					my $temp = reverse $exper_second;
-					$temp =~ s/(?<=(\d\d\d))(?=(\d))/,/;
-					$exper_second = reverse $temp;
-				}
-				while($exper_minute =~ m/([0-9]{4})/) {
-					my $temp = reverse $exper_minute;
-					$temp =~ s/(?<=(\d\d\d))(?=(\d))/,/;
-					$exper_minute = reverse $temp;
-				}
-				while($exper_hour =~ m/([0-9]{4})/) {
-					my $temp = reverse $exper_hour;
-					$temp =~ s/(?<=(\d\d\d))(?=(\d))/,/;
-					$exper_hour = reverse $temp;
-				}
-				while($exper_day =~ m/([0-9]{4})/) {
-					my $temp = reverse $exper_day;
-					$temp =~ s/(?<=(\d\d\d))(?=(\d))/,/;
-					$exper_day = reverse $temp;
-				}
-				while($gold_average =~ m/([0-9]{4})/) {
-					my $temp = reverse $gold_average;
-					$temp =~ s/(?<=(\d\d\d))(?=(\d))/,/;
-					$gold_average = reverse $temp;
-				}
-				while($gold_second =~ m/([0-9]{4})/) {
-					my $temp = reverse $gold_second;
-					$temp =~ s/(?<=(\d\d\d))(?=(\d))/,/;
-					$gold_second = reverse $temp;
-				}
-				while($gold_minute =~ m/([0-9]{4})/) {
-					my $temp = reverse $gold_minute;
-					$temp =~ s/(?<=(\d\d\d))(?=(\d))/,/;
-					$gold_minute = reverse $temp;
-				}		
-				while($gold_hour =~ m/([0-9]{4})/) {
-					my $temp = reverse $gold_hour;
-					$temp =~ s/(?<=(\d\d\d))(?=(\d))/,/;
-					$gold_hour = reverse $temp;
-				}
-				while($gold_day =~ m/([0-9]{4})/) {
-					my $temp = reverse $gold_day;
-					$temp =~ s/(?<=(\d\d\d))(?=(\d))/,/;
-					$gold_day = reverse $temp;
-				}
-				while($next_level =~ m/([0-9]{4})/) {
-					my $temp = reverse $next_level;
-					$temp =~ s/(?<=(\d\d\d))(?=(\d))/,/;
-					$next_level = reverse $temp;
-				}
-				$exper_seconds = $exper_second;
-				$exper_minutes = $exper_minute;
-				$exper_hours = $exper_hour;
-				$exper_days = $exper_day;
-				$gold_seconds = $gold_second;
-				$gold_minutes = $gold_minute;
-				$gold_hours = $gold_hour;
-				$gold_days = $gold_day;
+				#exper_days
+				$exper_days = format_number(shorten_amount($exper_day));
+
+				#gold_averages
+				$gold_average = format_number($gold_average);
+
+				#gold_seconds
+				$gold_seconds = format_number(shorten_amount($gold_second));
+
+				#gold_minutes
+				$gold_minutes = format_number(shorten_amount($gold_minute));
+				
+				#gold_hours
+				$gold_hours = format_number(shorten_amount($gold_hour));
+				
+				#gold_days
+				$gold_days = format_number(shorten_amount($gold_day));
+				
+				#next_level
+				$next_level = format_number(shorten_amount($next_level));
 			}
 		} elsif($average_count_down == 0) {
-			($second, $minute, $hour, $day, $month, $year, $week_day, $day_of_year, $is_dst) = localtime(time);
-			$year = $year + 1900;
-			$month = $month + 1;
-			my $MonthName;
-			if($month == 1) {
-				$MonthName = "January";
-			}
-			if($month == 2) {
-				$MonthName = "February";
-			}
-			if($month == 3) {
-				$MonthName = "March";
-			}
-			if($month == 4) {
-				$MonthName = "April";
-			}
-			if($month == 5) {
-				$MonthName = "May";
-			}
-			if($month == 6) {
-				$MonthName = "June";
-			}
-			if($month == 7) {
-				$MonthName = "July";
-			}
-			if($month == 8) {
-				$MonthName = "August";
-			}
-			if($month == 9) {
-				$MonthName = "September";
-			}
-			if($month == 10) {
-				$MonthName = "October";
-			}
-			if($month == 11) {
-				$MonthName = "November";
-			}		
-			if($month == 12) {
-				$MonthName = "December";
+			my ($second, $minute, $hour, $day, $month, $year) = localtime(time);
+			$year += 1900;
+			my $month_name = $MONTHS[$month];
+			$month += 1;
+			
+			open(FILE, ">>$name $file_fix ~ $month_name $year.txt") or die "failed to open file!!!!";
+			
+			say "";
+
+			for my $output (*FILE, *STDOUT) {
+				say $output "MAIN STATUS FOR $name at $hour:$minute:$second~$day/$month/$year\n";
+				say $output "$name\'s current level is $Forlev";
+				say $output "You need $next_level EXP to level";
+				say $output "You can expect to level on $date_string";
+				printf $output "Your current CPM level is : %.3e\n", $level->bstr();
 			}
 			
-			open(FILE, ">>$name $file_fix ~ $MonthName $year\.txt")
-			or die "failed to open file!!!!";
+			display_levels($char_type, %$levels, *FILE);
 			
-			print FILE "MAIN STATUS FOR $name at $hour:$minute:$second~$day/$month/$year\n\n";
-			print FILE "$name\'s current level is $Forlev\n";
-			print FILE "You need $next_level EXP to level\n";
-			print FILE "You can expect to level on $date_string\n";
-			printf FILE "Your current CPM level is : %.3e\n", $level->bstr();
-			
-			if($char_type == 1) {
-				printf FILE "ASlevel: %.3e", $aslevel->bstr();
-				printf FILE ", DEFlevel: %.3e", $deflevel->bstr();
-				printf FILE ", MRlevel: %.3e\n\n", $mrlevel->bstr();
-			}
-			if($char_type == 2) {
-				printf FILE "WDlevel: %.3e", $wdlevel->bstr();
-				printf FILE ", ARlevel: %.3e", $arlevel->bstr();
-				printf FILE ", MRlevel: %.3e\n\n", $mrlevel->bstr();
-			}
-			if($char_type == 3) {
-				printf FILE "ASlevel: %.3e", $aslevel->bstr();
-				printf FILE ", ARlevel: %.3e", $arlevel->bstr();
-				printf FILE ", MRlevel: %.3e\n\n", $mrlevel->bstr();
-			}
-			if($char_type == 4) {
-				printf FILE "WDlevel: %.3e", $wdlevel->bstr();
-				printf FILE ", ARlevel: %.3e\n\n", $arlevel->bstr();
-			}
-			if($char_type == 5) {
-				printf FILE "ASlevel: %.3e", $aslevel->bstr();
-				printf FILE ", MRlevel: %.3e\n\n", $mrlevel->bstr();
-			}
-			if($char_type == 6) {
-				printf FILE "WDlevel: %.3e", $wdlevel->bstr();
-				printf FILE ", MSlevel: %.3e", $mslevel->bstr();
-				printf FILE ", ARlevel: %.3e\n\n", $arlevel->bstr();
-			}
-			
-			print FILE "SHOP STATUS FOR $name at $hour:$minute:$second~$day/$month/$year\n\n";
-			print FILE "Current Max:		$SHOPMAX\n";
-			print FILE "WEAPON:			$SHOPWEAP\n";
-			print FILE "ATTACKSPELL:		$SHOPAS\n";
-			print FILE "HEALSPELL:		$SHOPHS\n";
-			print FILE "HELMET:			$SHOPHELM\n";
-			print FILE "SHIELD:			$SHOPSHIELD\n";
-			print FILE "AMULET:			$SHOPAMULET\n";
-			print FILE "RING:			$SHOPRING\n";
-			print FILE "ARMOR:			$SHOPARMOR\n";
-			print FILE "BELT:			$SHOPBELT\n";
-			print FILE "PANTS:			$SHOPPANTS\n";
-			print FILE "HAND:			$SHOPHAND\n";
-			print FILE "FEET:			$SHOPFEET\n\n";
+			say FILE "SHOP STATUS FOR $name at $hour:$minute:$second~$day/$month/$year\n";
+			say FILE "Current Max:		$SHOPMAX";
+			say FILE "WEAPON:			$SHOPWEAP";
+			say FILE "ATTACKSPELL:		$SHOPAS";
+			say FILE "HEALSPELL:		$SHOPHS";
+			say FILE "HELMET:			$SHOPHELM";
+			say FILE "SHIELD:			$SHOPSHIELD";
+			say FILE "AMULET:			$SHOPAMULET";
+			say FILE "RING:			$SHOPRING";
+			say FILE "ARMOR:			$SHOPARMOR";
+			say FILE "BELT:			$SHOPBELT";
+			say FILE "PANTS:			$SHOPPANTS";
+			say FILE "HAND:			$SHOPHAND";
+			say FILE "FEET:			$SHOPFEET\n";
 		
-			print FILE "AVERAGE'S FOR $name at $hour:$minute:$second~$day/$month/$year\n\n";
-			print FILE "You can expect: $exper_seconds EXP/Sec.\n";
-			print FILE "You can expect: $gold_seconds GOLD/Sec.\n";
-			print FILE "You can expect: $exper_minutes EXP/Min.\n";
-			print FILE "You can expect: $gold_minutes GOLD/Min.\n";
-			print FILE "You can expect: $exper_hours EXP/Hour.\n";
-			print FILE "You can expect: $gold_hours GOLD/Hour.\n";
-			print FILE "You can expect: $exper_days EXP/Day.\n";
-			print FILE "You can expect: $gold_days GOLD/Day.\n\n";
-			close(FILE);
+			for my $output (*FILE, *STDOUT) {
+				say $output "AVERAGE'S FOR $name at $hour:$minute:$second~$day/$month/$year\n";
+				say $output "You can expect: $exper_seconds EXP/Sec.";
+				say $output "You can expect: $gold_seconds GOLD/Sec.";
+				say $output "You can expect: $exper_minutes EXP/Min.";
+				say $output "You can expect: $gold_minutes GOLD/Min.";
+				say $output "You can expect: $exper_hours EXP/Hour.";
+				say $output "You can expect: $gold_hours GOLD/Hour.";
+				say $output "You can expect: $exper_days EXP/Day.";
+				say $output "You can expect: $gold_days GOLD/Day.\n";
+			}
 			
-			say "\nMAIN STATUS FOR $name at $hour:$minute:$second~$day/$month/$year\n";
-			say "$name\'s current level is $Forlev";
-			say "You need $next_level EXP to level";
-			say "You can expect to level on $date_string";
-			printf "Your current CPM level is : %.3e\n\n", $level->bstr();
-			say "AVERAGE'S FOR $name at $hour:$minute:$second~$day/$month/$year\n";
-			say "You can expect: $exper_seconds EXP/Sec.";
-			say "you can expect: $gold_seconds GOLD/Sec.";
-			say "You can expect: $exper_minutes EXP/Min.";
-			say "You can expect: $gold_minutes GOLD/Min.";
-			say "You can expect: $exper_hours EXP/Hour.";
-			say "You can expect: $gold_hours GOLD/Hour.";
-			say "You can expect: $exper_days EXP/Day.";
-			say "You can expect: $gold_days GOLD/Day.\n";
+			close FILE;
 		}
 
 		# KILLED
@@ -1480,13 +1115,13 @@ sub fight($level) {
 		}
 
 		# JAILED
-		if($b =~ m/jail time.*<br>/) {
+		if($content =~ m/jail time.*<br>/) {
 			say "You have been Jailed - Sleep 5 seconds.";
 			sleep 5;
 		}
 
 		# LOGGED OUT
-		if($c =~ m/logged/) {
+		if($content =~ m/logged/) {
 			say "LOGGED OUT! sleeping for 5 seconds before restart!";
 			sleep 60;
 			exit;
@@ -1499,24 +1134,15 @@ sub fight($level) {
 			exit;
 		}
 		
-		$content = $b;
-		($second, $minute, $hour, $day, $month, $year, $week_day, $day_of_year, $is_dst) = localtime(time);
-		$year = $year + 1900;
+		my ($second, $minute, $hour) = localtime(time);
+
 		$content =~ m/(You win.*exp )/;
 		$content =~ m/(The battle tied.)/;
-		print "$antal: [$hour:$minute:$second]: " . $1 . "\n";
-
-
+		
+		say "$antal: [$hour:$minute:$second]: $1";
 
 		# level up if necessary
-		if($b =~ m/(Congra.*exp)/) {
-			if($char_type == 1) {level_up_agi_mage(); return;}
-			if($char_type == 2) {level_up_fighter(); return;}
-			if($char_type == 3) {level_up_mage(); return;}
-			if($char_type == 4) {level_up_pure_fighter(); return;}
-			if($char_type == 5) {level_up_pure_mage(); return;}
-			if($char_type == 6) {level_up_contra_fighter(); return;}
-		}
+		level_up($char_type) if $content =~ m/(Congra.*exp)/;
 	}
 }
 
@@ -2770,9 +2396,18 @@ if($a =~ m/Username/) {
 }
 
 
-my $levels = 9999999;
+my $num_levels = 9999999;
 
-while($levels) {
+my %levels = (
+	wd => new Math::BigFloat,
+	as => new Math::BigFloat,
+	ms => new Math::BigFloat,
+	def => new Math::BigFloat,
+	ar => new Math::BigFloat,
+	mr => new Math::BigFloat
+);
+
+for(my $cur_level = $num_levels; $cur_level > 0; $cur_level++) {
 	get_char_name();
 	get_my_level();
 	check_shop();
@@ -2790,14 +2425,13 @@ while($levels) {
 				steal();
 			#}
 		}
-	auto_level_up();
+	auto_level_up($char_type);
 	if($MyLev <= 2500000) {
-		low_fight(low_level());
+		low_fight(low_level(%levels));
 	} else {
-		cpm_level();
-		fight();
+		cpm_level(%levels);
+		fight($cur_level, %levels);
 	}
-	$levels = $levels - 1;
 }
 
 
