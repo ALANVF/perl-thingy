@@ -150,6 +150,10 @@ if($server == 1) {
 
 #---------------------
 
+sub min(@values) {
+	return (sort @values)[0]
+}
+
 sub get_steal_wait {
 	my $steal_wait = 3600;
 	my $steal_time = time;
@@ -516,7 +520,7 @@ sub get_minimum_level :prototype($ \%) ($char_type, $levels) {
 		}
 	};
 	
-	return (sort @possible_levels)[0]->copy(); # find minimum value
+	return min(@possible_levels)->copy();
 }
 
 sub low_level :prototype(\%) ($levels) {
@@ -1146,246 +1150,182 @@ sub fight :prototype($ \%) ($level, $levels) {
 	}
 }
 
-sub level_up_agi_mage {
-	$mech->get("http://thenewlosthope.net".$URL_SERVER."stats.php");
-	sleep(0.5);
-	if(($aslevel <= $deflevel) && ($aslevel <= $mrlevel)) {
-		$mech->form_number(1);
-		if($MyLev <= $masslevel) {
-			$mech->field("cStats", "Intelligence");
-			$mech->click_button('name' => 'cStats', 'value' => 'Intelligence');
-		} elsif($MyLev >= $masslevel) {
-			$mech->field("Stats", "Intelligence");
-			$mech->click_button('name' => 'Stats', 'value' => 'Intelligence');
-		}
-		print "You Leveled up Intelligence\n";
-		sleep(1);
-		test_shop();
-		return;
-	}
-	if(($deflevel <= $aslevel) && ($deflevel <= $mrlevel)) {
-		$mech->form_number(1);
-		if($MyLev <= $masslevel) {
-			$mech->field("cStats", "Agility");
-			$mech->click_button('name' => 'cStats', 'value' => 'Agility');
-		} elsif($MyLev >= $masslevel) {
-			$mech->field("Stats", "Agility");
-			$mech->click_button('name' => 'Stats', 'value' => 'Agility');
-		}
-		print "You Leveled up Agility\n";
-		sleep(1);
-		return;
-	}
+sub level_up_agi_mage :prototype(\%) ($levels) {
+	$mech->get("http://thenewlosthope.net${URL_SERVER}stats.php");
+	
+	sleep 0.5;
 
-	if(($mrlevel <= $deflevel) && ($mrlevel <= $aslevel)) {
-		$mech->form_number(1);
-		if($MyLev <= $masslevel) {
-			$mech->field("cStats", "Concentration");
-			$mech->click_button('name' => 'cStats', 'value' => 'Concentration');
-		} elsif($MyLev >= $masslevel) {
-			$mech->field("Stats", "Concentration");
-			$mech->click_button('name' => 'Stats', 'value' => 'Concentration');
+	my $stat_name = do {
+		if($myLev <= $masslevel) {
+			"cStats"
+		} else {
+			"Stats"
 		}
-		print "You Leveled up Concentration\n";
-		sleep(1);
-		return;
-	}
+	};
+
+	my $stat_value = do {
+		given(min($levels->@{"as", "def", "mr"})) {
+			"Intelligence"  when $levels->{as};
+			"Agility"       when $levels->{def};
+			"Concentration" when $levels->{mr};
+		}
+	};
+
+	$mech->form_number(1);
+	$mech->field($stat_name, $stat_value);
+	$mech->click_button(name => $stat_name, value => $stat_value);
+
+	say "You Leveled up $stat_value";
+	sleep 1;
+	test_shop() if $stat_value eq "Intelligence";
 }
 
 
-sub level_up_fighter {
-	$mech->get("http://thenewlosthope.net".$URL_SERVER."stats.php");
-	sleep(0.5);
-	if(($wdlevel <= $mrlevel) && ($wdlevel <= $arlevel)) {
-		$mech->form_number(1);
-		if($MyLev <= $masslevel) {
-			$mech->field("cStats", "Strength");
-			$mech->click_button('name' => 'cStats', 'value' => 'Strength');
-		} elsif($MyLev >= $masslevel) {
-			$mech->field("Stats", "Strength");
-			$mech->click_button('name' => 'Stats', 'value' => 'Strength');
-		}
-		print "You Leveled up Strength\n";
-		test_shop();
-		return;
-	}
-	if(($arlevel <= $wdlevel) && ($arlevel <= $mrlevel)) {
-		$mech->form_number(1);
-		if($MyLev <= $masslevel) {
-			$mech->field("cStats", "Dexterity");
-			$mech->click_button('name' => 'cStats', 'value' => 'Dexterity');
-		} elsif($MyLev >= $masslevel) {
-			$mech->field("Stats", "Dexterity");
-			$mech->click_button('name' => 'Stats', 'value' => 'Dexterity');
-		}
-		print "You Leveled up Dexterity\n";
-		return;
-	}
+sub level_up_fighter :prototype(\%) ($levels) {
+	$mech->get("http://thenewlosthope.net${URL_SERVER}stats.php");
+	
+	sleep 0.5;
 
-	if(($mrlevel <= $wdlevel) && ($mrlevel <= $arlevel)) {
-		$mech->form_number(1);
-		if($MyLev <= $masslevel) {
-			$mech->field("cStats", "Concentration");
-			$mech->click_button('name' => 'cStats', 'value' => 'Concentration');
-		} elsif($MyLev >= $masslevel) {
-			$mech->field("Stats", "Concentration");
-			$mech->click_button('name' => 'Stats', 'value' => 'Concentration');
+	my $stat_name = do {
+		if($myLev <= $masslevel) {
+			"cStats"
+		} else {
+			"Stats"
 		}
-		print "You Leveled up Concentration\n";
-		return;
-	}
+	};
+
+	my $stat_value = do {
+		given(min($levels->@{"wd", "ar", "mr"})) {
+			"Strength"      when $levels->{ws};
+			"Dexterity"     when $levels->{ar};
+			"Concentration" when $levels->{mr};
+		}
+	};
+
+	$mech->form_number(1);
+	$mech->field($stat_name, $stat_value);
+	$mech->click_button(name => $stat_name, value => $stat_value);
+
+	say "You Leveled up $stat_value";
+	test_shop() if $stat_value eq "Strength";
 }
 
-sub level_up_mage {
-	$mech->get("http://thenewlosthope.net".$URL_SERVER."stats.php");
-	sleep(0.5);
-	if(($aslevel <= $arlevel) && ($aslevel <= $mrlevel)) {
-		$mech->form_number(1);
-		if($MyLev <= $masslevel) {
-			$mech->field("cStats", "Intelligence");
-			$mech->click_button('name' => 'cStats', 'value' => 'Intelligence');
-		} elsif($MyLev >= $masslevel) {
-			$mech->field("Stats", "Intelligence");
-			$mech->click_button('name' => 'Stats', 'value' => 'Intelligence');
-		}
-		print "You Leveled up Intelligence\n";
-		test_shop();
-		return;
-	}
-	if(($arlevel <= $aslevel) && ($arlevel <= $mrlevel)) {
-		$mech->form_number(1);
-		if($MyLev <= $masslevel) {
-			$mech->field("cStats", "Dexterity");
-			$mech->click_button('name' => 'cStats', 'value' => 'Dexterity');
-		} elsif($MyLev >= $masslevel) {
-			$mech->field("Stats", "Dexterity");
-			$mech->click_button('name' => 'Stats', 'value' => 'Dexterity');
-		}
-		print "You Leveled up Dexterity\n";
-		return;
-	}
+sub level_up_mage :prototype(\%) ($levels) {
+	$mech->get("http://thenewlosthope.net${URL_SERVER}stats.php");
+	
+	sleep 0.5;
 
-	if(($mrlevel <= $arlevel) && ($mrlevel <= $aslevel)) {
-		$mech->form_number(1);
-		if($MyLev <= $masslevel) {
-			$mech->field("cStats", "Concentration");
-			$mech->click_button('name' => 'cStats', 'value' => 'Concentration');
-		} elsif($MyLev >= $masslevel) {
-			$mech->field("Stats", "Concentration");
-			$mech->click_button('name' => 'Stats', 'value' => 'Concentration');
+	my $stat_name = do {
+		if($myLev <= $masslevel) {
+			"cStats"
+		} else {
+			"Stats"
 		}
-		print "You Leveled up Concentration\n";
-		return;
-	}
+	};
+
+	my $stat_value = do {
+		given(min($levels->@{"as", "ar", "mr"})) {
+			"Intelligence"  when $levels->{as};
+			"Dexterity"     when $levels->{ar};
+			"Concentration" when $levels->{mr};
+		}
+	};
+
+	$mech->form_number(1);
+	$mech->field($stat_name, $stat_value);
+	$mech->click_button(name => $stat_name, value => $stat_value);
+
+	say "You Leveled up $stat_value";
+	test_shop() if $stat_value eq "Intelligence";
 }
 
-sub level_up_pure_fighter {
-	$mech->get("http://thenewlosthope.net".$URL_SERVER."stats.php");
-	sleep(0.5);
-	if($wdlevel <= $arlevel) {
-		$mech->form_number(1);
-		if($MyLev <= $masslevel) {
-			$mech->field("cStats", "Strength");
-			$mech->click_button('name' => 'cStats', 'value' => 'Strength');
-		} elsif($MyLev >= $masslevel) {
-			$mech->field("Stats", "Strength");
-			$mech->click_button('name' => 'Stats', 'value' => 'Strength');
+sub level_up_pure_fighter :prototype(\%) ($levels) {
+	$mech->get("http://thenewlosthope.net${URL_SERVER}stats.php");
+	
+	sleep 0.5;
+
+	my $stat_name = do {
+		if($myLev <= $masslevel) {
+			"cStats"
+		} else {
+			"Stats"
 		}
-		print "Leveled up Strength\n";
-		test_shop();
-		return;
-	}		
-	if($arlevel <= $wdlevel) {
-		$mech->form_number(1);
-		if($MyLev <= $masslevel) {
-			$mech->field("cStats", "Dexterity");
-			$mech->click_button('name' => 'cStats', 'value' => 'Dexterity');
-		} elsif($MyLev >= $masslevel) {
-			$mech->field("Stats", "Dexterity");
-			$mech->click_button('name' => 'Stats', 'value' => 'Dexterity');
+	};
+
+	my $stat_value = do {
+		if($levels->{wd} <= $levels->{ar}) {
+			"Strength"
+		} else {
+			"Dexterity"
 		}
-		print "You Leveled up Dexterity\n";
-		return;
-	}
+	};
+	
+	$mech->form_number(1);
+	$mech->field($stat_name, $stat_value);
+	$mech->click_button(name => $stat_name, value => $stat_value);
+
+	say "You Leveled up $stat_value";
+	test_shop() if $stat_value eq "Strength";
 }
 	
-sub level_up_pure_mage {
-	$mech->get("http://thenewlosthope.net".$URL_SERVER."stats.php");
-	sleep(0.5);
-	if($mrlevel >= $aslevel) {
-		$mech->form_number(1);
-		if($MyLev <= $masslevel) {
-			$mech->field("cStats", "Intelligence");
-			$mech->click_button('name' => 'cStats', 'value' => 'Intelligence');
-		} elsif($MyLev >= $masslevel) {
-			$mech->field("Stats", "Intelligence");
-			$mech->click_button('name' => 'Stats', 'value' => 'Intelligence');
-		}
-		print "Leveled up Intelligence\n";
-		sleep(0.5);
-		test_shop();
-		return;
-	}
+sub level_up_pure_mage :prototype(\%) ($levels) {
+	$mech->get("http://thenewlosthope.net${URL_SERVER}stats.php");
+	
+	sleep 0.5;
 
-	if($aslevel >= $mrlevel) {
-		$mech->form_number(1);
-		if($MyLev <= $masslevel) {
-			$mech->field("cStats", "Concentration");
-			$mech->click_button('name' => 'cStats', 'value' => 'Concentration');
-		} elsif($MyLev >= $masslevel) {
-			$mech->field("Stats", "Concentration");
-			$mech->click_button('name' => 'Stats', 'value' => 'Concentration');
+	my $stat_name = do {
+		if($myLev <= $masslevel) {
+			"cStats"
+		} else {
+			"Stats"
 		}
-		print "You Leveled up Concentration\n";
-		sleep(0.5);
-		return;
-	}
+	};
+
+	my $stat_value = do {
+		if($levels->{as} <= $levels->{mr}) {
+			"Intelligence"
+		} else {
+			"Concentration"
+		}
+	};
+	
+	$mech->form_number(1);
+	$mech->field($stat_name, $stat_value);
+	$mech->click_button(name => $stat_name, value => $stat_value);
+
+	say "You Leveled up $stat_value";
+	sleep 0.5;
+	test_shop() if $stat_value eq "Intelligence";
 }
 
-sub level_up_contra_fighter {
-	$mech->get("http://thenewlosthope.net".$URL_SERVER."stats.php");
-	sleep(0.5);
-	if(($wdlevel <= $mslevel) && ($wdlevel <= $arlevel)) {
-		$mech->form_number(1);
-		if($MyLev <= $masslevel) {
-			$mech->field("cStats", "Strength");
-			$mech->click_button('name' => 'cStats', 'value' => 'Strength');
-		} elsif($MyLev >= $masslevel) {
-			$mech->field("Stats", "Strength");
-			$mech->click_button('name' => 'Stats', 'value' => 'Strength');
-		}
-		print "You Leveled up Strength\n";
-		sleep(1);
-		test_shop();
-		return;
-	}
-	if(($mslevel <= $wdlevel) && ($mslevel <= $arlevel)) {
-		$mech->form_number(1);
-		if($MyLev <= $masslevel) {
-			$mech->field("cStats", "Contravention");
-			$mech->click_button('name' => 'cStats', 'value' => 'Contravention');
-		} elsif($MyLev >= $masslevel) {
-			$mech->field("Stats", "Contravention");
-			$mech->click_button('name' => 'Stats', 'value' => 'Contravention');
-		}
-		print "You Leveled up Contravention\n";
-		sleep(1);
-		return;
-	}
+sub level_up_contra_fighter :prototype(\%) ($levels) {
+	$mech->get("http://thenewlosthope.net${URL_SERVER}stats.php");
+	
+	sleep 0.5;
 
-	if(($arlevel <= $mslevel) && ($arlevel <= $wdlevel)) {
-		$mech->form_number(1);
-		if($MyLev <= $masslevel) {
-			$mech->field("cStats", "Dexterity");
-			$mech->click_button('name' => 'cStats', 'value' => 'Dexterity');
-		} elsif($MyLev >= $masslevel) {
-			$mech->field("Stats", "Dexterity");
-			$mech->click_button('name' => 'Stats', 'value' => 'Dexterity');
+	my $stat_name = do {
+		if($myLev <= $masslevel) {
+			"cStats"
+		} else {
+			"Stats"
 		}
-		print "You Leveled up Dexterity\n";
-		sleep(1);
-		return;
-	}
+	};
+
+	my $stat_value = do {
+		given(min($levels->@{"wd", "ms", "ar"})) {
+			"Strength"      when $levels->{wd};
+			"Contravention" when $levels->{ms};
+			"Dexterity"     when $levels->{ar};
+		}
+	};
+
+	$mech->form_number(1);
+	$mech->field($stat_name, $stat_value);
+	$mech->click_button(name => $stat_name, value => $stat_value);
+
+	say "You Leveled up $stat_value";
+	sleep 1;
+	test_shop() if $stat_value eq "Strength";
 }
 
 sub check_shop {
