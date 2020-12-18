@@ -58,7 +58,7 @@ my $steal_antal = new Math::BigFloat; # SHOULD NOT BE GLOBAL
 my $mytime;
 my $intstrlvl = 0;
 my $merge_name; # SHOULD NOT BE GLOBAL
-my $MyLev;
+my $myLev;
 my $masslevel = 1500;
 my $alternate = 60;
 my $agi_mage_count = 6;
@@ -567,21 +567,21 @@ sub low_level :prototype(\%) ($levels) {
 
 	printf " --> Skeleton level: %.3e\n", $level->bstr();
 
-	return $level;
+	#return $level;
 }
 
-sub level_up($char_type) {
+sub level_up :prototype($ \%) ($char_type, $levels) {
 	given($char_type) {
-		level_up_agi_mage()       when 1;
-		level_up_fighter()        when 2;
-		level_up_mage()           when 3;
-		level_up_pure_fighter()   when 4;
-		level_up_pure_mage()      when 5;
-		level_up_contra_fighter() when 6;
+		level_up_agi_mage(%$levels)       when 1;
+		level_up_fighter(%$levels)        when 2;
+		level_up_mage(%$levels)           when 3;
+		level_up_pure_fighter(%$levels)   when 4;
+		level_up_pure_mage(%$levels)      when 5;
+		level_up_contra_fighter(%$levels) when 6;
 	}
 }
 
-sub low_fight($level) {
+sub low_fight :prototype($ \%) ($level, $levels) {
 	# Setup fight
 
 	sleep 0.5;
@@ -658,7 +658,7 @@ sub low_fight($level) {
 		say "$antal :[$hour:$minute:$second]: $1";
 
 		# Level up if necessary
-		level_up($char_type) if $content =~ m/(Congra.*exp)/;
+		level_up($char_type, %$levels) if $content =~ m/(Congra.*exp)/;
 	}
 }
 
@@ -807,7 +807,7 @@ sub auto_level_up($char_type) {
 
 		$mech->form_number(1);
 
-		if($content =~ m/Freeplay/i || $MyLev > $masslevel) {
+		if($content =~ m/Freeplay/i || $myLev > $masslevel) {
 			$mech->field("Stats", $auto_level);
 			$mech->click_button(name => "Stats", value => $auto_level);
 		} else {
@@ -1146,7 +1146,7 @@ sub fight :prototype($ \%) ($level, $levels) {
 		say "$antal: [$hour:$minute:$second]: $1";
 
 		# level up if necessary
-		level_up($char_type) if $content =~ m/(Congra.*exp)/;
+		level_up($char_type, %$levels) if $content =~ m/(Congra.*exp)/;
 	}
 }
 
@@ -2012,7 +2012,7 @@ sub get_my_level{
 	$a =~ s/Exp.*//;
 	$a =~ s/\D//g;
 	$a =~ s/,//g;
-	$MyLev = new Math::BigFloat $a;
+	$myLev = new Math::BigFloat $a;
 	$Forlev = $a;
 	while($Forlev =~ m/([0-9]{4})/) {
 		my $temp1 = reverse $Forlev;
@@ -2021,7 +2021,7 @@ sub get_my_level{
 	}
 	print "Your Level is : $Forlev\n";
 	
-	if($max_level <= $MyLev) {
+	if($max_level <= $myLev) {
 		print "You have reached the desired level : EXITING!!\n";
 		sleep(30);
 		exit;
@@ -2351,7 +2351,7 @@ for(my $cur_level = $num_levels; $cur_level > 0; $cur_level++) {
 	get_char_name();
 	get_my_level();
 	check_shop();
-	if($MyLev <= 2500000) {
+	if($myLev <= 2500000) {
 		print "\nLow Level Fight mode\n\n";
 	} else {
 		print "\nHigh Level Fight mode\n\n";
@@ -2366,8 +2366,9 @@ for(my $cur_level = $num_levels; $cur_level > 0; $cur_level++) {
 			#}
 		}
 	auto_level_up($char_type);
-	if($MyLev <= 2500000) {
-		low_fight(low_level(%levels));
+	if($myLev <= 2500000) {
+		low_level(%levels);
+		low_fight($myLev, %levels);
 	} else {
 		cpm_level(%levels);
 		fight($cur_level, %levels);
