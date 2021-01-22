@@ -423,7 +423,7 @@ sub parse_stats {
 	return (split ":", $_)[1, 2, 4..7];
 }
 
-sub display_levels :prototype($ \%; $) ($char_type, $levels, $handle = *STDOUT) {
+sub display_levels :prototype(\%; $) ($levels, $handle = *STDOUT) {
 	given($char_type) {
 		when(1) {
 			printf $handle 'ASlevel: %.3e, DEFlevel: %.3e, MRlevel: %.3e', (
@@ -473,7 +473,7 @@ sub display_levels :prototype($ \%; $) ($char_type, $levels, $handle = *STDOUT) 
 	}
 }
 
-sub get_levels :prototype(\@ $ %) ($stats, $char_type, %div_values) {
+sub get_levels :prototype(\@ %) ($stats, %div_values) {
 	my %levels = (
 		wd => undef,
 		as => undef,
@@ -506,7 +506,7 @@ sub get_levels :prototype(\@ $ %) ($stats, $char_type, %div_values) {
 	return %levels;
 }
 
-sub get_minimum_level :prototype($ \%) ($char_type, $levels) {
+sub get_minimum_level :prototype(\%) ($levels) {
 	my @possible_levels = do {
 		given($char_type) {
 			when(1) { $levels->@{"as", "def", "mr"} } # for agi mage
@@ -550,7 +550,7 @@ sub low_level :prototype(\%) ($levels) {
 	}
 
 	my @stats = parse_stats($all);
-	%$levels = get_levels(@stats, $char_type,
+	%$levels = get_levels(@stats,
 		wd => '603',
 		as => '554',
 		ms => '84',
@@ -559,16 +559,16 @@ sub low_level :prototype(\%) ($levels) {
 		mr => '72'
 	);
 
-	display_levels($char_type, %$levels);
+	display_levels(%$levels);
 
-	my $level = get_minimum_level($char_type, %$levels);
+	my $level = get_minimum_level(%$levels);
 
 	printf " --> Skeleton level: %.3e\n", $level->bstr();
 
 	#return $level;
 }
 
-sub level_up :prototype($ \%) ($char_type, $levels) {
+sub level_up :prototype(\%) ($levels) {
 	given($char_type) {
 		level_up_agi_mage(%$levels)       when 1;
 		level_up_fighter(%$levels)        when 2;
@@ -656,7 +656,7 @@ sub low_fight :prototype($ \%) ($level, $levels) {
 		say "$antal :[$hour:$minute:$second]: $1";
 
 		# Level up if necessary
-		level_up($char_type, %$levels) if $content =~ m/(Congra.*exp)/;
+		level_up(%$levels) if $content =~ m/(Congra.*exp)/;
 	}
 }
 
@@ -664,7 +664,7 @@ sub format_number($num) {
 	return $num =~ s/(?<!^)\d{3}(?=(\d{3})*$)/,$&/rgn
 }
 
-sub auto_level_up($char_type) {
+sub auto_level_up {
 	sleep 0.5;
 
 	$mech->get("http://thenewlosthope.net${URL_SERVER}stats.php");
@@ -884,7 +884,7 @@ sub cpm_level :prototype(\%) ($levels) {
 	}
 
 	my @stats = parse_stats($all);
-	%$levels = get_levels(@stats, $char_type,
+	%$levels = get_levels(@stats,
 		wd => '1661622',
 		as => '1877897',
 		ms => '3028631',
@@ -893,9 +893,9 @@ sub cpm_level :prototype(\%) ($levels) {
 		mr => '363497.2'
 	);
 
-	display_levels($char_type, %$levels);
+	display_levels(%$levels);
 	
-	my $level = get_minimum_level($char_type, %$levels);
+	my $level = get_minimum_level(%$levels);
 
 	printf " --> CPM level: %.3e\n", $level->bstr();
 
@@ -1078,7 +1078,7 @@ sub fight :prototype($ \%) ($level, $levels) {
 				printf $output "Your current CPM level is : %.3e\n", $level->bstr();
 			}
 			
-			display_levels($char_type, %$levels, *FILE);
+			display_levels(%$levels, *FILE);
 			
 			say FILE "SHOP STATUS FOR $name at $hour:$minute:$second~$day/$month/$year\n";
 			say FILE "Current Max:		$SHOPMAX";
@@ -1144,7 +1144,7 @@ sub fight :prototype($ \%) ($level, $levels) {
 		say "$antal: [$hour:$minute:$second]: $1";
 
 		# level up if necessary
-		level_up($char_type, %$levels) if $content =~ m/(Congra.*exp)/;
+		level_up(%$levels) if $content =~ m/(Congra.*exp)/;
 	}
 }
 
@@ -1326,7 +1326,7 @@ sub level_up_contra_fighter :prototype(\%) ($levels) {
 	test_shop() if $stat_value eq "Strength";
 }
 
-sub check_shop :prototype($) ($update_shop) {
+sub get_shop_content {
 	my $content;
 	
 	while(1) {
@@ -1338,47 +1338,52 @@ sub check_shop :prototype($) ($update_shop) {
 		last if $content =~ m/Parsed/;
 	}
 
-	my $a1 = $content;
-	$a1 =~ s/(.*)(shopping)//si; #remove before
-	$a1 =~ s/<\/form>.*//s; #remove after
-	$a1 =~ s/maxlength//sgi;
-	$a1 =~ s/\(//sg;
-	$a1 =~ s/\)//sg;
-	$a1 =~ s/maxed/fullshop/sgi;
-	$a1 =~ s/\s//sg;
-	$a1 =~ s/\n//sgi;
-	$a1 =~ s/<\/th>//sgi;
-	$a1 =~ s/<\/tr>//sgi;
-	$a1 =~ s/<\/td>//sgi;
-	$a1 =~ s/<tr>//sgi;
-	$a1 =~ s/<td>//sgi;
-	$a1 =~ s/width/1/si;
-	$a1 =~ s/width/2/si;
-	$a1 =~ s/width/3/si;
-	$a1 =~ s/width/4/si;
-	$a1 =~ s/width/5/si;
-	$a1 =~ s/width/6/si;
-	$a1 =~ s/width/7/si;
-	$a1 =~ s/width/8/si;
-	$a1 =~ s/width/9/si;
-	$a1 =~ s/width/a/si;
-	$a1 =~ s/width/b/si;
-	$a1 =~ s/width/c/si;
+	return $content;
+}
+
+sub check_shop($update_shop) {
+	my $content = get_shop_content();
+
+	$content =~ s/(.*)(shopping)//si; #remove before
+	$content =~ s/<\/form>.*//s; #remove after
+	$content =~ s/maxlength//sgi;
+	$content =~ s/\(//sg;
+	$content =~ s/\)//sg;
+	$content =~ s/maxed/fullshop/sgi;
+	$content =~ s/\s//sg;
+	$content =~ s/\n//sgi;
+	$content =~ s/<\/th>//sgi;
+	$content =~ s/<\/tr>//sgi;
+	$content =~ s/<\/td>//sgi;
+	$content =~ s/<tr>//sgi;
+	$content =~ s/<td>//sgi;
+	$content =~ s/width/1/si;
+	$content =~ s/width/2/si;
+	$content =~ s/width/3/si;
+	$content =~ s/width/4/si;
+	$content =~ s/width/5/si;
+	$content =~ s/width/6/si;
+	$content =~ s/width/7/si;
+	$content =~ s/width/8/si;
+	$content =~ s/width/9/si;
+	$content =~ s/width/a/si;
+	$content =~ s/width/b/si;
+	$content =~ s/width/c/si;
 
 	#open(FILE, ">$file_fix shops.txt")
 	#or die "failed to open file!!!!";
-	#print FILE "$a1\n";
+	#print FILE "$content\n";
 	#close(FILE);
 	
 	# Max
-	my $max = $a1;
+	my $max = $content;
 	$max =~ s/(.*)(max)//si; #remove before
 	$max =~ s/price.*//si; #remove after
 	$SHOPMAX = $max if $update_shop;
 	$max =~ s/,//sg;
 
 	# Weapon
-	my $aweap = $a1;
+	my $aweap = $content;
 	$aweap =~ s/td1.*//si; #remove after
 	$aweap =~ s/(.*)(weapon)//si; #remove before
 	$aweap =~ s/\$.*//si; #remove after
@@ -1392,7 +1397,7 @@ sub check_shop :prototype($) ($update_shop) {
 	}
 	
 	# Attack spell
-	my $aas = $a1;
+	my $aas = $content;
 	$aas =~ s/(.*)(^td1)//si; #remove before
 	$aas =~ s/td2.*//si; #remove after
 	$aas =~ s/(.*)(attackspell)//si; #remove before
@@ -1407,7 +1412,7 @@ sub check_shop :prototype($) ($update_shop) {
 	}
 
 	# Heal spell
-	my $ahs = $a1;
+	my $ahs = $content;
 	$ahs =~ s/(.*)(td2)//si; #remove before
 	$ahs =~ s/td3.*//si; #remove after
 	$ahs =~ s/(.*)(healspell)//si; #remove before
@@ -1422,7 +1427,7 @@ sub check_shop :prototype($) ($update_shop) {
 	}
 	
 	# Helmet
-	my $ahelm = $a1;
+	my $ahelm = $content;
 	$ahelm =~ s/(.*)(td3)//si; #remove before
 	$ahelm =~ s/td4.*//si; #remove after
 	$ahelm =~ s/(.*)(helmet)//si; #remove before
@@ -1437,7 +1442,7 @@ sub check_shop :prototype($) ($update_shop) {
 	}
 	
 	# Shield
-	my $ashield = $a1;
+	my $ashield = $content;
 	$ashield =~ s/(.*)(td4)//si; #remove before
 	$ashield =~ s/td5.*//si; #remove after
 	$ashield =~ s/(.*)(shield)//si; #remove before
@@ -1452,7 +1457,7 @@ sub check_shop :prototype($) ($update_shop) {
 	}
 	
 	# Amulet
-	my $aamulet = $a1;
+	my $aamulet = $content;
 	$aamulet =~ s/(.*)(td5)//si; #remove before
 	$aamulet =~ s/td6.*//si; #remove after
 	$aamulet =~ s/(.*)(amulet)//si; #remove before
@@ -1467,7 +1472,7 @@ sub check_shop :prototype($) ($update_shop) {
 	}
 	
 	# Ring
-	my $aring = $a1;
+	my $aring = $content;
 	$aring =~ s/(.*)(td6)//si; #remove before
 	$aring =~ s/td7.*//si; #remove after
 	$aring =~ s/(.*)(ring)//si; #remove before
@@ -1482,7 +1487,7 @@ sub check_shop :prototype($) ($update_shop) {
 	}
 	
 	# Armor
-	my $aarm = $a1;
+	my $aarm = $content;
 	$aarm =~ s/(.*)(td7)//si; #remove before
 	$aarm =~ s/td8.*//si; #remove after
 	$aarm =~ s/(.*)(armor)//si; #remove before
@@ -1497,7 +1502,7 @@ sub check_shop :prototype($) ($update_shop) {
 	}
 	
 	# Belt
-	my $abelt = $a1;
+	my $abelt = $content;
 	$abelt =~ s/(.*)(td8)//si; #remove before
 	$abelt =~ s/td9.*//si; #remove after
 	$abelt =~ s/(.*)(belt)//si; #remove before
@@ -1512,7 +1517,7 @@ sub check_shop :prototype($) ($update_shop) {
 	}
 	
 	# Pants
-	my $apants = $a1;
+	my $apants = $content;
 	$apants =~ s/(.*)(td9)//si; #remove before
 	$apants =~ s/tda.*//si; #remove after
 	$apants =~ s/(.*)(pants)//si; #remove before
@@ -1527,7 +1532,7 @@ sub check_shop :prototype($) ($update_shop) {
 	}
 	
 	# Hand
-	my $ahand = $a1;
+	my $ahand = $content;
 	$ahand =~ s/(.*)(tda)//si; #remove before
 	$ahand =~ s/tdb.*//si; #remove after
 	$ahand =~ s/(.*)(hand)//si; #remove before
@@ -1542,7 +1547,7 @@ sub check_shop :prototype($) ($update_shop) {
 	}
 	
 	# Feet
-	my $afeet = $a1;
+	my $afeet = $content;
 	$afeet =~ s/(.*)(tdb)//si; #remove before
 	$afeet =~ s/tdc.*//si; #remove after
 	$afeet =~ s/(.*)(feet)//si; #remove before
@@ -1571,195 +1576,90 @@ sub check_shop :prototype($) ($update_shop) {
 	#print "your current Feet shops is       :$afeet\n";
 }
 
-sub test_shop {
+sub test_shop($char_type) {
 	check_shop(0);
 
 	if($shop_yes_no == 1) {
-		buy_upgrades();
+		buy_upgrades($char_type);
 	} else {
 		say "Shops were not bought this time";
 		exit;
 	}
 }
 	
-sub buy_upgrades {
-	$parsed = 0;
-	while(!$parsed) {
-		sleep(1);
-		$mech->get("http://thenewlosthope.net".$URL_SERVER."shop.php");
-		$a = $mech->content();
-		if($a =~ m/Parsed/) {
-			$parsed = 1;
-		}
-	}
+sub buy_upgrades($char_type) {
+	my $content = get_shop_content();
 	
 	$mech->form_number(1);
 
 	my $maxshop = "9e99";
 	
-	if($char_type == 1) {
-		if($shop2 == 0) {
-			$mech->field("Attackspell", $maxshop);
+	given($char_type) {
+		when(1) {
+			$mech->field("Attackspell", $maxshop) if $shop2 == 0;
+			$mech->field("Helmet", $maxshop) if $shop4 == 0;
+			$mech->field("Shield", $maxshop) if $shop5 == 0;
+			$mech->field("Amulet", $maxshop) if $shop6 == 0;
+			$mech->field("Ring", $maxshop) if $shop7 == 0;
+			$mech->field("Armor", $maxshop) if $shop8 == 0;
+			$mech->field("Belt", $maxshop) if $shop9 == 0;
+			$mech->field("Pants", $maxshop) if $shop10 == 0;
+			$mech->field("Hand", $maxshop) if $shop11 == 0;
+			$mech->field("Feet", $maxshop) if $shop12 == 0;
 		}
-		if($shop4 == 0) {
-			$mech->field("Helmet", $maxshop);
+
+		when(2) {
+			$mech->field("Weapon", $maxshop) if $shop1 == 0;
+			$mech->field("Belt", $maxshop) if $shop9 == 0;
+			$mech->field("Hand", $maxshop) if $shop11 == 0;
+			$mech->field("Feet", $maxshop) if $shop12 == 0;
 		}
-		if($shop5 == 0) {
-			$mech->field("Shield", $maxshop);
+
+		when(3) {
+			$mech->field("Attackspell", $maxshop) if $shop2 == 0;
+			$mech->field("Ring", $maxshop) if $shop7 == 0;
+			$mech->field("Belt", $maxshop) if $shop9 == 0;
+			$mech->field("Feet", $maxshop) if $shop12 == 0;
 		}
-		if($shop6 == 0) {
-			$mech->field("Amulet", $maxshop);
+
+		when(4) {
+			$mech->field("Weapon", $maxshop) if $shop1 == 0;
+			$mech->field("Hand", $maxshop) if $shop11 == 0;
+			$mech->field("Feet", $maxshop) if $shop12 == 0;
 		}
-		if($shop7 == 0) {
-			$mech->field("Ring", $maxshop);
+
+		when(5) {
+			$mech->field("Attackspell", $maxshop) if $shop2 == 0;
+			$mech->field("Ring", $maxshop) if $shop7 == 0;
+			$mech->field("Belt", $maxshop) if $shop9 == 0;
 		}
-		if($shop8 == 0) {
-			$mech->field("Armor", $maxshop);
-		}
-		if($shop9 == 0) {
-			$mech->field("Belt", $maxshop);
-		}
-		if($shop10 == 0) {
-			$mech->field("Pants", $maxshop);
-		}
-		if($shop11 == 0) {
-			$mech->field("Hand", $maxshop);
-		}
-		if($shop12 == 0) {
-			$mech->field("Feet", $maxshop);
-		}
-			$mech->click_button('name' => 'action', 'value' => 'Buy upgrades!');
-			$a = $mech->content();
-		if($a =~ m/Total/) {
-			$a =~ m/(Buy.*gold\.)/s;
-			$a = $1;
-			$a =~ s/<br>/\n/sg;
-			print "you maxed some shops: \n". $a ."\n";
-		}
-		if($a =~ m/Not enough gold!/) {
-			print "You did not have enough Gold in your hand to max all your shops.\n";
-		}
-	} elsif($char_type == 2) {
-		if($shop1 == 0) {
-			$mech->field("Weapon", $maxshop);
-		}
-		if($shop9 == 0) {
-			$mech->field("Belt", $maxshop);
-		}
-		if($shop11 == 0) {
-			$mech->field("Hand", $maxshop);
-		}
-		if($shop12 == 0) {
-			$mech->field("Feet", $maxshop);
-		}
-			$mech->click_button('name' => 'action', 'value' => 'Buy upgrades!');
-			$a = $mech->content();
-		if($a =~ m/Total/) {
-			$a =~ m/(Buy.*gold\.)/s;
-			$a = $1;
-			$a =~ s/<br>/\n/sg;
-			print "you maxed some shops: \n". $a ."\n";
-		}
-		if($a =~ m/Not enough gold!/) {
-			print "You did not have enough Gold in your hand to max all your shops.\n";
-		}
-	} elsif($char_type == 3) {
-		if($shop2 == 0) {
-			$mech->field("Attackspell", $maxshop);
-		}
-		if($shop7 == 0) {
-			$mech->field("Ring", $maxshop);
-		}
-		if($shop9 == 0) {
-			$mech->field("Belt", $maxshop);
-		}
-		if($shop12 == 0) {
-			$mech->field("Feet", $maxshop);
-		}
-			$mech->click_button('name' => 'action', 'value' => 'Buy upgrades!');
-			$a = $mech->content();
-		if($a =~ m/Total/) {
-			$a =~ m/(Buy.*gold\.)/s;
-			$a = $1;
-			$a =~ s/<br>/\n/sg;
-			print "you maxed some shops: \n". $a ."\n";
-		}
-		if($a =~ m/Not enough gold!/) {
-			print "You did not have enough Gold in your hand to max all your shops.\n";
-		}
-	} elsif($char_type == 4) {
-		if($shop1 == 0) {
-			$mech->field("Weapon", $maxshop);
-		}
-		if($shop11 == 0) {
-			$mech->field("Hand", $maxshop);
-		}
-		if($shop12 == 0) {
-			$mech->field("Feet", $maxshop);
-		}
-			$mech->click_button('name' => 'action', 'value' => 'Buy upgrades!');
-			$a = $mech->content();
-		if($a =~ m/Total/) {
-			$a =~ m/(Buy.*gold\.)/s;
-			$a = $1;
-			$a =~ s/<br>/\n/sg;
-			print "you maxed some shops: \n". $a ."\n";
-		}
-		if($a =~ m/Not enough gold!/) {
-			print "You did not have enough Gold in your hand to max all your shops.\n";
-		}
-	} elsif($char_type == 5) {
-		if($shop2 == 0) {
-			$mech->field("Attackspell", $maxshop);
-		}
-		if($shop7 == 0) {
-			$mech->field("Ring", $maxshop);
-		}
-		if($shop9 == 0) {
-			$mech->field("Belt", $maxshop);
-		}
-			$mech->click_button('name' => 'action', 'value' => 'Buy upgrades!');
-			$a = $mech->content();
-		if($a =~ m/Total/) {
-			$a =~ m/(Buy.*gold\.)/s;
-			$a = $1;
-			$a =~ s/<br>/\n/sg;
-			print "you maxed some shops: \n". $a ."\n";
-		}
-		if($a =~ m/Not enough gold!/) {
-			print "You did not have enough Gold in your hand to max all your shops.\n";
-		}
-	} elsif($char_type == 6) {
-		if($shop1 == 0) {
-			$mech->field("Weapon", $maxshop);
-		}
-		if($shop6 == 0) {
-			$mech->field("Amulet", $maxshop);
-		}
-		if($shop7 == 0) {
-			$mech->field("Ring", $maxshop);
-		}
-		if($shop11 == 0) {
-			$mech->field("Hand", $maxshop);
-		}
-		if($shop12 == 0) {
-			$mech->field("Feet", $maxshop);
-		}
-			$mech->click_button('name' => 'action', 'value' => 'Buy upgrades!');
-			$a = $mech->content();
-		if($a =~ m/Total/) {
-			$a =~ m/(Buy.*gold\.)/s;
-			$a = $1;
-			$a =~ s/<br>/\n/sg;
-			print "you maxed some shops: \n". $a ."\n";
-		}
-		if($a =~ m/Not enough gold!/) {
-			print "You did not have enough Gold in your hand to max all your shops.\n";
+
+		when(6) {
+			$mech->field("Weapon", $maxshop) if $shop1 == 0;
+			$mech->field("Amulet", $maxshop) if $shop6 == 0;
+			$mech->field("Ring", $maxshop) if $shop7 == 0;
+			$mech->field("Hand", $maxshop) if $shop11 == 0;
+			$mech->field("Feet", $maxshop) if $shop12 == 0;
 		}
 	}
+
+	$mech->click_button(name => "action", value => "Buy upgrades!");
+	$content = $mech->content();
 	
-	sleep(0.5);
-	return;
+	if($content =~ m/Total/) {
+		$content =~ m/(Buy.*gold\.)/s;
+		$content = $1;
+		$content =~ s/<br>/\n/sg;
+		
+		say "you maxed some shops:";
+		say $content;
+	}
+	
+	if($content =~ m/Not enough gold!/) {
+		say "You did not have enough Gold in your hand to max all your shops.";
+	}
+	
+	sleep 0.5;
 }
 
 sub get_my_level{
@@ -1936,7 +1836,7 @@ for(my $cur_level = $num_levels; $cur_level > 0; $cur_level++) {
 		#}
 	}
 
-	auto_level_up($char_type);
+	auto_level_up();
 	
 	if($myLev <= 2500000) {
 		low_level(%levels);
