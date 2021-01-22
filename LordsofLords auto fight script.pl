@@ -1327,17 +1327,18 @@ sub level_up_contra_fighter :prototype(\%) ($levels) {
 }
 
 sub check_shop {
-	$parsed = 0;
-	while(!$parsed) {
-		sleep(1);
-		$mech->get("http://thenewlosthope.net".$URL_SERVER."shop.php");
-		$a = $mech->content();
-		if($a =~ m/Parsed/) {
-			$parsed = 1;
-		}
+	my $content;
+	
+	while(1) {
+		sleep 1;
+		
+		$mech->get("http://thenewlosthope.net${URL_SERVER}shop.php");
+		$content = $mech->content();
+		
+		last if $content =~ m/Parsed/;
 	}
-	my $a1;
-	$a1 = $a;
+
+	my $a1 = $content;
 	$a1 =~ s/(.*)(shopping)//si; #remove before
 	$a1 =~ s/<\/form>.*//s; #remove after
 	$a1 =~ s/maxlength//sgi;
@@ -1363,198 +1364,197 @@ sub check_shop {
 	$a1 =~ s/width/a/si;
 	$a1 =~ s/width/b/si;
 	$a1 =~ s/width/c/si;
-	my $max;
-	my $aweap;
-	my $aas;
-	my $ahs;
-	my $ahelm;
-	my $ashield;
-	my $aamulet;
-	my $aring;
-	my $aarm;
-	my $abelt;
-	my $apants;
-	my $ahand;
-	my $afeet;
-	
+
 	#open(FILE, ">$file_fix shops.txt")
 	#or die "failed to open file!!!!";
 	#print FILE "$a1\n";
 	#close(FILE);
-		
-	$max = $a1;
-	$aweap = $a1;
-	$aas = $a1;
-	$ahs = $a1;
-	$ahelm = $a1;
-	$ashield = $a1;
-	$aamulet = $a1;
-	$aring = $a1;
-	$aarm = $a1;
-	$abelt = $a1;
-	$apants = $a1;
-	$ahand = $a1;
-	$afeet = $a1;
-	#Max
-		$max =~ s/(.*)(max)//si; #remove before
-		$max =~ s/price.*//si; #remove after
-		$SHOPMAX = $max;
-		$max =~ s/,//sg;
-	#Weapon
-		$aweap =~ s/td1.*//si; #remove after
-		$aweap =~ s/(.*)(weapon)//si; #remove before
-		$aweap =~ s/\$.*//si; #remove after
-		$SHOPWEAP = $aweap;
-		$aweap =~ s/,//sg;
-		if($aweap >= $max) {
-			$shop1 = 1;
-			$aweap = "Maxed";
-		} else {
-			$shop1 = 0;
-		}
-	#AttackSpell
-		$aas =~ s/(.*)(^td1)//si; #remove before
-		$aas =~ s/td2.*//si; #remove after
-		$aas =~ s/(.*)(attackspell)//si; #remove before
-		$aas =~ s/\$.*//si; #remove after
-		$SHOPAS = $aas;
-		$aas =~ s/,//sg;
-		if($aas >= $max) {
-			$shop2 = 1;
-			$aas = "Maxed";
-		} else {
-			$shop2 = 0;
-		}
-	#HealSpell
-		$ahs =~ s/(.*)(td2)//si; #remove before
-		$ahs =~ s/td3.*//si; #remove after
-		$ahs =~ s/(.*)(healspell)//si; #remove before
-		$ahs =~ s/\$.*//si; #remove after
-		$SHOPHS = $ahs;
-		$ahs =~ s/,//sg;
-		if($ahs >= $max) {
-			$shop3 = 1;
-			$ahs = "Maxed";
-		} else {
-			$shop3 = 0;
-		}
-	#Helmet
-		$ahelm =~ s/(.*)(td3)//si; #remove before
-		$ahelm =~ s/td4.*//si; #remove after
-		$ahelm =~ s/(.*)(helmet)//si; #remove before
-		$ahelm =~ s/\$.*//si; #remove after
-		$SHOPHELM = $ahelm;
-		$ahelm =~ s/,//sg;
-		if($ahelm >= $max) {
-			$shop4 = 1;
-			$ahelm = "Maxed";
-		} else {
-			$shop4 = 0;
-		}
-	#Shield
-		$ashield =~ s/(.*)(td4)//si; #remove before
-		$ashield =~ s/td5.*//si; #remove after
-		$ashield =~ s/(.*)(shield)//si; #remove before
-		$ashield =~ s/\$.*//si; #remove after
-		$SHOPSHIELD = $ashield;
-		$ashield =~ s/,//sg;
-		if($ashield >= $max) {
-			$shop5 = 1;
-			$ashield = "Maxed";
-		} else {
-			$shop5 = 0;
-		}
-	#Amulet
-		$aamulet =~ s/(.*)(td5)//si; #remove before
-		$aamulet =~ s/td6.*//si; #remove after
-		$aamulet =~ s/(.*)(amulet)//si; #remove before
-		$aamulet =~ s/\$.*//si; #remove after
-		$SHOPAMULET = $aamulet;
-		$aamulet =~ s/,//sg;
-		if($aamulet >= $max) {
-			$shop6 = 1;
-			$aamulet = "Maxed";
-		} else {
-			$shop6 = 0;
-		}
-	#Ring
-		$aring =~ s/(.*)(td6)//si; #remove before
-		$aring =~ s/td7.*//si; #remove after
-		$aring =~ s/(.*)(ring)//si; #remove before
-		$aring =~ s/\$.*//si; #remove after
-		$SHOPRING = $aring;
-		$aring =~ s/,//sg;
-		if($aring >= $max) {
-			$shop7 = 1;
-			$aring = "Maxed";
-		} else {
-			$shop7 = 0;
-		}
-	#Armor
-		$aarm =~ s/(.*)(td7)//si; #remove before
-		$aarm =~ s/td8.*//si; #remove after
-		$aarm =~ s/(.*)(armor)//si; #remove before
-		$aarm =~ s/\$.*//si; #remove after
-		$SHOPARMOR = $aarm;
-		$aarm =~ s/,//sg;
-		if($aarm >= $max) {
-			$shop8 = 1;
-			$aarm = "Maxed";
-		} else {
-			$shop8 = 0;
-		}
-	#Belt
-		$abelt =~ s/(.*)(td8)//si; #remove before
-		$abelt =~ s/td9.*//si; #remove after
-		$abelt =~ s/(.*)(belt)//si; #remove before
-		$abelt =~ s/\$.*//si; #remove after
-		$SHOPBELT = $abelt;
-		$abelt =~ s/,//sg;
-		if($abelt >= $max) {
-			$shop9 = 1;
-			$abelt = "Maxed";
-		} else {
-			$shop9 = 0;
-		}
-	#Pants
-		$apants =~ s/(.*)(td9)//si; #remove before
-		$apants =~ s/tda.*//si; #remove after
-		$apants =~ s/(.*)(pants)//si; #remove before
-		$apants =~ s/\$.*//si; #remove after
-		$SHOPPANTS = $apants;
-		$apants =~ s/,//sg;
-		if($apants >= $max) {
-			$shop10 = 1;
-			$apants = "Maxed";
-		} else {
-			$shop10 = 0;
-		}
-	#Hand
-		$ahand =~ s/(.*)(tda)//si; #remove before
-		$ahand =~ s/tdb.*//si; #remove after
-		$ahand =~ s/(.*)(hand)//si; #remove before
-		$ahand =~ s/\$.*//si; #remove after
-		$SHOPHAND = $ahand;
-		$ahand =~ s/,//sg;
-		if($ahand >= $max) {
-			$shop11 = 1;
-			$ahand = "Maxed";
-		} else {
-			$shop11 = 0;
-		}
-	#Feet
-		$afeet =~ s/(.*)(tdb)//si; #remove before
-		$afeet =~ s/tdc.*//si; #remove after
-		$afeet =~ s/(.*)(feet)//si; #remove before
-		$afeet =~ s/\$.*//si; #remove after
-		$SHOPFEET = $afeet;
-		$afeet =~ s/,//sg;
-		if($afeet >= $max) {
-			$shop12 = 1;
-			$afeet = "Maxed";
-		} else {
-			$shop12 = 0;
-		}
+	
+	# Max
+	my $max = $a1;
+	$max =~ s/(.*)(max)//si; #remove before
+	$max =~ s/price.*//si; #remove after
+	$SHOPMAX = $max;
+	$max =~ s/,//sg;
+
+	# Weapon
+	my $aweap = $a1;
+	$aweap =~ s/td1.*//si; #remove after
+	$aweap =~ s/(.*)(weapon)//si; #remove before
+	$aweap =~ s/\$.*//si; #remove after
+	$SHOPWEAP = $aweap;
+	$aweap =~ s/,//sg;
+	if($aweap >= $max) {
+		$shop1 = 1;
+		$aweap = "Maxed";
+	} else {
+		$shop1 = 0;
+	}
+	
+	# Attack spell
+	my $aas = $a1;
+	$aas =~ s/(.*)(^td1)//si; #remove before
+	$aas =~ s/td2.*//si; #remove after
+	$aas =~ s/(.*)(attackspell)//si; #remove before
+	$aas =~ s/\$.*//si; #remove after
+	$SHOPAS = $aas;
+	$aas =~ s/,//sg;
+	if($aas >= $max) {
+		$shop2 = 1;
+		$aas = "Maxed";
+	} else {
+		$shop2 = 0;
+	}
+
+	# Heal spell
+	my $ahs = $a1;
+	$ahs =~ s/(.*)(td2)//si; #remove before
+	$ahs =~ s/td3.*//si; #remove after
+	$ahs =~ s/(.*)(healspell)//si; #remove before
+	$ahs =~ s/\$.*//si; #remove after
+	$SHOPHS = $ahs;
+	$ahs =~ s/,//sg;
+	if($ahs >= $max) {
+		$shop3 = 1;
+		$ahs = "Maxed";
+	} else {
+		$shop3 = 0;
+	}
+	
+	# Helmet
+	my $ahelm = $a1;
+	$ahelm =~ s/(.*)(td3)//si; #remove before
+	$ahelm =~ s/td4.*//si; #remove after
+	$ahelm =~ s/(.*)(helmet)//si; #remove before
+	$ahelm =~ s/\$.*//si; #remove after
+	$SHOPHELM = $ahelm;
+	$ahelm =~ s/,//sg;
+	if($ahelm >= $max) {
+		$shop4 = 1;
+		$ahelm = "Maxed";
+	} else {
+		$shop4 = 0;
+	}
+	
+	# Shield
+	my $ashield = $a1;
+	$ashield =~ s/(.*)(td4)//si; #remove before
+	$ashield =~ s/td5.*//si; #remove after
+	$ashield =~ s/(.*)(shield)//si; #remove before
+	$ashield =~ s/\$.*//si; #remove after
+	$SHOPSHIELD = $ashield;
+	$ashield =~ s/,//sg;
+	if($ashield >= $max) {
+		$shop5 = 1;
+		$ashield = "Maxed";
+	} else {
+		$shop5 = 0;
+	}
+	
+	# Amulet
+	my $aamulet = $a1;
+	$aamulet =~ s/(.*)(td5)//si; #remove before
+	$aamulet =~ s/td6.*//si; #remove after
+	$aamulet =~ s/(.*)(amulet)//si; #remove before
+	$aamulet =~ s/\$.*//si; #remove after
+	$SHOPAMULET = $aamulet;
+	$aamulet =~ s/,//sg;
+	if($aamulet >= $max) {
+		$shop6 = 1;
+		$aamulet = "Maxed";
+	} else {
+		$shop6 = 0;
+	}
+	
+	# Ring
+	my $aring = $a1;
+	$aring =~ s/(.*)(td6)//si; #remove before
+	$aring =~ s/td7.*//si; #remove after
+	$aring =~ s/(.*)(ring)//si; #remove before
+	$aring =~ s/\$.*//si; #remove after
+	$SHOPRING = $aring;
+	$aring =~ s/,//sg;
+	if($aring >= $max) {
+		$shop7 = 1;
+		$aring = "Maxed";
+	} else {
+		$shop7 = 0;
+	}
+	
+	# Armor
+	my $aarm = $a1;
+	$aarm =~ s/(.*)(td7)//si; #remove before
+	$aarm =~ s/td8.*//si; #remove after
+	$aarm =~ s/(.*)(armor)//si; #remove before
+	$aarm =~ s/\$.*//si; #remove after
+	$SHOPARMOR = $aarm;
+	$aarm =~ s/,//sg;
+	if($aarm >= $max) {
+		$shop8 = 1;
+		$aarm = "Maxed";
+	} else {
+		$shop8 = 0;
+	}
+	
+	# Belt
+	my $abelt = $a1;
+	$abelt =~ s/(.*)(td8)//si; #remove before
+	$abelt =~ s/td9.*//si; #remove after
+	$abelt =~ s/(.*)(belt)//si; #remove before
+	$abelt =~ s/\$.*//si; #remove after
+	$SHOPBELT = $abelt;
+	$abelt =~ s/,//sg;
+	if($abelt >= $max) {
+		$shop9 = 1;
+		$abelt = "Maxed";
+	} else {
+		$shop9 = 0;
+	}
+	
+	# Pants
+	my $apants = $a1;
+	$apants =~ s/(.*)(td9)//si; #remove before
+	$apants =~ s/tda.*//si; #remove after
+	$apants =~ s/(.*)(pants)//si; #remove before
+	$apants =~ s/\$.*//si; #remove after
+	$SHOPPANTS = $apants;
+	$apants =~ s/,//sg;
+	if($apants >= $max) {
+		$shop10 = 1;
+		$apants = "Maxed";
+	} else {
+		$shop10 = 0;
+	}
+	
+	# Hand
+	my $ahand = $a1;
+	$ahand =~ s/(.*)(tda)//si; #remove before
+	$ahand =~ s/tdb.*//si; #remove after
+	$ahand =~ s/(.*)(hand)//si; #remove before
+	$ahand =~ s/\$.*//si; #remove after
+	$SHOPHAND = $ahand;
+	$ahand =~ s/,//sg;
+	if($ahand >= $max) {
+		$shop11 = 1;
+		$ahand = "Maxed";
+	} else {
+		$shop11 = 0;
+	}
+	
+	# Feet
+	my $afeet = $a1;
+	$afeet =~ s/(.*)(tdb)//si; #remove before
+	$afeet =~ s/tdc.*//si; #remove after
+	$afeet =~ s/(.*)(feet)//si; #remove before
+	$afeet =~ s/\$.*//si; #remove after
+	$SHOPFEET = $afeet;
+	$afeet =~ s/,//sg;
+	if($afeet >= $max) {
+		$shop12 = 1;
+		$afeet = "Maxed";
+	} else {
+		$shop12 = 0;
+	}
 
 	#print "your maximum shop is             :$max\n";
 	#print "your current Weapon shop is      :$aweap\n";
