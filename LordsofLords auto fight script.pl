@@ -36,8 +36,6 @@ my $merger_name = $ARGV[7] or die "merger_name error";
 my $max_level   = $ARGV[8] or die "max_level error";
 
 # Global variables
-my @logins;
-my @users;
 my $parsed; # SHOULD NOT BE GLOBAL
 my ($tmp, $mech);
 my ($a, $b, $c);
@@ -2068,11 +2066,11 @@ sub get_char_name{
 
 # create a new browser
 
-$mech = WWW::Mechanize->new(autocheck => 1, stack_depth => 0);
+$mech = new WWW::Mechanize autocheck => 1, stack_depth => 0;
 $mech->timeout(5); #2 second timeout! for n00b SilenT
 $mech->agent_alias( 'Windows Mozilla' );
 
-print " 
+say " 
 		 \\\\\\///
 		/ _  _ \\\
 	  (| (.)(.) |)
@@ -2085,255 +2083,53 @@ print "
 	  \\\ (    (   )
 	   \\\_)    ) /
 			 (_/
-\n";
+";
 
 #Login
+
+my @logins;
+
+# It might be worth putting an error message if $server isn't 1 or 2?
 if($server == 1) {
-	open(LOGINS, "m3logins.txt")
-		or die "failed to open Logins file!!!!";
-		@logins = <LOGINS>;
+	open(LOGINS, "m3logins.txt") or die "failed to open Logins file!!!!";
+	@logins = <LOGINS>;
 	close(LOGINS);
-} elsif($server = 2) {
-	open(LOGINS, "sotselogins.txt")
-		or die "failed to open Logins file!!!!";
-		@logins = <LOGINS>;
+} elsif($server == 2) {
+	open(LOGINS, "sotselogins.txt") or die "failed to open Logins file!!!!";
+	@logins = <LOGINS>;
 	close(LOGINS);
 }
 
-until($username ne 1) {
-	@users = split(/ /, $logins[0]);
-	$username = $users[0];
-	$password = $users[1];
-	chomp ($username, $password);
-}
-until($username ne 2) {
-	@users = split(/ /, $logins[1]);
-	$username = $users[0];
-	$password = $users[1];
-	chomp ($username, $password);
-}
-until($username ne 3) {
-	@users = split(/ /, $logins[2]);
-	$username = $users[0];
-	$password = $users[1];
-	chomp ($username, $password);
-}
-until($username ne 4) {
-	@users = split(/ /, $logins[3]);
-	$username = $users[0];
-	$password = $users[1];
-	chomp ($username, $password);
-}
-until($username ne 5) {
-	@users = split(/ /, $logins[4]);
-	$username = $users[0];
-	$password = $users[1];
-	chomp ($username, $password);
-}
-until($username ne 6) {
-	@users = split(/ /, $logins[5]);
-	$username = $users[0];
-	$password = $users[1];
-	chomp ($username, $password);
-}
-until($username ne 7) {
-	@users = split(/ /, $logins[6]);
-	$username = $users[0];
-	$password = $users[1];
-	chomp ($username, $password);
-}
-until($username ne 8) {
-	@users = split(/ /, $logins[7]);
-	$username = $users[0];
-	$password = $users[1];
-	chomp ($username, $password);
-}
-until($username ne 9) {
-	@users = split(/ /, $logins[8]);
-	$username = $users[0];
-	$password = $users[1];
-	chomp ($username, $password);
-}
-until($username ne 10) {
-	@users = split(/ /, $logins[9]);
-	$username = $users[0];
-	$password = $users[1];
-	chomp ($username, $password);
-}
-until($username ne 11) {
-	@users = split(/ /, $logins[10]);
-	$username = $users[0];
-	$password = $users[1];
-	chomp ($username, $password);
-}
-until($username ne 12) {
-	@users = split(/ /, $logins[11]);
-	$username = $users[0];
-	$password = $users[1];
-	chomp ($username, $password);
-}
-until($username ne 13) {
-	@users = split(/ /, $logins[12]);
-	$username = $users[0];
-	$password = $users[1];
-	chomp ($username, $password);
-}
-until($username ne 14) {
-	@users = split(/ /, $logins[13]);
-	$username = $users[0];
-	$password = $users[1];
-	chomp ($username, $password);
-}
-until($username ne 15) {
-	@users = split(/ /, $logins[14]);
-	$username = $users[0];
-	$password = $users[1];
-	chomp ($username, $password);
-}
-until($username ne 16) {
-	@users = split(/ /, $logins[15]);
-	$username = $users[0];
-	$password = $users[1];
-	chomp ($username, $password);
-}
-until($username ne 17) {
-	@users = split(/ /, $logins[16]);
-	$username = $users[0];
-	$password = $users[1];
-	chomp ($username, $password);
-}
-until($username ne 18) {
-	@users = split(/ /, $logins[17]);
-	$username = $users[0];
-	$password = $users[1];
-	chomp ($username, $password);
-}
-until($username ne 19) {
-	@users = split(/ /, $logins[18]);
-	$username = $users[0];
-	$password = $users[1];
-	chomp ($username, $password);
-}
-until($username ne 20) {
-	@users = split(/ /, $logins[19]);
-	$username = $users[0];
-	$password = $users[1];
-	chomp ($username, $password);
-}
-until($username ne 21) {
-	@users = split(/ /, $logins[20]);
-	$username = $users[0];
-	$password = $users[1];
-	chomp ($username, $password);
-}
-until($username ne 22) {
-	@users = split(/ /, $logins[21]);
-	$username = $users[0];
-	$password = $users[1];
-	chomp ($username, $password);
-}
-until($username ne 23) {
-	@users = split(/ /, $logins[22]);
-	$username = $users[0];
-	$password = $users[1];
-	chomp ($username, $password);
-}
-until($username ne 24) {
-	@users = split(/ /, $logins[23]);
-	$username = $users[0];
-	$password = $users[1];
-	chomp ($username, $password);
-}
-until($username ne 25) {
-	@users = split(/ /, $logins[24]);
-	$username = $users[0];
-	$password = $users[1];
-	chomp ($username, $password);
-}
-until($username ne 26) {
-	@users = split(/ /, $logins[25]);
-	$username = $users[0];
-	$password = $users[1];
-	chomp ($username, $password);
-}
-until($username ne 27) {
-	@users = split(/ /, $logins[26]);
-	$username = $users[0];
-	$password = $users[1];
-	chomp ($username, $password);
-}
-until($username ne 28) {
-	@users = split(/ /, $logins[27]);
-	$username = $users[0];
-	$password = $users[1];
-	chomp ($username, $password);
-}
-until($username ne 29) {
-	@users = split(/ /, $logins[28]);
-	$username = $users[0];
-	$password = $users[1];
-	chomp ($username, $password);
-}
-until($username ne 30) {
-	@users = split(/ /, $logins[29]);
-	$username = $users[0];
-	$password = $users[1];
-	chomp ($username, $password);
-}
-until($username ne 31) {
-	@users = split(/ /, $logins[30]);
-	$username = $users[0];
-	$password = $users[1];
-	chomp ($username, $password);
-}
-until($username ne 32) {
-	@users = split(/ /, $logins[31]);
-	$username = $users[0];
-	$password = $users[1];
-	chomp ($username, $password);
-}
-until($username ne 33) {
-	@users = split(/ /, $logins[32]);
-	$username = $users[0];
-	$password = $users[1];
-	chomp ($username, $password);
-}
-until($username ne 34) {
-	@users = split(/ /, $logins[33]);
-	$username = $users[0];
-	$password = $users[1];
-	chomp ($username, $password);
-}
-until($username ne 35) {
-	@users = split(/ /, $logins[34]);
-	$username = $users[0];
-	$password = $users[1];
-	chomp ($username, $password);
-}
-
-$parsed = 0;
-while($parsed == 0) {
-sleep(0.5);
-$mech->get("http://thenewlosthope.net".$URL_SERVER."login.php");
-$a = $mech->content();
-	if($a =~ m/Enter Lol!/) {
-		$parsed = 1;
-	} else {
-		sleep(10);
-		exit;
+# If 35 isn't an actual limit for the number of logins, you could probably do
+# `1..($#logins + 1)` to do this for *every* login instead.
+for my $i (1..35) {
+	until($username ne $i) {
+		($username, $password) = split(" ", $logins[$i - 1]);
+		chomp($username, $password);
 	}
 }
-if($a =~ m/Username/) {
-	$mech->form_number(0);
-	$mech->field("Username", $username);
-	$mech->field("Password", $password);
-	$mech->click();
-	($second, $minute, $hour, $day, $month, $year, $week_day, $day_of_year, $is_dst) = localtime(time);
-	#print "[$hour:$minute:$second] - logged in Successfully to : \n";
-} else {
-	sleep(5);
+
+sleep 0.5;
+
+$mech->get("http://thenewlosthope.net${URL_SERVER}login.php");
+my $content = $mech->content();
+
+if($content !~ m/Enter Lol!/) {
+	sleep 10;
 	exit;
 }
+
+if($content !~ m/Username/) {
+	sleep 5;
+	exit;
+}
+
+$mech->form_number(0);
+$mech->field("Username", $username);
+$mech->field("Password", $password);
+$mech->click();
+#my ($second, $minute, $hour, $day, $month, $year, $week_day, $day_of_year, $is_dst) = localtime(time);
+#print "[$hour:$minute:$second] - logged in Successfully to : \n";
 
 
 my $num_levels = 9999999;
@@ -2347,25 +2143,29 @@ my %levels = (
 	mr => new Math::BigFloat
 );
 
+# Not sure what this is supposed to be doing? This is an infinite loop :/
 for(my $cur_level = $num_levels; $cur_level > 0; $cur_level++) {
 	get_char_name();
 	get_my_level();
 	check_shop();
+	
 	if($myLev <= 2500000) {
-		print "\nLow Level Fight mode\n\n";
+		say "\nLow Level Fight mode\n";
 	} else {
-		print "\nHigh Level Fight mode\n\n";
+		say "\nHigh Level Fight mode\n";
 	}
 	
-		if(get_steal_wait() == 0) {
-			#my ($status, $result) = merge_test();
-			#if($status == 1) {
-			#	merge();
-			#} else {
-				steal();
-			#}
-		}
+	if(get_steal_wait() == 0) {
+		#my ($status, $result) = merge_test();
+		#if($status == 1) {
+		#	merge();
+		#} else {
+			steal();
+		#}
+	}
+
 	auto_level_up($char_type);
+	
 	if($myLev <= 2500000) {
 		low_level(%levels);
 		low_fight($myLev, %levels);
