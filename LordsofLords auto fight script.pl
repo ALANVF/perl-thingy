@@ -16,6 +16,7 @@ no warnings "experimental::smartmatch";
 use feature "postderef";
 use feature "signatures";
 no warnings "experimental::signatures";
+use feature "state";
 
 
 
@@ -36,22 +37,9 @@ my $merger_name = $ARGV[7] or die "merger_name error";
 my $max_level   = $ARGV[8] or die "max_level error";
 
 # Global variables
-my $parsed; # SHOULD NOT BE GLOBAL
 my ($tmp, $mech);
 my ($a, $b, $c);
-my $users;
-my $date_string;
-my $wdlevel = new Math::BigFloat;
-my $aslevel = new Math::BigFloat;
-my $mslevel = new Math::BigFloat;
-my $deflevel = new Math::BigFloat;
-my $arlevel = new Math::BigFloat;
-my $mrlevel = new Math::BigFloat;
-my $level = new Math::BigFloat;
-my $steal_antal = new Math::BigFloat; # SHOULD NOT BE GLOBAL
-my $mytime;
-my $intstrlvl = 0;
-my $masslevel = 1500;
+my $MASS_LEVEL = 1500;
 my $alternate = 60;
 my $agi_mage_count = 6;
 my $fighter_count = 3;
@@ -71,21 +59,6 @@ my $shop9;
 my $shop10;
 my $shop11;
 my $shop12;
-my $wait_div = new Math::BigFloat;
-my $exper3 = new Math::BigFloat;
-my $exper_average = new Math::BigFloat;
-my $reload_count = 0;
-my $gold3 = new Math::BigFloat;
-my $gold_average = new Math::BigFloat;
-my $exper_seconds;
-my $exper_minutes;
-my $exper_hours;
-my $exper_days;
-my $gold_seconds;
-my $gold_minutes;
-my $gold_hours;
-my $gold_days;
-my $next_level = new Math::BigFloat;
 my $SHOPMAX;
 my $SHOPWEAP;
 my $SHOPAS;
@@ -131,6 +104,7 @@ if($merger_name eq "MergerName") {
 	$merger_name = "Undefined";
 }
 
+# It might be worth putting an error message if $server isn't 1 or 2?
 if($server == 1) {
 	$URL_SERVER = "/m3/";
 	$file_fix = "m3";
@@ -568,7 +542,7 @@ sub level_up :prototype($ \%) ($my_level, $levels) {
 	}
 }
 
-sub low_fight :prototype($ \%) ($level, $levels) {
+sub low_fight :prototype($ \% $) ($level, $levels, $steal_antal) {
 	# Setup fight
 
 	sleep 0.5;
@@ -596,9 +570,8 @@ sub low_fight :prototype($ \%) ($level, $levels) {
 
 	# Unsure what to do here. Perhaps it's related to this commit? (near the end)
 	# https://github.com/ALANVF/perl-thingy/commit/a5a43a88016b1cefda9236c07e2cd00d76cdff82#diff-f3f0aa1c7cc9604ea1bd0a6b3b5b62fa096daab0866f113d9cc5cb960eb7fa9b
-	$steal_antal = new Math::BigFloat $steal_antal;
+	$steal_antal = $steal_antal->copy();
 	$steal_antal->bdiv($loop_wait);
-	$steal_antal->bstr();
 	$steal_antal->bfround(1);
 	
 	my $antal = $steal_antal->copy();
@@ -647,6 +620,8 @@ sub low_fight :prototype($ \%) ($level, $levels) {
 		# Level up if necessary
 		level_up($level, %$levels) if $content =~ m/(Congra.*exp)/;
 	}
+
+	return $steal_antal;
 }
 
 sub format_number($num) {
@@ -794,7 +769,7 @@ sub auto_level_up($my_level) {
 
 		$mech->form_number(1);
 
-		if($content =~ m/Freeplay/i || $my_level > $masslevel) {
+		if($content =~ m/Freeplay/i || $my_level > $MASS_LEVEL) {
 			$mech->field("Stats", $auto_level);
 			$mech->click_button(name => "Stats", value => $auto_level);
 		} else {
@@ -904,8 +879,24 @@ sub shorten_amount($amount) {
 	return $amount
 }
 
-sub fight :prototype($ $ $ $ $ \%) ($name, $level, $my_level, $for_level, $next_level, $levels) {
+sub fight :prototype($ $ $ $ $ \% $) ($name, $level, $my_level, $for_level, $next_level, $levels, $steal_antal) {
 	# Setup fight
+
+	state $wait_div = new Math::BigFloat;
+	state $exper3 = new Math::BigFloat;
+	state $exper_average = new Math::BigFloat;
+	state $reload_count = 0;
+	state $gold3 = new Math::BigFloat;
+	state $gold_average = new Math::BigFloat;
+	state $exper_seconds;
+	state $exper_minutes;
+	state $exper_hours;
+	state $exper_days;
+	state $gold_seconds;
+	state $gold_minutes;
+	state $gold_hours;
+	state $gold_days;
+	
 	sleep 0.5;
 	
 	$mech->get("http://thenewlosthope.net${URL_SERVER}fight_control.php");
@@ -938,14 +929,14 @@ sub fight :prototype($ $ $ $ $ \%) ($name, $level, $my_level, $for_level, $next_
 	$content =~ m/(battle)/;
 	$content =~ m/(You have been jailed for violating our rules)/;
 	
-	$steal_antal = new Math::BigFloat $steal_antal;
+	$steal_antal = $steal_antal->copy();
 	$steal_antal->bdiv($loop_wait);
-	$steal_antal->bstr();
 	$steal_antal->bfround(1);
 
-	my $antal = $steal_antal; # Maybe copy?
+	my $antal = $steal_antal->copy();
 	my $jail;
 	my $average_count_down = 900;
+	my $date_string;
 
 	# REPEAT:
 	while($antal > 0) {
@@ -1014,39 +1005,18 @@ sub fight :prototype($ $ $ $ $ \%) ($name, $level, $my_level, $for_level, $next_
 				#Time to level
 				my $next_level_time = new Math::BigFloat $next_level / $exper_average;
 				my $epoc = time() + $next_level_time;
-				my $date_string = strftime '%x %H:%M:%S', localtime($epoc); # (WRONG SCOPE)
-
-				#exper_average
+				$date_string = strftime '%x %H:%M:%S', localtime($epoc);
+				
 				$exper_average = format_number($exper_average);
-
-				#exper_seconds
 				$exper_seconds = format_number(shorten_amount($exper_second));
-
-				#exper_minutes
 				$exper_minutes = format_number(shorten_amount($exper_minute));
-				
-				#exper_hours
 				$exper_hours = format_number(shorten_amount($exper_hour));
-				
-				#exper_days
 				$exper_days = format_number(shorten_amount($exper_day));
-
-				#gold_averages
 				$gold_average = format_number($gold_average);
-
-				#gold_seconds
 				$gold_seconds = format_number(shorten_amount($gold_second));
-
-				#gold_minutes
 				$gold_minutes = format_number(shorten_amount($gold_minute));
-				
-				#gold_hours
 				$gold_hours = format_number(shorten_amount($gold_hour));
-				
-				#gold_days
 				$gold_days = format_number(shorten_amount($gold_day));
-				
-				#next_level
 				$next_level = format_number(shorten_amount($next_level));
 			}
 		} elsif($average_count_down == 0) {
@@ -1135,6 +1105,8 @@ sub fight :prototype($ $ $ $ $ \%) ($name, $level, $my_level, $for_level, $next_
 		# level up if necessary
 		level_up($my_level, %$levels) if $content =~ m/(Congra.*exp)/;
 	}
+
+	return $steal_antal;
 }
 
 sub level_up_agi_mage :prototype($ \%) ($my_level, $levels) {
@@ -1143,7 +1115,7 @@ sub level_up_agi_mage :prototype($ \%) ($my_level, $levels) {
 	sleep 0.5;
 
 	my $stat_name = do {
-		if($my_level <= $masslevel) {
+		if($my_level <= $MASS_LEVEL) {
 			"cStats"
 		} else {
 			"Stats"
@@ -1174,7 +1146,7 @@ sub level_up_fighter :prototype($ \%) ($my_level, $levels) {
 	sleep 0.5;
 
 	my $stat_name = do {
-		if($my_level <= $masslevel) {
+		if($my_level <= $MASS_LEVEL) {
 			"cStats"
 		} else {
 			"Stats"
@@ -1203,7 +1175,7 @@ sub level_up_mage :prototype($ \%) ($my_level, $levels) {
 	sleep 0.5;
 
 	my $stat_name = do {
-		if($my_level <= $masslevel) {
+		if($my_level <= $MASS_LEVEL) {
 			"cStats"
 		} else {
 			"Stats"
@@ -1232,7 +1204,7 @@ sub level_up_pure_fighter :prototype($ \%) ($my_level, $levels) {
 	sleep 0.5;
 
 	my $stat_name = do {
-		if($my_level <= $masslevel) {
+		if($my_level <= $MASS_LEVEL) {
 			"cStats"
 		} else {
 			"Stats"
@@ -1261,7 +1233,7 @@ sub level_up_pure_mage :prototype($ \%) ($my_level, $levels) {
 	sleep 0.5;
 
 	my $stat_name = do {
-		if($my_level <= $masslevel) {
+		if($my_level <= $MASS_LEVEL) {
 			"cStats"
 		} else {
 			"Stats"
@@ -1291,7 +1263,7 @@ sub level_up_contra_fighter :prototype($ \%) ($my_level, $levels) {
 	sleep 0.5;
 
 	my $stat_name = do {
-		if($my_level <= $masslevel) {
+		if($my_level <= $MASS_LEVEL) {
 			"cStats"
 		} else {
 			"Stats"
@@ -1773,8 +1745,8 @@ my ($second, $minute, $hour) = localtime(time);
 #print "[$hour:$minute:$second] - logged in Successfully to : \n";
 
 
+my $steal_antal = new Math::BigFloat;
 my $num_levels = 9999999;
-
 my %levels = (
 	wd => new Math::BigFloat,
 	as => new Math::BigFloat,
@@ -1811,10 +1783,10 @@ for(my $cur_level = $num_levels; $cur_level > 0; $cur_level++) {
 	
 	if($my_level <= 2500000) {
 		low_level(%levels);
-		low_fight($my_level, %levels);
+		$steal_antal = low_fight($my_level, %levels, $steal_antal);
 	} else {
 		cpm_level(%levels);
-		fight($name, $cur_level, $my_level, $for_level, $next_level, %levels);
+		$steal_antal = fight($name, $cur_level, $my_level, $for_level, $next_level, %levels, $steal_antal);
 	}
 }
 
