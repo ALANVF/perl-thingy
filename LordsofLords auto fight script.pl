@@ -37,8 +37,7 @@ my $merger_name = $ARGV[7] or die "merger_name error";
 my $max_level   = $ARGV[8] or die "max_level error";
 
 # Global variables
-my ($tmp, $mech);
-my ($a, $b, $c);
+my $mech;
 my $MASS_LEVEL = 1500;
 my $alternate = 60;
 my $agi_mage_count = 6;
@@ -72,10 +71,6 @@ my $SHOPBELT;
 my $SHOPPANTS;
 my $SHOPHAND;
 my $SHOPFEET;
-my $URL_SERVER;
-my $file_fix;
-my $temp1 = new Math::BigFloat;
-my $pure_build = 180;
 
 # Constants
 my @MONTHS = (
@@ -104,14 +99,15 @@ if($merger_name eq "MergerName") {
 	$merger_name = "Undefined";
 }
 
-# It might be worth putting an error message if $server isn't 1 or 2?
-if($server == 1) {
-	$URL_SERVER = "/m3/";
-	$file_fix = "m3";
-} elsif($server == 2) {
-	$URL_SERVER = "/sotse/";
-	$file_fix = "sotse";
-}
+my $file_fix = do {
+	given($server) {
+		when(1) { "m3" }
+		when(2) { "sotse" }
+		default { die "Unknown server \"$server\"!" }
+	}
+};
+my $URL_SERVER = "/$file_fix/";
+
 
 #---------------------
 
@@ -138,21 +134,15 @@ sub get_steal_wait() {
 	$steal_wait = 0;
 
 	if($content =~ m/recover/) {
-		$content = $mech->content();
-		$content =~ m/(Take.*This)/s;
-		
-		$b = $1;
-		$b =~ s/<.*?>//sg;
-		$b =~ m/(Take.*seconds)/s;
-		$b = $1;
-		$b =~ m/(for.*seconds)/s;
-		$b = $1;
-		$b =~ s/for//sg;
-		$b =~ s/seconds//sg;
-		$b =~ s/<.*?>//sg;
-		$b =~ s/,//g;
-		
-		$steal_wait = $b;
+		$steal_wait = do {
+			given($mech->content()) {
+				s/Take(.*)This/$1/s;
+				s/<.*?>//sg;
+				s/for(.*)seconds/$1/s;
+				s/,//g;
+				$_
+			}
+		};
 		
 		say "In recover, gotta wait $steal_wait seconds before I can steal...\n";
 		
@@ -629,6 +619,8 @@ sub format_number($num) {
 }
 
 sub auto_level_up($my_level) {
+	state $pure_build = 180;
+
 	sleep 0.5;
 
 	$mech->get("http://thenewlosthope.net${URL_SERVER}stats.php");
@@ -641,18 +633,19 @@ sub auto_level_up($my_level) {
 	
 	$content = $mech->content();
 
-	$b = $mech->content();
-	$b =~ m/(Level : .*Exp :)/;
-	$b = $1;
-	$b =~ s/<\/td> .*//si;
-	$b =~ s/Level : //si;
-	my $actual_level = $b;
+	my $actual_level = do {
+		given("$content") {
+			s/Level : (.*Exp :)/$1/;
+			s/<\/td> .*//si;
+			$_
+		}
+	};
 	
 	if($char_type == 6) {
 		$alternate = 75;
 	}
 
-	while($content =~ m/(Congra.*exp)/) {
+	while($content =~ m/Congra.*exp/) {
 		# Note: there's a chance that $auto_level will never be assigned a
 		#       value here. Please take note and provide default value when it
 		#       happens.
@@ -778,21 +771,28 @@ sub auto_level_up($my_level) {
 		}
 
 		$content = $mech->content();
-		$b = $mech->content();
-		$c = $mech->content();
-		$b =~ m/(Level : .*Exp :)/;
-		$b = $1;
-		$b =~ s/<\/td> .*//si;
-		$b =~ s/Level : //si;
-		$b =~ s/,//si;
-		$b =~ s/m1/000000/si if $b =~ m/m1/is;
-		$b =~ s/m2/000000000000/si if $b =~ m/m2/is;
-		$b =~ s/m3/000000000000000000/si if $b =~ m/m3/is;
-		$c =~ m/(You leveled up .* levels!)/;
-		$c = $1;
-		$c =~ s/,//si;
-		$c =~ s/\D//gsi;
-		$actual_level = $b + $c;
+		
+		my $level1 = do {
+			given("$content") {
+				s/Level : (.*Exp :)/$1/;
+				s/<\/td> .*//si;
+				s/,//s;
+				s/m1/000000/si;
+				s/m2/000000000000/si;
+				s/m3/000000000000000000/si;
+				$_
+			}
+		};
+
+		my $level2 = do {
+			given("$content") {
+				s/You leveled up (.*) levels!/$1/;
+				s/\D//gs;
+				$_
+			}
+		};
+
+		$actual_level = $level1 + $level2;
 
 		my $formatted_level = format_number($actual_level);
 		say "[Level : $formatted_level][$alternate] You Auto-Leveled $auto_level";
@@ -1658,15 +1658,18 @@ sub get_char_name($hour, $minute, $second) {
 			s/th.*//si; #remove after
 			s/<\///si;
 			s/(.*)(for)//si; #remove before
-			m/(\w+)\s+(\w+)/;
+			m/(\w+)\s+(\w+)/
 		}
 	};
 	
 	say "\nSuccessfully logged into $title $name at $hour:$minute:$second\n";
 	
 	my $next_level = do {
-		$content =~ m/You need(.*)exp /;
-		$1 =~ s/[\s,]//gr;
+		given("$content") {
+			s/You need(.*)exp /$1/;
+			s/[\s,]//g;
+			$_
+		}
 	};
 	
 	return ($title, $name, new Math::BigFloat $next_level);
