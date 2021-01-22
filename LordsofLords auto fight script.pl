@@ -164,22 +164,24 @@ sub merge_test() {
 		exit;
 	}
 
-	$content =~ s/\s//sg;
-	$content =~ s/inactive/  BLOCKER /sgi;
-	$content =~ s/EMERGETOBETHEONE!/  STOPPER /sg;
-	$content =~ s/(.*)( BLOCKER )//sg; #remove before
-	$content =~ s/  STOPPER .*//sg; #remove after
-	$content =~ s/"//sg;
-	$content =~ s/<//sg;
-	$content =~ s/>//sg;
-	$content =~ s/optionvalue=//sg;
-	$content =~ s!/option!!sg;
-	$content =~ s!/select/tdtdinputtype=submitname=actionvalue=!!sg;
-	my $merge_list = $content;
+	my $merge_list = do {
+		given("$content") {
+			s/\s//sg;
+			s/inactive/  BLOCKER /sgi;
+			s/EMERGETOBETHEONE!/  STOPPER /sg;
+			s/.* BLOCKER //sg; #remove before
+			s/  STOPPER .*//sg; #remove after
+			s/["<>]//sg;
+			s/optionvalue=//sg;
+			s|/option||sg;
+			s|/select/tdtdinputtype=submitname=actionvalue=||sg;
+			$_
+		}
+	};
 	
 	if($merge_list =~ m/$merger_name/i) {
 		say "MERGER WITH NAME '$merger_name' AVAILABLE!!!";
-		
+
 		return (1, get_merge_id());
 	} else {
 		say "No merger with name '$merger_name' available.";
@@ -199,62 +201,65 @@ sub get_merge_id() {
 		exit;
 	}
 	
-	$content =~ s/inactive+/  BLOCKER /sgi;
-	$content =~ s/EMERGE TO BE THE ONE!/  STOPPER /sg;
-	$content =~ s/(.*)( BLOCKER )//sg; #remove before
-	$content =~ s/  STOPPER .*//sg; #remove after
-	$content =~ s/lady//sgi;
-	$content =~ s/dame//sgi;
-	$content =~ s/masteries//sgi;
-	$content =~ s/judgette//sgi;
-	$content =~ s/cannones//sgi;
-	$content =~ s/counsel//sgi;
-	$content =~ s/baroness//sgi;
-	$content =~ s/mayoress//sgi;
-	$content =~ s/viscountess//sgi;
-	$content =~ s/earless//sgi;
-	$content =~ s/countess//sgi;
-	$content =~ s/marchioness//sgi;
-	$content =~ s/generalia//sgi;
-	$content =~ s/duchess//sgi;
-	$content =~ s/princess//sgi;
-	$content =~ s/queen//sgi;
-	$content =~ s/lord//sgi;
-	$content =~ s/sir//sgi;
-	$content =~ s/master//sgi;
-	$content =~ s/judge//sgi;
-	$content =~ s/cannoner//sgi;
-	$content =~ s/council//sgi;
-	$content =~ s/baron//sgi;
-	$content =~ s/major//sgi;
-	$content =~ s/viscount//sgi;
-	$content =~ s/earl//sgi;
-	$content =~ s/count//sgi;
-	$content =~ s/marquess//sgi;
-	$content =~ s/general//sgi;
-	$content =~ s/duke//sgi;
-	$content =~ s/prince//sgi;
-	$content =~ s/king//sgi;
-	$content =~ s/admin//sgi;
-	$content =~ s/cop//sgi;
-	$content =~ s/mod//sgi;
-	$content =~ s/support//sgi;
-	$content =~ s/demon//sgi;
-	$content =~ s/danger//sgi;
-	$content =~ s/untrust//sgi;
-	$content =~ s/beggar//sgi;
-	$content =~ s/criminal//sgi;
-	$content =~ s/stealer//sgi;
-	$content =~ s/helper//sgi;
-	$content =~ s/<option value="/~/sgi;
-	$content =~ s/\s//sgi;
-	$content =~ s/$merger_name.*/@/sgi;
-	$content =~ s/"//sgi;
-	$content =~ s/>//sgi;
-	$content =~ s/(.*)(~)//sg; #remove before
-	$content =~ s/@.*//sg; #remove after
-	$content =~ s/\s*$//;
-	my $merge_id = $content;
+	my $merge_id = do {
+		given("$content") {
+			s/inactive+/  BLOCKER /sgi;
+			s/EMERGE TO BE THE ONE!/  STOPPER /sg;
+			s/.* BLOCKER //sg; #remove before
+			s/  STOPPER .*//sg; #remove after
+			s/lady//sgi;
+			s/dame//sgi;
+			s/masteries//sgi;
+			s/judgette//sgi;
+			s/cannones//sgi;
+			s/counsel//sgi;
+			s/baroness//sgi;
+			s/mayoress//sgi;
+			s/viscountess//sgi;
+			s/earless//sgi;
+			s/countess//sgi;
+			s/marchioness//sgi;
+			s/generalia//sgi;
+			s/duchess//sgi;
+			s/princess//sgi;
+			s/queen//sgi;
+			s/lord//sgi;
+			s/sir//sgi;
+			s/master//sgi;
+			s/judge//sgi;
+			s/cannoner//sgi;
+			s/council//sgi;
+			s/baron//sgi;
+			s/major//sgi;
+			s/viscount//sgi;
+			s/earl//sgi;
+			s/count//sgi;
+			s/marquess//sgi;
+			s/general//sgi;
+			s/duke//sgi;
+			s/prince//sgi;
+			s/king//sgi;
+			s/admin//sgi;
+			s/cop//sgi;
+			s/mod//sgi;
+			s/support//sgi;
+			s/demon//sgi;
+			s/danger//sgi;
+			s/untrust//sgi;
+			s/beggar//sgi;
+			s/criminal//sgi;
+			s/stealer//sgi;
+			s/helper//sgi;
+			s/<option value="/~/sgi;
+			s/\s//sg;
+			s/$merger_name.*/@/sgi;
+			s/[">]//sg;
+			s/.*~//sg; #remove before
+			s/@.*//sg; #remove after
+			s/\s*$//;
+			$_
+		}
+	};
 	
 	say $merge_id;
 
@@ -272,14 +277,17 @@ sub get_merge_name($merge_id) {
 		exit;
 	}
 
-	$content = $mech->content();
-	$content =~ s/(.*)($merge_id)//sg; #remove before
-	$content =~ s|</option>.*||sg; #remove after
-	$content =~ s/"//sgi;
-	$content =~ s/>//sgi;
-	$content =~ s/\s*$//;
+	my $merge_name = do {
+		given($mech->content()) {
+			s/.*$merge_id//sg; #remove before
+			s|</option>.*||sg; #remove after
+			s/[">]//sg;
+			s/\s*$//;
+			$_
+		}
+	};
 	
-	return $content;
+	return $merge_name;
 }
 
 sub merge($merge_name) {
@@ -297,21 +305,21 @@ sub merge($merge_name) {
 	
 	$mech->form_number(0);
 	$mech->select("inactive", $merge_name);
-	$mech->click_button('value' => 'EMERGE TO BE THE ONE!');
+	$mech->click_button(value => "EMERGE TO BE THE ONE!");
 	
 	$content = $mech->content();
 	
 	say "Successfully merged with: $merge_name";
 	
 	open(FILE, ">>$file_fix MERGERESULTS.txt") or die "failed to open file!!!!";
-	print FILE "$content\n";
+	say FILE $content;
 	close FILE;
 }
 
 sub steal($title, $name) {
 	sleep 1;
 	
-	$mech->get("http://thenewlosthope.net".$URL_SERVER."steal.php");
+	$mech->get("http://thenewlosthope.net${URL_SERVER}steal.php");
 	my $content = $mech->content();
 	
 	unless($content =~ m/Parsed/) {
@@ -324,56 +332,49 @@ sub steal($title, $name) {
 	if($content =~ m/Freeplay/) { # steal only if we have freeplay
 		$content = "<option>$steal_char.*?</option>";
 		
-		my $tmp = $mech->content();
-		
-		if($tmp =~ m/($content)/) {
+		if(my ($opponent) = $mech->content() =~ m|=<option>($steal_char.*?)</option>|) {
 			say "Stealer found";
+			print "Stealing from: $opponent";
+			
+			$mech->form_number(0);
+			$mech->select("Opp", $opponent);
+			$mech->click_button(value => "Steal Stats or Items");
+			
+			my $steal_rec = do {
+				given($mech->content()) {
+					s/sleepers(.*)This/$1/s;
+					s/<.*?>//sg;
+					$_
+				}
+			};
+			
+			print $steal_rec;
+
+			my ($second, $minute, $hour, $day, $month, $year) = localtime(time);
+			my $month_name = $MONTHS[$month];
+			$year += 1900;
+			$month += 1;
+
+			open(FILE, ">>$title$name $file_fix ~ $month_name $year StealRecord.txt") or die "failed to open file!!!!";
+			say FILE "[$day/$month/$year] ~ [$hour:$minute:$second] - you stole $steal_rec";
+			close FILE;
 		} else {
 			say "Stealer not found! - not stealing!";
-			return;
 		}
-		
-		$tmp =~ m/($content)/s;
-		$tmp = $1;
-		$tmp =~ s/<.*?>//sg;
-
-		print "Stealing from: $tmp";
-		
-		$mech->form_number(0);
-		$mech->select("Opp", $tmp);
-		$mech->click_button('value' => 'Steal Stats or Items');
-		
-		$content = $mech->content();
-		$content =~ m/(sleepers.*This)/s;
-		
-		my $steal_rec = $1;
-
-		$steal_rec =~ s/<.*?>//sg;
-		$steal_rec =~ s/sleepers//sg;
-		$steal_rec =~ s/This//sg;
-		
-		print $steal_rec;
-
-		my ($second, $minute, $hour, $day, $month, $year) = localtime(time);
-		$year += 1900;
-		my $month_name = $MONTHS[$month];
-		$month += 1;
-
-		open(FILE, ">>$title$name $file_fix ~ $month_name $year StealRecord.txt") or die "failed to open file!!!!";
-		print FILE "[$day/$month/$year] ~ [$hour:$minute:$second] - you stole $steal_rec\n";
-		close FILE;
 	} else {
 		say "Freeplay not detected, stealing cancelled...";
 	}
 }
 
-sub parse_stats() {
-	($_) = m/(Min<br>.*monster)/s;
-	($_) = m/(\<br.*td\>)/;
-	s/<.*?>/:/sg;
-	s/\.//g;
+sub parse_stats($stats) {
+	given($stats) {
+		s/(Min<br>.*monster)/$1/s;
+		s/(\<br.*td\>)/$1/;
+		s/<.*?>/:/sg;
+		s/\.//g;
+	}
 
-	return (split ":", $_)[1, 2, 4..7];
+	return (split ":", $stats)[1, 2, 4..7];
 }
 
 sub display_levels :prototype(\%; $) ($levels, $handle = *STDOUT) {
@@ -440,6 +441,7 @@ sub get_levels :prototype(\@ %) ($stats, %div_values) {
 		$levels{$key} = new Math::BigFloat do {
 			shift @$stats;
 			s/,//sg;
+			$_
 		};
 	}
 
@@ -556,10 +558,6 @@ sub low_fight :prototype($ \% $) ($level, $levels, $steal_antal) {
 	$content =~ m/(battle)/;
 	$content =~ m/(You have been jailed for violating our rules)/;
 	
-	#my $antal = 500 + int rand (500);
-
-	# Unsure what to do here. Perhaps it's related to this commit? (near the end)
-	# https://github.com/ALANVF/perl-thingy/commit/a5a43a88016b1cefda9236c07e2cd00d76cdff82#diff-f3f0aa1c7cc9604ea1bd0a6b3b5b62fa096daab0866f113d9cc5cb960eb7fa9b
 	$steal_antal = $steal_antal->copy();
 	$steal_antal->bdiv($loop_wait);
 	$steal_antal->bfround(1);
@@ -630,8 +628,6 @@ sub auto_level_up($my_level) {
 		sleep 10;
 		exit;
 	}
-	
-	$content = $mech->content();
 
 	my $actual_level = do {
 		given("$content") {
@@ -1305,31 +1301,27 @@ sub get_content($url, $wait = 1) {
 sub check_shop($update_shop) {
 	my $content = get_shop_content("http://thenewlosthope.net${URL_SERVER}shop.php");
 
-	$content =~ s/(.*)(shopping)//si; #remove before
-	$content =~ s/<\/form>.*//s; #remove after
-	$content =~ s/maxlength//sgi;
-	$content =~ s/\(//sg;
-	$content =~ s/\)//sg;
-	$content =~ s/maxed/fullshop/sgi;
-	$content =~ s/\s//sg;
-	$content =~ s/\n//sgi;
-	$content =~ s/<\/th>//sgi;
-	$content =~ s/<\/tr>//sgi;
-	$content =~ s/<\/td>//sgi;
-	$content =~ s/<tr>//sgi;
-	$content =~ s/<td>//sgi;
-	$content =~ s/width/1/si;
-	$content =~ s/width/2/si;
-	$content =~ s/width/3/si;
-	$content =~ s/width/4/si;
-	$content =~ s/width/5/si;
-	$content =~ s/width/6/si;
-	$content =~ s/width/7/si;
-	$content =~ s/width/8/si;
-	$content =~ s/width/9/si;
-	$content =~ s/width/a/si;
-	$content =~ s/width/b/si;
-	$content =~ s/width/c/si;
+	given($content) {
+		s/.*shopping//si; #remove before
+		s|</form>.*||s; #remove after
+		s/maxlength//gi;
+		s/[()]//g;
+		s/maxed/fullshop/gi;
+		s/\s//g;
+		s|</?t[hrd]>||gi;
+		s/width/1/i;
+		s/width/2/i;
+		s/width/3/i;
+		s/width/4/i;
+		s/width/5/i;
+		s/width/6/i;
+		s/width/7/i;
+		s/width/8/i;
+		s/width/9/i;
+		s/width/a/i;
+		s/width/b/i;
+		s/width/c/i;
+	}
 
 	#open(FILE, ">$file_fix shops.txt")
 	#or die "failed to open file!!!!";
@@ -1338,18 +1330,18 @@ sub check_shop($update_shop) {
 	
 	# Max
 	my $max = $content;
-	$max =~ s/(.*)(max)//si; #remove before
+	$max =~ s/.*max//si; #remove before
 	$max =~ s/price.*//si; #remove after
 	$SHOPMAX = $max if $update_shop;
-	$max =~ s/,//sg;
+	$max =~ s/,//g;
 
 	# Weapon
 	my $aweap = $content;
 	$aweap =~ s/td1.*//si; #remove after
-	$aweap =~ s/(.*)(weapon)//si; #remove before
-	$aweap =~ s/\$.*//si; #remove after
+	$aweap =~ s/.*weapon//si; #remove before
+	$aweap =~ s/\$.*//s; #remove after
 	$SHOPWEAP = $aweap if $update_shop;
-	$aweap =~ s/,//sg;
+	$aweap =~ s/,//g;
 	if($aweap >= $max) {
 		$shop1 = 1;
 		$aweap = "Maxed";
@@ -1359,12 +1351,12 @@ sub check_shop($update_shop) {
 	
 	# Attack spell
 	my $aas = $content;
-	$aas =~ s/(.*)(^td1)//si; #remove before
+	$aas =~ s/.*^td1//si; #remove before
 	$aas =~ s/td2.*//si; #remove after
-	$aas =~ s/(.*)(attackspell)//si; #remove before
-	$aas =~ s/\$.*//si; #remove after
+	$aas =~ s/.*attackspell//si; #remove before
+	$aas =~ s/\$.*//s; #remove after
 	$SHOPAS = $aas if $update_shop;
-	$aas =~ s/,//sg;
+	$aas =~ s/,//g;
 	if($aas >= $max) {
 		$shop2 = 1;
 		$aas = "Maxed";
@@ -1374,12 +1366,12 @@ sub check_shop($update_shop) {
 
 	# Heal spell
 	my $ahs = $content;
-	$ahs =~ s/(.*)(td2)//si; #remove before
+	$ahs =~ s/.*td2//si; #remove before
 	$ahs =~ s/td3.*//si; #remove after
-	$ahs =~ s/(.*)(healspell)//si; #remove before
-	$ahs =~ s/\$.*//si; #remove after
+	$ahs =~ s/.*healspell//si; #remove before
+	$ahs =~ s/\$.*//s; #remove after
 	$SHOPHS = $ahs if $update_shop;
-	$ahs =~ s/,//sg;
+	$ahs =~ s/,//g;
 	if($ahs >= $max) {
 		$shop3 = 1;
 		$ahs = "Maxed";
@@ -1389,12 +1381,12 @@ sub check_shop($update_shop) {
 	
 	# Helmet
 	my $ahelm = $content;
-	$ahelm =~ s/(.*)(td3)//si; #remove before
+	$ahelm =~ s/.*td3//si; #remove before
 	$ahelm =~ s/td4.*//si; #remove after
-	$ahelm =~ s/(.*)(helmet)//si; #remove before
-	$ahelm =~ s/\$.*//si; #remove after
+	$ahelm =~ s/.*helmet//si; #remove before
+	$ahelm =~ s/\$.*//s; #remove after
 	$SHOPHELM = $ahelm if $update_shop;
-	$ahelm =~ s/,//sg;
+	$ahelm =~ s/,//g;
 	if($ahelm >= $max) {
 		$shop4 = 1;
 		$ahelm = "Maxed";
@@ -1404,12 +1396,12 @@ sub check_shop($update_shop) {
 	
 	# Shield
 	my $ashield = $content;
-	$ashield =~ s/(.*)(td4)//si; #remove before
+	$ashield =~ s/.*td4//si; #remove before
 	$ashield =~ s/td5.*//si; #remove after
-	$ashield =~ s/(.*)(shield)//si; #remove before
-	$ashield =~ s/\$.*//si; #remove after
+	$ashield =~ s/.*shield//si; #remove before
+	$ashield =~ s/\$.*//s; #remove after
 	$SHOPSHIELD = $ashield if $update_shop;
-	$ashield =~ s/,//sg;
+	$ashield =~ s/,//g;
 	if($ashield >= $max) {
 		$shop5 = 1;
 		$ashield = "Maxed";
@@ -1419,12 +1411,12 @@ sub check_shop($update_shop) {
 	
 	# Amulet
 	my $aamulet = $content;
-	$aamulet =~ s/(.*)(td5)//si; #remove before
+	$aamulet =~ s/.*td5//si; #remove before
 	$aamulet =~ s/td6.*//si; #remove after
-	$aamulet =~ s/(.*)(amulet)//si; #remove before
-	$aamulet =~ s/\$.*//si; #remove after
+	$aamulet =~ s/.*amulet//si; #remove before
+	$aamulet =~ s/\$.*//s; #remove after
 	$SHOPAMULET = $aamulet if $update_shop;
-	$aamulet =~ s/,//sg;
+	$aamulet =~ s/,//g;
 	if($aamulet >= $max) {
 		$shop6 = 1;
 		$aamulet = "Maxed";
@@ -1434,12 +1426,12 @@ sub check_shop($update_shop) {
 	
 	# Ring
 	my $aring = $content;
-	$aring =~ s/(.*)(td6)//si; #remove before
+	$aring =~ s/.*td6//si; #remove before
 	$aring =~ s/td7.*//si; #remove after
-	$aring =~ s/(.*)(ring)//si; #remove before
-	$aring =~ s/\$.*//si; #remove after
+	$aring =~ s/.*ring//si; #remove before
+	$aring =~ s/\$.*//s; #remove after
 	$SHOPRING = $aring if $update_shop;
-	$aring =~ s/,//sg;
+	$aring =~ s/,//g;
 	if($aring >= $max) {
 		$shop7 = 1;
 		$aring = "Maxed";
@@ -1449,12 +1441,12 @@ sub check_shop($update_shop) {
 	
 	# Armor
 	my $aarm = $content;
-	$aarm =~ s/(.*)(td7)//si; #remove before
+	$aarm =~ s/.*td7//si; #remove before
 	$aarm =~ s/td8.*//si; #remove after
-	$aarm =~ s/(.*)(armor)//si; #remove before
-	$aarm =~ s/\$.*//si; #remove after
+	$aarm =~ s/.*armor//si; #remove before
+	$aarm =~ s/\$.*//s; #remove after
 	$SHOPARMOR = $aarm if $update_shop;
-	$aarm =~ s/,//sg;
+	$aarm =~ s/,//g;
 	if($aarm >= $max) {
 		$shop8 = 1;
 		$aarm = "Maxed";
@@ -1464,12 +1456,12 @@ sub check_shop($update_shop) {
 	
 	# Belt
 	my $abelt = $content;
-	$abelt =~ s/(.*)(td8)//si; #remove before
+	$abelt =~ s/.*td8//si; #remove before
 	$abelt =~ s/td9.*//si; #remove after
-	$abelt =~ s/(.*)(belt)//si; #remove before
-	$abelt =~ s/\$.*//si; #remove after
+	$abelt =~ s/.*belt//si; #remove before
+	$abelt =~ s/\$.*//s; #remove after
 	$SHOPBELT = $abelt if $update_shop;
-	$abelt =~ s/,//sg;
+	$abelt =~ s/,//g;
 	if($abelt >= $max) {
 		$shop9 = 1;
 		$abelt = "Maxed";
@@ -1479,12 +1471,12 @@ sub check_shop($update_shop) {
 	
 	# Pants
 	my $apants = $content;
-	$apants =~ s/(.*)(td9)//si; #remove before
+	$apants =~ s/.*td9//si; #remove before
 	$apants =~ s/tda.*//si; #remove after
-	$apants =~ s/(.*)(pants)//si; #remove before
-	$apants =~ s/\$.*//si; #remove after
+	$apants =~ s/.*pants//si; #remove before
+	$apants =~ s/\$.*//s; #remove after
 	$SHOPPANTS = $apants if $update_shop;
-	$apants =~ s/,//sg;
+	$apants =~ s/,//g;
 	if($apants >= $max) {
 		$shop10 = 1;
 		$apants = "Maxed";
@@ -1494,12 +1486,12 @@ sub check_shop($update_shop) {
 	
 	# Hand
 	my $ahand = $content;
-	$ahand =~ s/(.*)(tda)//si; #remove before
+	$ahand =~ s/.*tda//si; #remove before
 	$ahand =~ s/tdb.*//si; #remove after
-	$ahand =~ s/(.*)(hand)//si; #remove before
-	$ahand =~ s/\$.*//si; #remove after
+	$ahand =~ s/.*hand//si; #remove before
+	$ahand =~ s/\$.*//s; #remove after
 	$SHOPHAND = $ahand if $update_shop;
-	$ahand =~ s/,//sg;
+	$ahand =~ s/,//g;
 	if($ahand >= $max) {
 		$shop11 = 1;
 		$ahand = "Maxed";
@@ -1509,12 +1501,12 @@ sub check_shop($update_shop) {
 	
 	# Feet
 	my $afeet = $content;
-	$afeet =~ s/(.*)(tdb)//si; #remove before
+	$afeet =~ s/.*tdb//si; #remove before
 	$afeet =~ s/tdc.*//si; #remove after
-	$afeet =~ s/(.*)(feet)//si; #remove before
-	$afeet =~ s/\$.*//si; #remove after
+	$afeet =~ s/.*feet//si; #remove before
+	$afeet =~ s/\$.*//s; #remove after
 	$SHOPFEET = $afeet if $update_shop;
-	$afeet =~ s/,//sg;
+	$afeet =~ s/,//g;
 	if($afeet >= $max) {
 		$shop12 = 1;
 		$afeet = "Maxed";
@@ -1626,17 +1618,21 @@ sub buy_upgrades() {
 sub get_my_level() {
 	my $content = get_content("http://thenewlosthope.net${URL_SERVER}main.php", 0.5);
 	
-	$content =~ s/<.*?>//sg;
-	$content =~ m/(Level : .*)/s;
-	$content =~ s/\n/ /g;
-	$content =~ s/LordsofLords/ /g;
-	$content =~ s/ //g;
-	$content =~ s/Exp.*//;
-	$content =~ s/\D//g;
-	$content =~ s/,//g;
+	my $level = do {
+		given("$content") {
+			s/<.*?>//sg;
+			# Useless match: m/(Level : .*)/s
+			s/\n/ /g;
+			s/LordsofLords/ /g;
+			s/ //g;
+			s/Exp.*//;
+			s/\D//g;
+			$_
+		}
+	};
 	
-	my $my_level = new Math::BigFloat $content;
-	my $for_level = format_number($content);
+	my $my_level = new Math::BigFloat $level;
+	my $for_level = format_number($level);
 	
 	say "Your Level is : $for_level";
 	
@@ -1654,10 +1650,10 @@ sub get_char_name($hour, $minute, $second) {
 
 	my ($title, $name) = do {
 		given("$content") {
-			s/(.*)(natural)//si; #remove before
+			s/.*natural//si; #remove before
 			s/th.*//si; #remove after
-			s/<\///si;
-			s/(.*)(for)//si; #remove before
+			s|</||;
+			s/.*for//si; #remove before
 			m/(\w+)\s+(\w+)/
 		}
 	};
