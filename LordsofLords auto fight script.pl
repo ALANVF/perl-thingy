@@ -7,7 +7,7 @@ use integer;
 use Math::BigFloat;
 use Math::BigInt;
 use Time::HiRes qw(sleep);
-#use WWW::Mechanize;
+use WWW::Mechanize;
 use POSIX qw(strftime);
 
 use feature "say";
@@ -39,12 +39,8 @@ my $max_level   = $ARGV[8] or die "max_level error";
 my $parsed; # SHOULD NOT BE GLOBAL
 my ($tmp, $mech);
 my ($a, $b, $c);
-my ($second, $minute, $hour, $day, $month, $year, $week_day, $day_of_year, $is_dst);
 my $users;
 my $date_string;
-my $charname;
-my $title;
-my $name = "";
 my $wdlevel = new Math::BigFloat;
 my $aslevel = new Math::BigFloat;
 my $mslevel = new Math::BigFloat;
@@ -150,7 +146,7 @@ sub min(@values) {
 	return (sort @values)[0]
 }
 
-sub get_steal_wait {
+sub get_steal_wait() {
 	my $steal_wait = 3600;
 	my $steal_time = time;
 	
@@ -194,7 +190,7 @@ sub get_steal_wait {
 	return $steal_wait;
 }
 
-sub merge_test {
+sub merge_test() {
 	sleep 1;
 	
 	$mech->get("http://thenewlosthope.net${URL_SERVER}theone.php");
@@ -229,7 +225,7 @@ sub merge_test {
 	}
 }
 
-sub get_merge_id {
+sub get_merge_id() {
 	sleep 1;
 	
 	$mech->get("http://thenewlosthope.net${URL_SERVER}theone.php");
@@ -325,7 +321,7 @@ sub get_merge_name($merge_id) {
 	return $content;
 }
 
-sub merge {
+sub merge() {
 	sleep 1;
 	
 	$mech->get("http://thenewlosthope.net${URL_SERVER}theone.php");
@@ -353,7 +349,7 @@ sub merge {
 	close FILE;
 }
 
-sub steal {
+sub steal($title, $name) {
 	sleep 1;
 	
 	$mech->get("http://thenewlosthope.net".$URL_SERVER."steal.php");
@@ -412,7 +408,7 @@ sub steal {
 	}
 }
 
-sub parse_stats {
+sub parse_stats() {
 	($_) = m/(Min<br>.*monster)/s;
 	($_) = m/(\<br.*td\>)/;
 	s/<.*?>/:/sg;
@@ -566,14 +562,14 @@ sub low_level :prototype(\%) ($levels) {
 	#return $level;
 }
 
-sub level_up :prototype($ \%) ($myLevel, $levels) {
+sub level_up :prototype($ \%) ($my_level, $levels) {
 	given($char_type) {
-		level_up_agi_mage($myLevel, %$levels)       when 1;
-		level_up_fighter($myLevel, %$levels)        when 2;
-		level_up_mage($myLevel, %$levels)           when 3;
-		level_up_pure_fighter($myLevel, %$levels)   when 4;
-		level_up_pure_mage($myLevel, %$levels)      when 5;
-		level_up_contra_fighter($myLevel, %$levels) when 6;
+		level_up_agi_mage($my_level, %$levels)       when 1;
+		level_up_fighter($my_level, %$levels)        when 2;
+		level_up_mage($my_level, %$levels)           when 3;
+		level_up_pure_fighter($my_level, %$levels)   when 4;
+		level_up_pure_mage($my_level, %$levels)      when 5;
+		level_up_contra_fighter($my_level, %$levels) when 6;
 	}
 }
 
@@ -662,7 +658,7 @@ sub format_number($num) {
 	return $num =~ s/(?<!^)\d{3}(?=(\d{3})*$)/,$&/rgn
 }
 
-sub auto_level_up($myLevel) {
+sub auto_level_up($my_level) {
 	sleep 0.5;
 
 	$mech->get("http://thenewlosthope.net${URL_SERVER}stats.php");
@@ -803,7 +799,7 @@ sub auto_level_up($myLevel) {
 
 		$mech->form_number(1);
 
-		if($content =~ m/Freeplay/i || $myLevel > $masslevel) {
+		if($content =~ m/Freeplay/i || $my_level > $masslevel) {
 			$mech->field("Stats", $auto_level);
 			$mech->click_button(name => "Stats", value => $auto_level);
 		} else {
@@ -913,7 +909,7 @@ sub shorten_amount($amount) {
 	return $amount
 }
 
-sub fight :prototype($ $ $ \%) ($level, $myLevel, $forLevel, $levels) {
+sub fight :prototype($ $ $ $ $ \%) ($name, $level, $my_level, $for_level, $next_level, $levels) {
 	# Setup fight
 	sleep 0.5;
 	
@@ -1070,7 +1066,7 @@ sub fight :prototype($ $ $ \%) ($level, $myLevel, $forLevel, $levels) {
 
 			for my $output (*FILE, *STDOUT) {
 				say $output "MAIN STATUS FOR $name at $hour:$minute:$second~$day/$month/$year\n";
-				say $output "$name\'s current level is $forLevel";
+				say $output "$name\'s current level is $for_level";
 				say $output "You need $next_level EXP to level";
 				say $output "You can expect to level on $date_string";
 				printf $output "Your current CPM level is : %.3e\n", $level->bstr();
@@ -1142,17 +1138,17 @@ sub fight :prototype($ $ $ \%) ($level, $myLevel, $forLevel, $levels) {
 		say "$antal: [$hour:$minute:$second]: $1";
 
 		# level up if necessary
-		level_up($myLevel, %$levels) if $content =~ m/(Congra.*exp)/;
+		level_up($my_level, %$levels) if $content =~ m/(Congra.*exp)/;
 	}
 }
 
-sub level_up_agi_mage :prototype($ \%) ($myLevel, $levels) {
+sub level_up_agi_mage :prototype($ \%) ($my_level, $levels) {
 	$mech->get("http://thenewlosthope.net${URL_SERVER}stats.php");
 	
 	sleep 0.5;
 
 	my $stat_name = do {
-		if($myLevel <= $masslevel) {
+		if($my_level <= $masslevel) {
 			"cStats"
 		} else {
 			"Stats"
@@ -1177,13 +1173,13 @@ sub level_up_agi_mage :prototype($ \%) ($myLevel, $levels) {
 }
 
 
-sub level_up_fighter :prototype($ \%) ($myLevel, $levels) {
+sub level_up_fighter :prototype($ \%) ($my_level, $levels) {
 	$mech->get("http://thenewlosthope.net${URL_SERVER}stats.php");
 	
 	sleep 0.5;
 
 	my $stat_name = do {
-		if($myLevel <= $masslevel) {
+		if($my_level <= $masslevel) {
 			"cStats"
 		} else {
 			"Stats"
@@ -1206,13 +1202,13 @@ sub level_up_fighter :prototype($ \%) ($myLevel, $levels) {
 	test_shop() if $stat_value eq "Strength";
 }
 
-sub level_up_mage :prototype($ \%) ($myLevel, $levels) {
+sub level_up_mage :prototype($ \%) ($my_level, $levels) {
 	$mech->get("http://thenewlosthope.net${URL_SERVER}stats.php");
 	
 	sleep 0.5;
 
 	my $stat_name = do {
-		if($myLevel <= $masslevel) {
+		if($my_level <= $masslevel) {
 			"cStats"
 		} else {
 			"Stats"
@@ -1235,13 +1231,13 @@ sub level_up_mage :prototype($ \%) ($myLevel, $levels) {
 	test_shop() if $stat_value eq "Intelligence";
 }
 
-sub level_up_pure_fighter :prototype($ \%) ($myLevel, $levels) {
+sub level_up_pure_fighter :prototype($ \%) ($my_level, $levels) {
 	$mech->get("http://thenewlosthope.net${URL_SERVER}stats.php");
 	
 	sleep 0.5;
 
 	my $stat_name = do {
-		if($myLevel <= $masslevel) {
+		if($my_level <= $masslevel) {
 			"cStats"
 		} else {
 			"Stats"
@@ -1264,13 +1260,13 @@ sub level_up_pure_fighter :prototype($ \%) ($myLevel, $levels) {
 	test_shop() if $stat_value eq "Strength";
 }
 	
-sub level_up_pure_mage :prototype($ \%) ($myLevel, $levels) {
+sub level_up_pure_mage :prototype($ \%) ($my_level, $levels) {
 	$mech->get("http://thenewlosthope.net${URL_SERVER}stats.php");
 	
 	sleep 0.5;
 
 	my $stat_name = do {
-		if($myLevel <= $masslevel) {
+		if($my_level <= $masslevel) {
 			"cStats"
 		} else {
 			"Stats"
@@ -1294,13 +1290,13 @@ sub level_up_pure_mage :prototype($ \%) ($myLevel, $levels) {
 	test_shop() if $stat_value eq "Intelligence";
 }
 
-sub level_up_contra_fighter :prototype($ \%) ($myLevel, $levels) {
+sub level_up_contra_fighter :prototype($ \%) ($my_level, $levels) {
 	$mech->get("http://thenewlosthope.net${URL_SERVER}stats.php");
 	
 	sleep 0.5;
 
 	my $stat_name = do {
-		if($myLevel <= $masslevel) {
+		if($my_level <= $masslevel) {
 			"cStats"
 		} else {
 			"Stats"
@@ -1574,18 +1570,18 @@ sub check_shop($update_shop) {
 	#print "your current Feet shops is       :$afeet\n";
 }
 
-sub test_shop($char_type) {
+sub test_shop() {
 	check_shop(0);
 
 	if($shop_yes_no == 1) {
-		buy_upgrades($char_type);
+		buy_upgrades();
 	} else {
 		say "Shops were not bought this time";
 		exit;
 	}
 }
 	
-sub buy_upgrades($char_type) {
+sub buy_upgrades() {
 	my $content = get_content("http://thenewlosthope.net${URL_SERVER}shop.php");
 	
 	$mech->form_number(1);
@@ -1660,7 +1656,7 @@ sub buy_upgrades($char_type) {
 	sleep 0.5;
 }
 
-sub get_my_level {
+sub get_my_level() {
 	my $content = get_content("http://thenewlosthope.net${URL_SERVER}main.php", 0.5);
 	
 	$content = $mech->content(); # (USELESS?)
@@ -1673,52 +1669,41 @@ sub get_my_level {
 	$content =~ s/\D//g;
 	$content =~ s/,//g;
 	
-	my $myLevel = new Math::BigFloat $content;
-	my $forLevel = format_number($content);
+	my $my_level = new Math::BigFloat $content;
+	my $for_level = format_number($content);
 	
-	say "Your Level is : $forLevel";
+	say "Your Level is : $for_level";
 	
-	if($max_level <= $myLevel) {
+	if($max_level <= $my_level) {
 		say "You have reached the desired level : EXITING!!";
 		sleep 30;
 		exit;
 	}
 
-	return ($forLevel, $myLevel);
+	return ($for_level, $my_level);
 }
 
-sub get_char_name{
-	$parsed = 0;
-	while(!$parsed) {
-		sleep(0.5);
-		$mech->get("http://thenewlosthope.net".$URL_SERVER."stats.php");
-		$a = $mech->content();
-		if($a =~ m/Parsed/) {
-			$parsed = 1;
+sub get_char_name($hour, $minute, $second) {
+	my $content = get_content("http://thenewlosthope.net${URL_SERVER}stats.php", 0.5);
+
+	my ($title, $name) = do {
+		given("$content") {
+			s/(.*)(natural)//si; #remove before
+			s/th.*//si; #remove after
+			s/<\///si;
+			s/(.*)(for)//si; #remove before
+			m/(\w+)\s+(\w+)/;
 		}
-	}
-	$a = $mech->content();
-	$b = $mech->content();
-	$a =~ s/(.*)(natural)//si; #remove before
-	$a =~ s/th.*//si; #remove after
-	$a =~ s/<\///si;
-	$a =~ s/(.*)(for)//si; #remove before
-	$charname = $a;
-	$charname =~ m/(\w+)\s+(\w+)/;
-	$title = $1;
-	$name = $2;
-	$title =~ s/ //sgi;
-	$name =~ s/ //sgi;
-	print "\nSuccessfully logged into $title $name at $hour:$minute:$second\n\n";
+	};
 	
-	$b =~ m/(You need.*exp )/;
-	$b = $1;
-	$b =~ s/you//i;
-	$b =~ s/need//i;
-	$b =~ s/exp//i;
-	$b =~ s/,//gi;
-	$b =~ s/\s//gi;
-	$next_level = new Math::BigFloat $b;
+	say "\nSuccessfully logged into $title $name at $hour:$minute:$second\n";
+	
+	my $next_level = do {
+		$content =~ m/You need(.*)exp /;
+		$1 =~ s/[\s,]//gr;
+	};
+	
+	return ($title, $name, new Math::BigFloat $next_level);
 }
 
 #---------------------
@@ -1789,7 +1774,8 @@ $mech->form_number(0);
 $mech->field("Username", $username);
 $mech->field("Password", $password);
 $mech->click();
-#my ($second, $minute, $hour, $day, $month, $year, $week_day, $day_of_year, $is_dst) = localtime(time);
+
+my ($second, $minute, $hour) = localtime(time);
 #print "[$hour:$minute:$second] - logged in Successfully to : \n";
 
 
@@ -1806,13 +1792,13 @@ my %levels = (
 
 # Not sure what this is supposed to be doing? This is an infinite loop :/
 for(my $cur_level = $num_levels; $cur_level > 0; $cur_level++) {
-	get_char_name();
+	my ($title, $name, $next_level) = get_char_name($hour, $minute, $second);
 	
-	my ($myLevel, $forLevel) = get_my_level();
+	my ($my_level, $for_level) = get_my_level();
 	
 	check_shop(1);
 	
-	if($myLevel <= 2500000) {
+	if($my_level <= 2500000) {
 		say "\nLow Level Fight mode\n";
 	} else {
 		say "\nHigh Level Fight mode\n";
@@ -1823,18 +1809,18 @@ for(my $cur_level = $num_levels; $cur_level > 0; $cur_level++) {
 		#if($status == 1) {
 		#	merge();
 		#} else {
-			steal();
+			steal($title);
 		#}
 	}
 
-	auto_level_up($myLevel);
+	auto_level_up($my_level);
 	
-	if($myLevel <= 2500000) {
+	if($my_level <= 2500000) {
 		low_level(%levels);
-		low_fight($myLevel, %levels);
+		low_fight($my_level, %levels);
 	} else {
 		cpm_level(%levels);
-		fight($cur_level, $myLevel, $forLevel, %levels);
+		fight($name, $cur_level, $my_level, $for_level, $next_level, %levels);
 	}
 }
 
