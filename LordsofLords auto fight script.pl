@@ -51,7 +51,6 @@ my $level = new Math::BigFloat;
 my $steal_antal = new Math::BigFloat; # SHOULD NOT BE GLOBAL
 my $mytime;
 my $intstrlvl = 0;
-my $merge_name; # SHOULD NOT BE GLOBAL
 my $masslevel = 1500;
 my $alternate = 60;
 my $agi_mage_count = 6;
