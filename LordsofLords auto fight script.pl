@@ -165,7 +165,7 @@ sub get_steal_wait() {
 	$steal_wait = 0;
 
 	if($content =~ m/recover/) {
-		$content = $mech->content(); # (USELESS?)
+		$content = $mech->content();
 		$content =~ m/(Take.*This)/s;
 		
 		$b = $1;
@@ -309,19 +309,17 @@ sub get_merge_name($merge_id) {
 		exit;
 	}
 
-	$content = $mech->content(); # (USELESS?)
+	$content = $mech->content();
 	$content =~ s/(.*)($merge_id)//sg; #remove before
-	$content =~ s~</option>.*~~sg; #remove after
+	$content =~ s|</option>.*||sg; #remove after
 	$content =~ s/"//sgi;
 	$content =~ s/>//sgi;
 	$content =~ s/\s*$//;
 	
-	$merge_name = $content; # SHOULD NOT BE GLOBAL
-	
 	return $content;
 }
 
-sub merge() {
+sub merge($merge_name) {
 	sleep 1;
 	
 	$mech->get("http://thenewlosthope.net${URL_SERVER}theone.php");
@@ -331,8 +329,6 @@ sub merge() {
 		sleep 10;
 		exit;
 	}
-
-	$content = $mech->content(); # (USELESS?)
 	
 	say "Merging with: $merge_name";
 	
@@ -360,7 +356,7 @@ sub steal($title, $name) {
 		exit;
 	}
 
-	$content = $mech->content(); # (USELESS?)
+	$content = $mech->content();
 	
 	if($content =~ m/Freeplay/) { # steal only if we have freeplay
 		$content = "<option>$steal_char.*?</option>";
@@ -669,9 +665,9 @@ sub auto_level_up($my_level) {
 		exit;
 	}
 	
-	$content = $mech->content(); # (USELESS?)
-	$b = $mech->content();
+	$content = $mech->content();
 
+	$b = $mech->content();
 	$b =~ m/(Level : .*Exp :)/;
 	$b = $1;
 	$b =~ s/<\/td> .*//si;
@@ -1659,7 +1655,6 @@ sub buy_upgrades() {
 sub get_my_level() {
 	my $content = get_content("http://thenewlosthope.net${URL_SERVER}main.php", 0.5);
 	
-	$content = $mech->content(); # (USELESS?)
 	$content =~ s/<.*?>//sg;
 	$content =~ m/(Level : .*)/s;
 	$content =~ s/\n/ /g;
@@ -1806,8 +1801,8 @@ for(my $cur_level = $num_levels; $cur_level > 0; $cur_level++) {
 	
 	if(get_steal_wait() == 0) {
 		#my ($status, $result) = merge_test();
-		#if($status == 1) {
-		#	merge();
+		#if($status) {
+		#	merge($result);
 		#} else {
 			steal($title);
 		#}
