@@ -468,8 +468,8 @@ sub get_minimum_level :prototype(\%) ($levels) {
 			when(1) { $levels->@{"as", "def", "mr"} } # for agi mage
 			when(2) { $levels->@{"wd", "ar",  "mr"} } # for fighter
 			when(3) { $levels->@{"as", "ar",  "mr"} } # for mage
-			when(4) { $levels->@{"ws", "ar"},       } # for pure fighter
-			when(5) { $levels->@{"as", "mr"},       } # for pure mage
+			when(4) { $levels->@{"ws", "ar"}        } # for pure fighter
+			when(5) { $levels->@{"as", "mr"}        } # for pure mage
 			when(6) { $levels->@{"wd", "ms",  "ar"} }
 		}
 	};
