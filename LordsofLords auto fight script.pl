@@ -1299,7 +1299,7 @@ sub get_content($url, $wait = 1) {
 }
 
 sub check_shop($update_shop) {
-	my $content = get_shop_content("http://thenewlosthope.net${URL_SERVER}shop.php");
+	my $content = get_content("http://thenewlosthope.net${URL_SERVER}shop.php");
 
 	given($content) {
 		s/.*shopping//si; #remove before
