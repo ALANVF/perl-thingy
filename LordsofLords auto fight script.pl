@@ -266,7 +266,7 @@ sub get_merge_id() {
 	return get_merge_name($merge_id);
 }
 
-sub get_merge_name($merge_id) {
+sub get_merge_name :prototype($) ($merge_id) {
 	sleep 1;
 	
 	$mech->get("http://thenewlosthope.net${URL_SERVER}theone.php");
@@ -290,7 +290,7 @@ sub get_merge_name($merge_id) {
 	return $merge_name;
 }
 
-sub merge($merge_name) {
+sub merge :prototype($) ($merge_name) {
 	sleep 1;
 	
 	$mech->get("http://thenewlosthope.net${URL_SERVER}theone.php");
@@ -316,7 +316,7 @@ sub merge($merge_name) {
 	close FILE;
 }
 
-sub steal($title, $name) {
+sub steal :prototype($ $) ($title, $name) {
 	sleep 1;
 	
 	$mech->get("http://thenewlosthope.net${URL_SERVER}steal.php");
@@ -366,7 +366,7 @@ sub steal($title, $name) {
 	}
 }
 
-sub parse_stats($stats) {
+sub parse_stats :prototype($) ($stats) {
 	given($stats) {
 		s/(Min<br>.*monster)/$1/s;
 		s/(\<br.*td\>)/$1/;
@@ -612,11 +612,11 @@ sub low_fight :prototype($ \% $) ($level, $levels, $steal_antal) {
 	return $steal_antal;
 }
 
-sub format_number($num) {
+sub format_number :prototype($) ($num) {
 	return $num =~ s/(?<!^)\d{3}(?=(\d{3})*$)/,$&/rgn
 }
 
-sub auto_level_up($my_level) {
+sub auto_level_up :prototype($) ($my_level) {
 	state $pure_build = 180;
 
 	sleep 0.5;
@@ -862,7 +862,7 @@ sub cpm_level :prototype(\%) ($levels) {
 	return $level;
 }
 
-sub shorten_amount($amount) {
+sub shorten_amount :prototype($) ($amount) {
 	my $length = length $amount;
 
 	if($length >= 7) {
@@ -1283,7 +1283,7 @@ sub level_up_contra_fighter :prototype($ \%) ($my_level, $levels) {
 	test_shop() if $stat_value eq "Strength";
 }
 
-sub get_content($url, $wait = 1) {
+sub get_content :prototype($; $) ($url, $wait = 1) {
 	my $content;
 	
 	while(1) {
@@ -1298,7 +1298,7 @@ sub get_content($url, $wait = 1) {
 	return $content;
 }
 
-sub check_shop($update_shop) {
+sub check_shop :prototype($) ($update_shop) {
 	my $content = get_content("http://thenewlosthope.net${URL_SERVER}shop.php");
 
 	given($content) {
@@ -1645,7 +1645,7 @@ sub get_my_level() {
 	return ($for_level, $my_level);
 }
 
-sub get_char_name($hour, $minute, $second) {
+sub get_char_name :prototype($ $ $) ($hour, $minute, $second) {
 	my $content = get_content("http://thenewlosthope.net${URL_SERVER}stats.php", 0.5);
 
 	my ($title, $name) = do {
@@ -1774,7 +1774,7 @@ for(my $cur_level = $num_levels; $cur_level > 0; $cur_level++) {
 		#if($status) {
 		#	merge($result);
 		#} else {
-			steal($title);
+			steal($title, $name);
 		#}
 	}
 
