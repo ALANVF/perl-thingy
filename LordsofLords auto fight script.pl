@@ -439,9 +439,10 @@ sub get_levels :prototype(\@ %) ($stats, %div_values) {
 
 	for my $key (keys %levels) {
 		$levels{$key} = new Math::BigFloat do {
-			shift @$stats;
-			s/,//sg;
-			$_
+			given(shift @$stats) {
+				s/,//sg;
+				$_
+			}
 		};
 	}
 
