@@ -1755,8 +1755,7 @@ my %levels = (
 	mr => new Math::BigFloat
 );
 
-# Not sure what this is supposed to be doing? This is an infinite loop :/
-for(my $cur_level = $num_levels; $cur_level > 0; $cur_level++) {
+for(my $cur_level = 0; $cur_level < $num_levels; $cur_level++) {
 	my ($title, $name, $next_level) = get_char_name($hour, $minute, $second);
 	
 	my ($my_level, $for_level) = get_my_level();
