@@ -1642,7 +1642,7 @@ sub get_my_level() {
 		exit;
 	}
 
-	return ($for_level, $my_level);
+	return ($my_level, $for_level);
 }
 
 sub get_char_name :prototype($ $ $) ($hour, $minute, $second) {
